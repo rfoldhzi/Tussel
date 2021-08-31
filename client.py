@@ -1,4 +1,4 @@
-import pygame, sys, random,math,pathlib,os,pickle,copy
+import pygame, sys, random,math,pathlib,os,pickle,copy,subprocess,signal
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -8,6 +8,9 @@ from network import Network
 from UnitDB import UnitDB
 from UnitDB import TechDB
 import methods
+import network
+
+pygame.init()
 
 imageMani = True
 try:
@@ -20,6 +23,8 @@ folder = Path(pathlib.Path(__file__).parent.absolute())
 game = Game(0, False)
 player = 0
 cloudMode = "halo"#sight, poly, halo, clear
+
+serverprocess = None
 
 if False:#Starting board
     import game as gameMod
@@ -103,7 +108,7 @@ class Button:
         else:
             return False
 
-FONT = pygame.font.Font(None, 32)
+FONT = pygame.font.SysFont("arial", 14)
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 
@@ -130,22 +135,23 @@ class InputBox:
             if self.active:
                 if event.key == pygame.K_RETURN:
                     print(self.text)
-                    self.text = ''
+                    self.active = False
+                    #self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
                 # Re-render the text.
-                self.txt_surface = FONT.render(self.text, True, self.color)
+                self.txt_surface = FONT.render(self.text, True, BLACK)
 
     def update(self):
         # Resize the box if the text is too long.
-        width = max(200, self.txt_surface.get_width()+10)
+        width = max(120, self.txt_surface.get_width()+10)
         self.rect.w = width
 
     def draw(self, screen):
         # Blit the text.
-        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+2))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
@@ -1519,7 +1525,7 @@ def cleanUpAfterSelect():
 
 def main(playerCount = None):
     global FPSCLOCK, DISPLAYSURF, highlightSquares, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals, player,game,counter,grid,block_size,playerUnitImages, buildUnitImages,PrevTechHover,CurrentTechHover
-    pygame.init()
+    #pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     
@@ -1638,6 +1644,8 @@ def main(playerCount = None):
             if counter-animateCounter <= animateTime:#Don't continue to watch events
                 break
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+                if serverprocess:
+                    serverprocess.kill()
                 pygame.quit()
                 sys.exit()
             elif event.type == VIDEORESIZE and counter - JustResize > 20:
@@ -1928,18 +1936,23 @@ def main(playerCount = None):
         FPSCLOCK.tick(FPS)
 
 def menu_screen():
+    global serverprocess
     pygame.init()
     run = True
     Cont = True
     clock = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('Tussel')
+    box = InputBox(77, 33, 80, 20)
+    font = pygame.font.SysFont("arial", 40)
 
+    launchServer = Button("Start Server", 10, 60, BLACK, WHITE,18,(150,30))
+    serverRunning = False
     
     while run:
-        clock.tick(30)
+        
         DISPLAYSURF.fill((128, 128, 128))
-        font = pygame.font.SysFont("arial", 60)
+        font = pygame.font.SysFont("arial", 14)
         #text = font.render("Click to Play!", 1, (255,0,0))
         #DISPLAYSURF.blit(text, (200,250))
 
@@ -1948,11 +1961,21 @@ def menu_screen():
         solo.draw(DISPLAYSURF)
         multiplayer = Button("Multiplayer", 200, 200,  BLACK, WHITE,40,(200,70))
         multiplayer.draw(DISPLAYSURF)
-        
-        pygame.display.update()
+        launchServer.draw(DISPLAYSURF)
+        box.update()
+        box.draw(DISPLAYSURF)
+
+        line1 = font.render("Current IP: %s" % network.ip, True, (0,0,0))
+        DISPLAYSURF.blit(line1,(10,10))
+        line1 = font.render("Server IP:", True, (0,0,0))
+        DISPLAYSURF.blit(line1,(10,35))
+
 
         for event in pygame.event.get():
+            box.handle_event(event)
             if event.type == pygame.QUIT:
+                if serverprocess:
+                    serverprocess.kill()
                 pygame.quit()
                 run = False
                 Cont = False
@@ -1963,6 +1986,21 @@ def menu_screen():
                 elif solo.click(event.pos):
                     main(1)
                     run = False
+                elif launchServer.click(event.pos):
+                    serverRunning = True
+                    launchServer.text = "Server Running"
+                    serverprocess = subprocess.Popen(['python', 'server.py'])
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    if network.checkIfIP(box.text):
+                        box.color = GREEN
+                        network.serverIP = box.text
+                    else:
+                        box.color = RED
+
+        
+        pygame.display.update()
+        clock.tick(30)
     return Cont
     
 Continue = True

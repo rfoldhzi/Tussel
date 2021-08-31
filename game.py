@@ -3,7 +3,7 @@ from UnitDB import UnitDB
 from UnitDB import TechDB
 import numpy as np
 import random,operator,json,copy
-import methods, Computer
+import methods, Computer, settings
 from json import JSONEncoder
 
 startingspots = [[0,0],[9,9], [9,0]]
@@ -142,10 +142,11 @@ class Game:
         self.started = False
         self.turn = 0
         self.id = id
-        self.width = 13
-        self.height = 13
-        self.mode = 'halo'
-        self.ai = 1
+        self.width = settings.width #13
+        self.height = settings.height #13
+        self.mode = settings.mode #'halo'
+        self.ai = settings.ai #1
+        self.allai = settings.allai #False
         if makeAreas:
             grid = methods.newGrid(self.width,self.height)
             grid = methods.makeAreas(grid)
@@ -344,6 +345,8 @@ class Game:
         print('stuff')
         #AI = range(len(self.units))
         AI = range(len(self.units)-self.ai,len(self.units))
+        if self.allai:
+            AI = range(len(self.units))
         for v in AI:
             Computer.CurrentAI(self,v)
             self.went[v] = True

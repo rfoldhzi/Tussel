@@ -4,10 +4,52 @@ import methods
 from game import Game
 prev = None
 
+ip = socket.gethostbyname(socket.gethostname())
+serverIP = str(ip)
+abc = '346789QWERTYUPADFGHJKLXCVB'
+
+def getNumberFromIP(ip):
+    l = ip.split(".")
+    x = 0
+    for i in range(3,-1,-1):
+        x += int(l[i])*(256**i)
+    return x
+
+def getIPFromNumber(x):
+    q = []
+    for i in range(4):
+        q.append(str((x%(256**(i+1)))//(256**i)))
+    return ".".join(q)
+
+def getLettersFromNumber(x):
+    q = []
+    for i in range(7):
+        q.append(abc[(x%(26**(i+1)))//(26**i)])
+    return "".join(q)
+
+def getNumberFromLetters(c):
+    x = 0
+    for i in range(6,-1,-1):
+        x += int(abc.find(c[i]))*(26**i)
+    return x
+
+def checkIfIP(t):
+    try:
+        l = t.split(".")
+        if len(l) != 4:
+            return False
+        for v in l:
+            n = int(v)
+            if n<0 or n>255:
+                return False
+        return True
+    except:
+        return False
+
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = '10.143.128.116'
+        self.server = serverIP
         self.port = 5556
         self.addr = (self.server, self.port)
         self.p = self.connect()
