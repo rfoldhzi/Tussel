@@ -2,6 +2,7 @@ import socket, sys, os,random,copy,traceback
 from _thread import *
 import pickle
 from game import Game
+import settings
 
 server = '10.143.128.116'
 port = 5556
@@ -20,7 +21,7 @@ connected = set()
 games = {}
 idCount = 0
 
-playerCount = 2
+playerCount = settings.players
 
 
 def threaded_client(conn, p, gameId):
