@@ -3,8 +3,9 @@ from _thread import *
 import pickle
 from game import Game
 import settings
+import network
 
-server = '10.143.128.116'
+server = network.ip#'10.143.128.116'
 port = 5556
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
