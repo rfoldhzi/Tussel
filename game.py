@@ -602,21 +602,24 @@ class Game:
                             u.stateData = None
 
         #Research
-        for i in self.units:
-            for u in self.units[i]:
+        for playerNum in self.units:
+            for u in self.units[playerNum]:
                 if u.state == "research":#stateData is the tech
                     tech = u.stateData
-                    if tech in self.tech[i]:#If they already have the tech, don't research it
+                    if tech in self.tech[playerNum]:#If they already have the tech, don't research it
                         continue
-                    if not tech in self.progress[i]:
-                        self.progress[i][tech] = 0
-                    self.progress[i][tech] += 1
-                    if self.progress[i][tech] >= TechDB[tech]['time']:#When we have researched enough to unlock
-                        self.tech[i].append(tech)
-                        self.upgradeCurrentUnits(i, tech)
+                    if TechDB[tech]['cost'] > self.resources[playerNum]["energy"]:#Can't afford
+                        continue
+                    if not tech in self.progress[playerNum]:
+                        self.progress[playerNum][tech] = 0
+                    self.progress[playerNum][tech] += 1
+                    self.resources[playerNum]["energy"] -= TechDB[tech]['cost']
+                    if self.progress[playerNum][tech] >= TechDB[tech]['time']:#When we have researched enough to unlock
+                        self.tech[playerNum].append(tech)
+                        self.upgradeCurrentUnits(playerNum, tech)
                         u.state = None
                         u.stateData = None
-                        del self.progress[i][tech]
+                        del self.progress[playerNum][tech]
 
         #Capout Resources at 2000
         cap = 2000

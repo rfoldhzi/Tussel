@@ -809,7 +809,7 @@ def drawClouds():
             i+=1
 
 def updateSelf():
-    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT,DISPLAYSURF, DoneButton, Grid,cloudGrid,explorationGrid, BoardColors,CloudColors,block_size,blueCircle,OrangeHex,RedX,GreenT,cloudMode, playerColors,currentTechMenu
+    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT,DISPLAYSURF, DoneButton, Grid,cloudGrid,explorationGrid, BoardColors,CloudColors,block_size,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode, playerColors,currentTechMenu
     print('blocksize',block_size)
     board_x = game.width
     board_y = game.height
@@ -833,10 +833,13 @@ def updateSelf():
     blueCircle = pygame.image.load("assets/MoveCircle.png")
     OrangeHex = pygame.image.load("assets/BuildHex.png")
     RedX = pygame.image.load("assets/AttackX.png")
+    GreenT = pygame.image.load("assets/HealT.png")
+    Beaker = pygame.image.load("assets/Beaker.png")
     blueCircle = pygame.transform.scale(blueCircle, (block_size, block_size))
     OrangeHex = pygame.transform.scale(OrangeHex, (block_size, block_size))
     RedX = pygame.transform.scale(RedX, (block_size, block_size))
     GreenT = pygame.transform.scale(GreenT, (block_size, block_size))
+    Beaker = pygame.transform.scale(Beaker, (block_size, block_size))
 
     currentTechMenu = []
     
@@ -920,6 +923,9 @@ def animateBoard(g1,g2,t):
     #pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
     drawAnimateGrid()#drawGrid()
     resourcesAnimated(g2,t/animateTime)
+
+    techDrawn = []
+
     for i in g1.units:
         for u in game.units[i]:
             if u.stateData:#In case target isn't selected yet
@@ -976,6 +982,15 @@ def animateBoard(g1,g2,t):
                             print("more colro", color)
                             spots = (u.position,u.stateData[0])
                             drawLine((255,170,0),u.position,u.stateData[0])
+                elif u.state == 'research':
+                    if g1.checkFriendlyPlayer(u, player) and (not u.stateData in techDrawn) and (u.stateData in g2.tech[player]):
+                        img = pygame.image.load("techAssets/%s.png" % u.stateData)
+                        img = pygame.transform.scale(img, (40, 40))
+                        #img = pygame.image.load("assets/%s.png" % v)
+                        #img = pygame.transform.scale(img, (40, 40))
+                        DISPLAYSURF.blit(img,(offset_x+(40+1)*len(techDrawn), endOfBoard_y+10))#(115+41*i, 430)
+                        techDrawn.append(u.stateData)
+                        
                 print("COLOR",color, u.state, u.stateData)
                 if color:
                     drawLine(color,spots[0],spots[1])
@@ -1050,6 +1065,39 @@ def techButtonSize(n):
         techSize = 60
         while math.floor(width/(techSize+1))*math.floor(height/(techSize+1)) < n:
             techSize-=1
+
+def checkTechAffordable(unit, tech):
+    cost = TechDB[tech]['cost']
+    resource = dict(game.resources[player])["energy"]
+
+    #Account for costs of planned units (and planned research)
+    newEnergyCosts = 0
+    for u in game.units[player]:
+        if u != unit and u.state == 'build' and type(u.stateData) == list:
+            cost2 = UnitDB[u.stateData[1]]['cost']
+            if 'abilities' in UnitDB[u.stateData[1]] and 'costly' in UnitDB[u.stateData[1]]['abilities']:
+                cost2 = copy.copy(cost2)
+                count = getCount(u.stateData[1])
+                for v in cost2:
+                    cost2[v] = cost2[v]*(UnitDB[u.stateData[1]]['abilities']['costly']**count)//5*5
+            for v in cost2:
+                if v == "energy":
+                    newEnergyCosts += cost2[v]
+        elif u != unit and u.state == 'research' and type(u.stateData) == str:
+            newEnergyCosts += TechDB[u.stateData]["cost"]
+    
+    for v in newResources:
+        if v == "energy":
+            resource += newResources[v]
+    
+    resource -= newEnergyCosts
+
+    if unit.state == 'resources' and type(unit.stateData) == str:
+        if unit.stateData == "energy":
+            resource -= unit.resourceGen[unit.stateData]
+    if resource < cost:
+        return False
+    return True
 
 currentTechMenu = []
 currentTechImages = {}
@@ -1127,6 +1175,11 @@ def researchMenu():
                 Healthfont = pygame.font.SysFont("arial", 15)
                 text = Healthfont.render(T, 1, WHITE)
                 DISPLAYSURF.blit(text, pos)
+        if not checkTechAffordable(selected, t):
+            s = pygame.Surface((techSize, techSize))
+            s.set_alpha(160)
+            s.fill((0,0,0))
+            DISPLAYSURF.blit(s, pos)
         #Make images (similar to getImage) {DONE}
         #Display button with image on top {Done}
         #add buttons to techbuttons {DONE}
@@ -1272,6 +1325,7 @@ def checkIfAffordable(unit, built):
             cost[v] = cost[v]*(UnitDB[built]['abilities']['costly']**count)//5*5
     resource = dict(game.resources[player])
     
+    #Account for costs of planned units (and planned research)
     newCosts = {'gold':0,'metal':0,'energy':0}
     for u in game.units[player]:
         if u != unit and u.state == 'build' and type(u.stateData) == list:
@@ -1283,6 +1337,8 @@ def checkIfAffordable(unit, built):
                     cost2[v] = cost2[v]*(UnitDB[u.stateData[1]]['abilities']['costly']**count)//5*5
             for v in cost2:
                 newCosts[v] += cost2[v]
+        elif u != unit and u.state == 'research' and type(u.stateData) == str:
+            newCosts["energy"] += TechDB[u.stateData]["cost"]
     
     for v in newResources:
         resource[v] += newResources[v]
