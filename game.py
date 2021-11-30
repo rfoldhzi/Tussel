@@ -10,16 +10,23 @@ startingspots = [[0,0],[9,9], [9,0]]
 board_y = 10
 board_x = 10
 
+#Checks the range of between two positions. A has to be unit, and B can be a unit or a list
 def checkRange(a,b):
     if type(b) == list:
         return max(abs(a.position[0]-b[0]), abs(a.position[1]-b[1]))
     return max(abs(a.position[0]-b.position[0]), abs(a.position[1]-b.position[1]))
 
+#Determines damage dealt when an attack is done. 
+#Formula Damage = (AP/(AP+DP))*Attack*5, AP = Attack * (% of remaining health), DP = Defense * (% of remaining health)
 def damageCalc(a,b):
     attackPower = a.attack*(a.health/a.maxHealth)
     defensePower = b.defense*(b.health/b.maxHealth)
     return round((attackPower/(attackPower+defensePower))*a.attack*5)
 
+#Gets spaces nearby given unit. Can be for speed, range, build, or anything. 
+#If given sp (Speed), it will use that as range. Default is unit's range.
+#If given pos (Position), it will use that as starting point. Default is unit's position.
+#If ignore is false, it will not give spaces that units are in
 def getRangeCircles(game, unit, sp = False, pos = False, ignore = False):#Could be more effiecint
     if not sp:
         sp = unit.range
@@ -33,6 +40,8 @@ def getRangeCircles(game, unit, sp = False, pos = False, ignore = False):#Could 
                     spaces.append([x,y])
     return spaces
 
+#Used to set the state of a unit without a state. Sets their state to generate resources, and 
+#usually picks resource that it genereates the most of
 def setDefaultState(game):
     for i in game.units:
             for u in game.units[i]:
@@ -40,25 +49,30 @@ def setDefaultState(game):
                     u.state = 'resources'
                     u.stateData = max(u.resourceGen.items(), key=operator.itemgetter(1))[0]
 
-def getCount(n, i, game):
+#Returns how many of a specific type of unit a certain player has
+def getCount(unitName, playerNum, game):
     count = 0
-    for u in game.units[i]:
-        if u.name == n:
+    for unit in game.units[playerNum]:
+        if unit.name == unitName:
             count+=1
     return count
 
-def CheckIfGoodToBuild(self, i, u, Grid, pos = False):
+#Determines if a unit can be built on a specific space.
+def CheckIfGoodToBuild(self, playerNum, u, Grid, pos = False):
     if not pos:
         pos = u.stateData[0]
     cost = UnitDB[u.stateData[1]]['cost']
+
+    #Handles the "costly" ability. The specific "costly" stat is the rate of change per already
+    #existing unit. Always rounds down to closest 5
     if 'abilities' in UnitDB[u.stateData[1]] and 'costly' in UnitDB[u.stateData[1]]['abilities']:
         cost = copy.copy(cost)
-        count = getCount(u.stateData[1], i,self)
+        count = getCount(u.stateData[1], playerNum,self)
         for v in cost:
             cost[v] = cost[v]*(UnitDB[u.stateData[1]]['abilities']['costly']**count)//5*5
             
     for v in cost:
-        if self.resources[i][v] < cost[v]:#Check each resource
+        if self.resources[playerNum][v] < cost[v]:#Check each resource
             print("Too expensive")
             return False #If too expensive, ignore build
     if getattr(u,'maxPopulation',False):
@@ -90,7 +104,7 @@ def CheckIfGoodToBuild(self, i, u, Grid, pos = False):
     print("Nothing wrong!")
     return True
 
-UnitID = 0
+UnitID = 0 #Static varible to give a unit a unique ID
 
 class Unit:
     def __init__(self, pos = [0,0], name = 'soldier', parent= None):
@@ -132,6 +146,7 @@ class UnitMaker(Unit):
             setattr(self, k, v)
 
 class Game:
+    #Creates a new game and initilizes all settings and the map
     def __init__(self, id = 0, makeAreas = True):
         self.units = {} #Store players' units
         self.resources = {} #Store players' resource counts
@@ -154,6 +169,8 @@ class Game:
             for i in range(len(self.intGrid)):
                 self.intGrid[i] = int(self.intGrid[i])
             print(type(self.intGrid), type(self.intGrid[0]))
+    
+    #adds a new player and all revelant lists to the game object
     def addPlayer(self):
         p = len(self.units)
         self.units[p] = []
@@ -163,6 +180,8 @@ class Game:
         self.progress[p] = {}
         #b = Unit(startingspots[p], 'town')
         #self.units[p].append(b)
+    
+    #Starts the game and finds starting spots for each of the player's towns
     def start(self):
         if not self.started:
             self.started = True
@@ -193,6 +212,8 @@ class Game:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
                 self.units[p].append(Unit(startingspots[p], "town"))
                 i+=1
+
+    #??? Something to do with JSON stuff
     def generateZippedBytes(self):
         #print(vars(self))
         SELF = self
@@ -219,12 +240,16 @@ class Game:
         """
         #SON = json.loads(ZIP)
         return str.encode(ZIP)
+    
+    #Finds the unit that a player owns at a specified position
     def getUnitFromPos(self,player,x,y):
         post = [x,y]
         for u in self.units[player]:
             if u.position == [x,y]:
                 return u
         return None
+
+    #Finds any unit that is at the specified position
     def getAnyUnitFromPos(self,x,y):
         post = [x,y]
         for i in self.units:
@@ -232,22 +257,32 @@ class Game:
                 if u.position == [x,y]:
                     return u
         return None
+    
+    #Returns the player who owns a specific unit
     def getPlayerfromUnit(self,unit):
         for i in self.units:
             for u in self.units[i]:
                 if u == unit:
                     return i
         return None
+    
+    #Returns true if the same player owns both units
     def checkFriendly(self, unit1, unit2):
         return unit2 in self.units[self.getPlayerfromUnit(unit1)]
+
+    #Returns true if the given player owns the given unit
     def checkFriendlyPlayer(self, unit, player):
         return unit in self.units[player]
+    
+    #Finds the unit with a specific ID
     def getUnitFromID(self, ID):
         for i in self.units:
             for u in self.units[i]:
                 if u.UnitID == ID:
                     return u
         return None
+    
+    #Finds the unit with a specific ID (its different in typing)
     def getUnitFromID2(self, ID):
         for i in self.units:
             for u in self.units[i]:
@@ -256,6 +291,8 @@ class Game:
                 elif type(u) != dict and u.UnitID == ID:
                     return u
         return None
+    
+    #Function to give a unit buffs based on a given tech
     def upgradeTech(self, unit, v):
         currentAbility = v[0]
         if currentAbility == 'unlock build' and v[1] == unit.name:#[1] is builder
@@ -279,17 +316,23 @@ class Game:
             unit.abilities[v[2]] = v[3]#v[2] is ability, v[3] is value
         elif currentAbility == 'typeAbility' and v[1] == unit.type:#[1] is what unit type was affected
             unit.abilities[v[2]] = v[3]#v[2] is ability, v[3] is value
+    
+    #Upgrades a unit with all techs that a player has
     def upgradeUnit(self, unit, player):
         for t in self.tech[player]:
             abil = TechDB[t]['ability']
             for v in abil:
                 self.upgradeTech(unit, v)
+
+    #Upgrades all current units with a specific tech (used when a tech is unlocked)
     def upgradeCurrentUnits(self, player, tech):
         print('upgrading currents')
         abil = TechDB[tech]['ability']
         for unit in self.units[player]:
             for v in abil:
                 self.upgradeTech(unit, v)
+    
+    #I believe this has something to do with decoding given json
     def setState(self,player, data):#unit, state,statedata
         split = data.split(':')
         unit = self.getUnitFromID(split[0])
@@ -308,6 +351,9 @@ class Game:
                 unit.state = state
                 unit.stateData = stateData
                 break#Stop unnessary looping
+    
+    # Triggered when player idicates that they are done manipulating their units. 
+    # If all players are done, round end is triggered.
     def playerDone(self,player):
         self.went[player] = True
         allWent = True
@@ -321,13 +367,19 @@ class Game:
             for p in self.went:
                 self.went[p] = False
             self.round()
+    
+    # Checks if the player is alive. 
+    # Potential Bug: I don't think deleting these is a good idea. I'm commenting it out for now
     def checkIfAlive(self,player):
         if len(self.units[player]) == 0:
-            del(self.units[player])
-            del(self.resources[player])
-            del(self.went[player])
+            #del(self.units[player])
+            #del(self.resources[player])
+            #del(self.went[player])
             return False
         return True
+    
+    # Performs EVERYTHING at the end of a round. 
+    # Order: AI/Default States, Resources, Attack/Heal, Move, Build, Research, Resource Cap
     def round(self):
         """
         grid = methods.intToList(self.intGrid, self.width)
@@ -359,8 +411,8 @@ class Game:
                 if u.state == "resources":#stateData is the type of resource generate
                     self.resources[i][u.stateData] += u.resourceGen[u.stateData]
         #Attack
-        hurtList = {}
-        hunterList = {}
+        hurtList = {} #List for units that are hurt by attacks
+        hunterList = {} #List for units that are doing the attacking
         for i in self.units:
             for u in self.units[i]:
                 if u.state == "attack" and u.stateData: #stateData is target of attack
@@ -368,7 +420,8 @@ class Game:
                     target = u.stateData
                     if type(target) == str:
                         target = self.getUnitFromID(target)
-                    if 'onlyHit' in u.abilities:
+                    #"onlyHit" means attacker can only attack certain unit types
+                    if 'onlyHit' in u.abilities: 
                         if not (target.type in u.abilities['onlyHit']):
                             goodToAttack = False
                     print(vars(u))
@@ -389,6 +442,7 @@ class Game:
                     target = u.stateData
                     if type(target) == str:
                         target = self.getUnitFromID(target)
+                    #"onlyHeal" means attacker can only heal certain unit types
                     if 'onlyHeal' in u.abilities:
                         if not (target.type in u.abilities['onlyHeal']):
                             goodToHeal = False
@@ -398,7 +452,7 @@ class Game:
                             hurtList[target] = 0
                         heal = UnitDB[u.name].get('heal') or 5
                         print("Heal",u.name, heal, target.name)
-                        hurtList[target] -= heal
+                        hurtList[target] -= heal #We use hurt list for healing too
         
         for u in hurtList:#Units get hurt/healed
             print(u.name, "took", hurtList[u])
@@ -416,16 +470,18 @@ class Game:
             if u.parent:
                 par = self.getUnitFromID(u.parent)
                 if par:
-                    if getattr(par,'maxPopulation',False):
+                    if getattr(par,'maxPopulation',False): #Reduces population of parent
                         par.population = max(0,par.population-1)
-            if u in hunterList:
+            if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
+                #"takeover" means a unit is built in dead unit's space
                 if 'takeover' in hunter.abilities:
                     if checkRange(hunter,u) <= 1:
                         hunter.state = 'build'
                         hunter.stateData = [u.position,hunter.abilities['takeover']]
-                elif 'charge' in hunter.abilities:
+                #"charge" means hunter moves into dead unit's space
+                elif 'charge' in hunter.abilities: 
                     print('CHAAAARGEE')
                     if checkRange(hunter,u) <= 1:
                         print('It should work')
@@ -460,7 +516,7 @@ class Game:
         for i in self.units:
             for u in self.units[i]:
                 BlockedSpaces.append(u.position)
-        while True:
+        while True: #continually tries to move units until a cycle goes with no units moving
             cont = False
             for i in self.units:
                 for u in self.units[i]:
@@ -509,9 +565,10 @@ class Game:
                                         affordable = False
                         """
                         if affordable:
-                            if getattr(u,'maxPopulation',False):
+                            if getattr(u,'maxPopulation',False): #increase population
                                 u.population += 1
                             cost = UnitDB[u.stateData[1]]['cost']
+                            #"costly" increases cost of unit based on how many the player already owns
                             if 'abilities' in UnitDB[u.stateData[1]] and 'costly' in UnitDB[u.stateData[1]]['abilities']:
                                 cost = copy.copy(cost)
                                 count = getCount(u.stateData[1], i,self)
@@ -526,6 +583,7 @@ class Game:
                                 self.resources[i][v] -= cost[v]
                             BlockedSpaces.append(u.stateData[0])
 
+                            #"multibuild" tries to build multiple units at once
                             if 'multibuild' in u.abilities:
                                 for k in range(u.abilities['multibuild']):
                                     tiles = getRangeCircles(self, u)
@@ -553,12 +611,13 @@ class Game:
                     if not tech in self.progress[i]:
                         self.progress[i][tech] = 0
                     self.progress[i][tech] += 1
-                    if self.progress[i][tech] >= TechDB[tech]['time']:
+                    if self.progress[i][tech] >= TechDB[tech]['time']:#When we have researched enough to unlock
                         self.tech[i].append(tech)
                         self.upgradeCurrentUnits(i, tech)
                         u.state = None
                         u.stateData = None
                         del self.progress[i][tech]
+
         #Capout Resources at 2000
         cap = 2000
         for i in self.resources:
@@ -569,7 +628,7 @@ class Game:
         
                             
 
-
+#This part recreates the game from JSON from the server
 class GameMaker(Game):
     def __init__(self, text):
         #print("TEST", text)
