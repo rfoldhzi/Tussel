@@ -129,6 +129,7 @@ class Unit:
             "metal": 0,
             "energy": 0
             }
+        #self.resourceGen = dict(self.resourceGen)
         self.abilities = UnitDB[name].get('abilities') or {}
         self.position = pos
         if ('build' in self.possibleStates and self.type == 'building') or UnitDB[name].get('population'):
@@ -392,6 +393,45 @@ class Game:
             self.intGrid[i] = int(self.intGrid[i])
         """
 
+        buffedUnitOrignals = {}
+
+        for playerNum in self.units:
+            for unit in self.units[playerNum]:
+                if 'buff' in unit.abilities:
+                    print("Buffing nearby units...")
+                    tiles = getRangeCircles(self, unit, sp = 1, ignore = True)
+                    for pos in tiles:
+                        unit2 = self.getUnitFromPos(playerNum,pos[0],pos[1])
+                        if unit2 and unit2 != unit: #Ensure there is a unit, and also can't buff self
+                            print("This guy is getting BUFFED")
+                            targetStat = unit.abilities['buff'][0]
+                            if not unit2 in buffedUnitOrignals:
+                                buffedUnitOrignals[unit2] = {}
+                            if targetStat == 'production': #We do this for production because its not a normal stat to buff
+                                print("BUFFING PRODUCTION")
+                                #buffedUnitOrignals[unit2] = {"stat":targetStat, "orig": unit2.resourceGen}
+                                targetUnits = unit.abilities['buff'][1]
+                                if unit2.name in targetUnits:
+                                    print("BUFFING PRODUCTION EVEN BETTER")
+                                    multiplier = unit.abilities['buff'][2]
+                                    if not targetStat in buffedUnitOrignals[unit2]:
+                                        buffedUnitOrignals[unit2][targetStat] = dict(unit2.resourceGen)
+                                    print("current production for",unit2,'is',unit2.resourceGen)
+                                    unit2.resourceGen = dict(unit2.resourceGen)
+                                    for r in unit2.resourceGen:
+                                        unit2.resourceGen[r] = int(unit2.resourceGen[r] * multiplier)
+                                    print("New production for",unit2,'is',unit2.resourceGen)
+                                
+                            else:
+                                    
+                                multiplier = unit.abilities['buff'][1]
+                                print("This guy's %s was buffed" % targetStat)
+                                #buffedUnitOrignals[unit2] = {"stat":targetStat, "orig": getattr(unit2, targetStat)}
+                                if not targetStat in buffedUnitOrignals[unit2]:
+                                    buffedUnitOrignals[unit2][targetStat] = getattr(unit2, targetStat)
+                                setattr(unit2, targetStat, getattr(unit2, targetStat) * multiplier)
+
+
         
         self.turn += 1
         print('stuff')
@@ -627,6 +667,17 @@ class Game:
             for v in self.resources[i]:
                 if self.resources[i][v] > cap:
                     self.resources[i][v] = cap
+
+        print("Right about HERE:")
+        print(buffedUnitOrignals)
+        for unit in buffedUnitOrignals:
+            for targetStat in buffedUnitOrignals[unit]:
+                print("buff was reversed")
+                if targetStat == "production":
+                    unit.resourceGen = buffedUnitOrignals[unit][targetStat]
+                else:
+                    setattr(unit, targetStat, buffedUnitOrignals[unit][targetStat])
+        
         print('MORE stuff')
         
                             

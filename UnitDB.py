@@ -50,6 +50,11 @@ UnitDB = {
         'heal':10,
         'abilities':{'onlyHeal':['trooper']},
     },
+    'general':{
+        'cost': {'gold':300},
+        'possibleStates': ['move','attack'],
+        'abilities':{'buff':['attack', 1.5]},
+    },
     'bot':{
         'cost': {'metal':25,'energy':5},
         'type': 'bot',
@@ -168,6 +173,50 @@ UnitDB = {
             "gold": 30,
             "metal": 10,
             "energy": 0
+        }
+    },
+    'mine shaft':{
+        'cost': {'gold':20, 'metal':50},
+        'possibleStates': ['none'],
+        'type': 'building',
+        'health': 15,
+        'defense': 1,
+        'abilities':{'buff':['production',['mine'], 1.5]},
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+    'power grid':{
+        'cost': {'gold':50, 'metal':50, 'energy':50},
+        'possibleStates': ['none'],
+        'type': 'building',
+        'health': 15,
+        'defense': 1,
+        'abilities':{'buff':['production',['power plant', 'nuclear plant'], 1.5]},
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+    'recycler':{
+        'cost': {'gold':20, 'metal':50, 'energy':10},
+        'possibleStates': ['none'],
+        'type': 'building',
+        'health': 15,
+        'defense': 1,
+        'abilities':{'buff':['production',['factory'], 1.5]},
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+    'shield generator':{
+        'cost': {'metal':20,'energy':100},
+        'possibleStates': ['none'],
+        'type': 'building',
+        'health': 15,
+        'defense': 2,
+        'abilities':{'buff':['defense', 1.5]},
+        'resourceGen':{
+            "gold": 0,
         }
     },
     'turret':{
@@ -479,7 +528,7 @@ UnitDB = {
     
     'wall':{
         'cost': {'metal':25},
-        'possibleStates': ['resourceGen'],
+        'possibleStates': ['none'],
         'type': 'building',
         'health': 20,
         'defense': 3,
@@ -972,6 +1021,12 @@ TechDB = {
         'cost': 20,
         'time': 4,
         'ability': [['typeStat', 'trooper', 'defense', 0.5]],
+        'unlocks': ['commanding presence'],
+    },
+    'commanding presence':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['unlock build', 'barracks', 'general']],
         'unlocks': [],
     },
     'defensive recruitment':{
