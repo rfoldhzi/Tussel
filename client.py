@@ -10,20 +10,7 @@ from UnitDB import TechDB
 import methods
 import network
 
-
-pygame.mixer.pre_init(44100, -16, 1, 512)
-
 pygame.init()
-
-trooper_affirmative = pygame.mixer.Sound("audio/trooper_affirmative2.wav")
-
-affirmative = {
-    "trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
-    "bot": pygame.mixer.Sound("audio/bot_affirmative.wav"),
-    "building": pygame.mixer.Sound("audio/building_affirmative.wav"),
-}   
-construction = pygame.mixer.Sound("audio/construction.wav")     
-end_of_round_beeps = pygame.mixer.Sound("audio/end_of_round.wav")      
 
 imageMani = True
 try:
@@ -1606,13 +1593,6 @@ def main(playerCount = None):
 
     mouseDown = False
 
-    pygame.mixer.music.load("audio/overview_music.wav")
-  
-    # Setting the volume
-    pygame.mixer.music.set_volume(0.3)
-    
-    # Start playing the song
-    pygame.mixer.music.play(-1)
     
     #image = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
     #image2 = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
@@ -1679,7 +1659,6 @@ def main(playerCount = None):
                 print(vars(r))
                 if roundEnd(game,r):
                     print("I think the round ended.....")
-                    end_of_round_beeps.play()
                     animateCounter = int(counter)
                     if r:
                         if r.ready:
@@ -1827,7 +1806,6 @@ def main(playerCount = None):
                 elif stateDataMode == 'build2':
                     selected.state = None
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
-                        construction.play()
                         selected.stateData.insert(0,[x,y])
                         n.send(convertToStr(selected,'build',selected.stateData))
                         selected.state = 'build'
@@ -1967,10 +1945,6 @@ def main(playerCount = None):
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
                         selected = game.getUnitFromPos(player,x,y)
                         if selected:#When unit clicked
-                            
-                            if selected.type in affirmative:
-                                affirmative[selected.type].play()
-
                             print(vars(selected))
                             highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
