@@ -21,7 +21,16 @@ affirmative = {
     "trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
     "bot": pygame.mixer.Sound("audio/bot_affirmative.wav"),
     "building": pygame.mixer.Sound("audio/building_affirmative.wav"),
-}   
+    "vehicle": pygame.mixer.Sound("audio/rev.wav"),
+    "aircraft": pygame.mixer.Sound("audio/plane_radio.wav"),
+} 
+
+resource_audio = {
+    "gold": pygame.mixer.Sound("audio/coins.wav"),
+    "metal": pygame.mixer.Sound("audio/mining.wav"),
+    "energy": pygame.mixer.Sound("audio/zap.wav"),
+}
+
 construction = pygame.mixer.Sound("audio/construction.wav")     
 end_of_round_beeps = pygame.mixer.Sound("audio/end_of_round.wav")      
 
@@ -1225,8 +1234,8 @@ def drawBoard():
                 pygame.draw.rect(DISPLAYSURF, playerColors[i], rect)
             else:
                 pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
-        print('selected',selected)
-        print('stateDataMode',stateDataMode)
+        #print('selected',selected)
+        #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
             print('researching....')
             researchMenu()
@@ -1613,6 +1622,8 @@ def main(playerCount = None):
     
     # Start playing the song
     pygame.mixer.music.play(-1)
+
+    start_music = 0
     
     #image = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
     #image2 = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
@@ -1799,6 +1810,9 @@ def main(playerCount = None):
                             n.send(convertToStr(selected,'resources',btn))
                             selected.stateData = btn
                             selected.state = 'resources'
+
+                            resource_audio[btn].play()
+
                         resourceBtns[btn].deDraw(DISPLAYSURF)
                     cleanUpAfterSelect()
                     #Here is to sumbit to server
@@ -1837,6 +1851,14 @@ def main(playerCount = None):
                 elif stateDataMode == 'research':
                     print('RESEARCH CLICK')
                     selected.state = None
+
+                    play_time = pygame.mixer.music.get_pos()
+                    pygame.mixer.music.load("audio/overview_music.mp3")
+                    pygame.mixer.music.set_volume(0.3)
+                    start_music = (start_music + play_time/1000.0) % 32
+                    pygame.mixer.music.play(-1, start_music)
+
+
                     print('currentTechButtons',currentTechButtons)
                     for btn in currentTechButtons:
                         if btn.click(pygame.mouse.get_pos()):
@@ -1844,6 +1866,7 @@ def main(playerCount = None):
                             selected.stateData = btn.name
                             n.send(convertToStr(selected,'research',selected.stateData))
                             selected.state = 'research'
+                            break
                     cleanUpAfterSelect()
                     drawBoard()   
                 elif selected:
@@ -1920,6 +1943,13 @@ def main(playerCount = None):
                                 print('the same was clicked')
                                 if 'research' in newSelected.possibleStates:
                                     stateDataMode = 'research'
+
+                                    play_time = pygame.mixer.music.get_pos()
+                                    pygame.mixer.music.load("audio/lab_music.mp3")
+                                    pygame.mixer.music.set_volume(0.3)
+                                    start_music = (start_music + play_time/1000.0) % 32
+                                    pygame.mixer.music.play(-1, start_music)
+
                                     drawBoard()
                                     #selected.stateData = game.getAnyUnitFromPos(x,y)
                                     #selected.state = 'attack'
@@ -1927,6 +1957,10 @@ def main(playerCount = None):
                             elif newSelected:#Unit is clicked
                                 print('a unit was clicked')
                                 selected = newSelected
+
+                                if selected.type in affirmative:
+                                    affirmative[selected.type].play()
+
                                 highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
                                 possibleAttacks = getAttacks(selected)
@@ -2031,6 +2065,10 @@ def menu_screen():
     launchServer = Button("Start Server", 10, 60, BLACK, WHITE,18,(150,30))
     serverRunning = False
     
+    pygame.mixer.music.load("audio/menu_music.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
     while run:
         
         DISPLAYSURF.fill((128, 128, 128))
