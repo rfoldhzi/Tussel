@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 import pygame, sys, random,math,pathlib,os,pickle,copy,subprocess,signal
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
@@ -10,7 +11,47 @@ from UnitDB import TechDB
 import methods
 import network
 
+
+pygame.mixer.pre_init(44100, -16, 1, 512)
+
 pygame.init()
+
+trooper_affirmative = pygame.mixer.Sound("audio/trooper_affirmative2.wav")
+
+affirmative = {
+    "trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    "bot": pygame.mixer.Sound("audio/bot_affirmative.wav"),
+    "building": pygame.mixer.Sound("audio/building_affirmative.wav"),
+    "vehicle": pygame.mixer.Sound("audio/rev.wav"),
+    "aircraft": pygame.mixer.Sound("audio/plane_radio.wav"),
+} 
+
+
+attack_audio = {
+    #"trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    ##"bot": pygame.mixer.Sound("audio/robot_intruder.wav"),
+    ##"building": pygame.mixer.Sound("audio/building_attack.wav"),
+    #"vehicle": pygame.mixer.Sound("audio/rev.wav"),
+    ##"aircraft": pygame.mixer.Sound("audio/target_acquired.wav"),
+} 
+
+move_audio = {
+    #"trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    ##"bot": pygame.mixer.Sound("audio/robot_move.wav"),
+    #"vehicle": pygame.mixer.Sound("audio/rev.wav"),
+    #"aircraft": pygame.mixer.Sound("audio/target_acquired.wav"),
+} 
+
+resource_audio = {
+    "gold": pygame.mixer.Sound("audio/coins.wav"),
+    "metal": pygame.mixer.Sound("audio/mining.wav"),
+    "energy": pygame.mixer.Sound("audio/zap.wav"),
+}
+
+construction = pygame.mixer.Sound("audio/construction.wav")     
+end_of_round_beeps = pygame.mixer.Sound("audio/end_of_round.wav") 
+
+research_selected_audio = pygame.mixer.Sound("audio/lab_selected.wav")   
 
 imageMani = True
 try:
@@ -171,6 +212,19 @@ def convertToStr(u, state, stateData):#n.send([selected,'move',[x,y]])):
         s+= '%s:%s:' % tuple(stateData[0])
         s+= stateData[1]
     return s
+
+def PlaySoundByUnit(selected, sound_type):
+    sound_dict = None
+
+    if sound_type == "affirmative":
+        sound_dict = affirmative
+    elif sound_type == "attack":
+        sound_dict = attack_audio
+    elif sound_type == "move":
+        sound_dict = move_audio
+
+    if selected.type in sound_dict:
+        sound_dict[selected.type].play()
 
 def checkRange(a,b):
     if type(b) == list:
@@ -1212,8 +1266,8 @@ def drawBoard():
                 pygame.draw.rect(DISPLAYSURF, playerColors[i], rect)
             else:
                 pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
-        print('selected',selected)
-        print('stateDataMode',stateDataMode)
+        #print('selected',selected)
+        #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
             print('researching....')
             researchMenu()
@@ -1593,6 +1647,15 @@ def main(playerCount = None):
 
     mouseDown = False
 
+    pygame.mixer.music.load("audio/overview_music.wav")
+  
+    # Setting the volume
+    pygame.mixer.music.set_volume(0.3)
+    
+    # Start playing the song
+    pygame.mixer.music.play(-1)
+
+    start_music = 0
     
     #image = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
     #image2 = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
@@ -1659,6 +1722,7 @@ def main(playerCount = None):
                 print(vars(r))
                 if roundEnd(game,r):
                     print("I think the round ended.....")
+                    end_of_round_beeps.play()
                     animateCounter = int(counter)
                     if r:
                         if r.ready:
@@ -1704,6 +1768,11 @@ def main(playerCount = None):
                     serverprocess.kill()
                 pygame.quit()
                 sys.exit()
+            elif event.type == KEYUP:
+                if event.key == 109: # 'm' Key
+                    pygame.mixer.music.pause()
+                elif event.key == 110: # 'n' Key
+                    pygame.mixer.music.unpause()
             elif event.type == VIDEORESIZE and counter - JustResize > 20:
                 JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
@@ -1756,6 +1825,9 @@ def main(playerCount = None):
                 if stateDataMode == 'move':
                     selected.state = None
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
+
+                        PlaySoundByUnit(selected, stateDataMode)
+
                         n.send(convertToStr(selected,'move',[x,y]))
                         selected.stateData = [x,y]
                         selected.state = 'move'
@@ -1765,6 +1837,9 @@ def main(playerCount = None):
                 if stateDataMode == 'attack':
                     selected.state = None
                     if game.getAnyUnitFromPos(x,y):
+                        
+                        PlaySoundByUnit(selected, stateDataMode)
+
                         n.send(convertToStr(selected,'attack',game.getAnyUnitFromPos(x,y)))
                         selected.stateData = game.getAnyUnitFromPos(x,y)
                         selected.state = 'attack'
@@ -1778,6 +1853,9 @@ def main(playerCount = None):
                             n.send(convertToStr(selected,'resources',btn))
                             selected.stateData = btn
                             selected.state = 'resources'
+
+                            resource_audio[btn].play()
+
                         resourceBtns[btn].deDraw(DISPLAYSURF)
                     cleanUpAfterSelect()
                     #Here is to sumbit to server
@@ -1806,6 +1884,7 @@ def main(playerCount = None):
                 elif stateDataMode == 'build2':
                     selected.state = None
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
+                        construction.play()
                         selected.stateData.insert(0,[x,y])
                         n.send(convertToStr(selected,'build',selected.stateData))
                         selected.state = 'build'
@@ -1815,13 +1894,25 @@ def main(playerCount = None):
                 elif stateDataMode == 'research':
                     print('RESEARCH CLICK')
                     selected.state = None
+
+                    play_time = pygame.mixer.music.get_pos()
+                    pygame.mixer.music.load("audio/overview_music.mp3")
+                    pygame.mixer.music.set_volume(0.3)
+                    start_music = (start_music + play_time/1000.0) % 32
+                    pygame.mixer.music.play(-1, start_music)
+
+
                     print('currentTechButtons',currentTechButtons)
                     for btn in currentTechButtons:
                         if btn.click(pygame.mouse.get_pos()):
                             print('ONE OF THEM WAS CLICKKKEDD!!')
+
+                            research_selected_audio.play()
+
                             selected.stateData = btn.name
                             n.send(convertToStr(selected,'research',selected.stateData))
                             selected.state = 'research'
+                            break
                     cleanUpAfterSelect()
                     drawBoard()   
                 elif selected:
@@ -1877,6 +1968,9 @@ def main(playerCount = None):
                         if [x,y] in moveCircles: #A move was clicked
                             selected.stateData = [x,y]
                             selected.state = 'move'
+
+                            PlaySoundByUnit(selected, "move")
+
                             n.send(convertToStr(selected,'move',[x,y]))
                             cleanUpAfterSelect()
                             print(selected)
@@ -1884,6 +1978,9 @@ def main(playerCount = None):
                         elif [x,y] in possibleAttacks:
                             selected.stateData = game.getAnyUnitFromPos(x,y)
                             selected.state = 'attack'
+
+                            PlaySoundByUnit(selected, "attack")
+
                             n.send(convertToStr(selected,'attack',selected.stateData))
                             cleanUpAfterSelect()
                             #Here is to sumbit to server
@@ -1898,6 +1995,13 @@ def main(playerCount = None):
                                 print('the same was clicked')
                                 if 'research' in newSelected.possibleStates:
                                     stateDataMode = 'research'
+
+                                    play_time = pygame.mixer.music.get_pos()
+                                    pygame.mixer.music.load("audio/lab_music.mp3")
+                                    pygame.mixer.music.set_volume(0.3)
+                                    start_music = (start_music + play_time/1000.0) % 32
+                                    pygame.mixer.music.play(-1, start_music)
+
                                     drawBoard()
                                     #selected.stateData = game.getAnyUnitFromPos(x,y)
                                     #selected.state = 'attack'
@@ -1905,6 +2009,9 @@ def main(playerCount = None):
                             elif newSelected:#Unit is clicked
                                 print('a unit was clicked')
                                 selected = newSelected
+
+                                PlaySoundByUnit(selected, "affirmative")
+
                                 highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
                                 possibleAttacks = getAttacks(selected)
@@ -1945,6 +2052,9 @@ def main(playerCount = None):
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
                         selected = game.getUnitFromPos(player,x,y)
                         if selected:#When unit clicked
+                            
+                            PlaySoundByUnit(selected, "affirmative")
+
                             print(vars(selected))
                             highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
@@ -2005,6 +2115,10 @@ def menu_screen():
     launchServer = Button("Start Server", 10, 60, BLACK, WHITE,18,(150,30))
     serverRunning = False
     
+    pygame.mixer.music.load("audio/menu_music.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
     while run:
         
         DISPLAYSURF.fill((128, 128, 128))
