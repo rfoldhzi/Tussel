@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import pygame, sys, random,math,pathlib,os,pickle,copy,subprocess,signal
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -12,46 +12,48 @@ import methods
 import network
 
 
-pygame.mixer.pre_init(44100, -16, 1, 512)
+import GlobalVaribles as GV
 
-pygame.init()
+GV.pygame.mixer.pre_init(44100, -16, 1, 512)
 
-trooper_affirmative = pygame.mixer.Sound("audio/trooper_affirmative2.wav")
+GV.pygame.init()
+
+trooper_affirmative = GV.pygame.mixer.Sound("audio/trooper_affirmative2.wav")
 
 affirmative = {
-    "trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
-    "bot": pygame.mixer.Sound("audio/bot_affirmative.wav"),
-    "building": pygame.mixer.Sound("audio/building_affirmative.wav"),
-    "vehicle": pygame.mixer.Sound("audio/rev.wav"),
-    "aircraft": pygame.mixer.Sound("audio/plane_radio.wav"),
+    "trooper": GV.pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    "bot": GV.pygame.mixer.Sound("audio/bot_affirmative.wav"),
+    "building": GV.pygame.mixer.Sound("audio/building_affirmative.wav"),
+    "vehicle": GV.pygame.mixer.Sound("audio/rev.wav"),
+    "aircraft": GV.pygame.mixer.Sound("audio/plane_radio.wav"),
 } 
 
 
 attack_audio = {
-    #"trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
-    ##"bot": pygame.mixer.Sound("audio/robot_intruder.wav"),
-    ##"building": pygame.mixer.Sound("audio/building_attack.wav"),
-    #"vehicle": pygame.mixer.Sound("audio/rev.wav"),
-    ##"aircraft": pygame.mixer.Sound("audio/target_acquired.wav"),
+    #"trooper": GV.pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    ##"bot": GV.pygame.mixer.Sound("audio/robot_intruder.wav"),
+    ##"building": GV.pygame.mixer.Sound("audio/building_attack.wav"),
+    #"vehicle": GV.pygame.mixer.Sound("audio/rev.wav"),
+    ##"aircraft": GV.pygame.mixer.Sound("audio/target_acquired.wav"),
 } 
 
 move_audio = {
-    #"trooper": pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
-    ##"bot": pygame.mixer.Sound("audio/robot_move.wav"),
-    #"vehicle": pygame.mixer.Sound("audio/rev.wav"),
-    #"aircraft": pygame.mixer.Sound("audio/target_acquired.wav"),
+    #"trooper": GV.pygame.mixer.Sound("audio/trooper_affirmative2.wav"),
+    ##"bot": GV.pygame.mixer.Sound("audio/robot_move.wav"),
+    #"vehicle": GV.pygame.mixer.Sound("audio/rev.wav"),
+    #"aircraft": GV.pygame.mixer.Sound("audio/target_acquired.wav"),
 } 
 
 resource_audio = {
-    "gold": pygame.mixer.Sound("audio/coins.wav"),
-    "metal": pygame.mixer.Sound("audio/mining.wav"),
-    "energy": pygame.mixer.Sound("audio/zap.wav"),
+    "gold": GV.pygame.mixer.Sound("audio/coins.wav"),
+    "metal": GV.pygame.mixer.Sound("audio/mining.wav"),
+    "energy": GV.pygame.mixer.Sound("audio/zap.wav"),
 }
 
-construction = pygame.mixer.Sound("audio/construction.wav")     
-end_of_round_beeps = pygame.mixer.Sound("audio/end_of_round.wav") 
+construction = GV.pygame.mixer.Sound("audio/construction.wav")     
+end_of_round_beeps = GV.pygame.mixer.Sound("audio/end_of_round.wav") 
 
-research_selected_audio = pygame.mixer.Sound("audio/lab_selected.wav")   
+research_selected_audio = GV.pygame.mixer.Sound("audio/lab_selected.wav")   
 
 imageMani = True
 try:
@@ -83,7 +85,7 @@ if False:#Starting board
     game.resources[0]['energy'] = 2000
 
 FPS = 30 # frames per second, the general speed of the program
-pygame.display.set_caption('Hello World!')
+GV.pygame.display.set_caption('Hello World!')
 
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
@@ -113,7 +115,7 @@ resourceColors = {
 }
 
 
-#Healthfont = pygame.font.SysFont("arial", 10)
+#Healthfont = GV.pygame.font.SysFont("arial", 10)
 
 
 class Button:
@@ -131,14 +133,14 @@ class Button:
             self.name = title
 
     def draw(self, win):
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
-        font = pygame.font.SysFont("arial", self.size)
+        GV.pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
+        font = GV.pygame.font.SysFont("arial", self.size)
         text = font.render(self.text, 1, self.textColor)
         win.blit(text, (self.x + round(self.width/2) - round(text.get_width()/2), self.y + round(self.height/2) - round(text.get_height()/2)))
         self.active = True
 
     def deDraw(self, win):
-        pygame.draw.rect(win, BGCOLOR, (self.x-1, self.y-1, self.width+2, self.height+2))
+        GV.pygame.draw.rect(win, BGCOLOR, (self.x-1, self.y-1, self.width+2, self.height+2))
         self.active = False
 
     def click(self, pos):
@@ -149,21 +151,21 @@ class Button:
         else:
             return False
 
-FONT = pygame.font.SysFont("arial", 14)
-COLOR_INACTIVE = pygame.Color('lightskyblue3')
-COLOR_ACTIVE = pygame.Color('dodgerblue2')
+FONT = GV.pygame.font.SysFont("arial", 14)
+COLOR_INACTIVE = GV.pygame.Color('lightskyblue3')
+COLOR_ACTIVE = GV.pygame.Color('dodgerblue2')
 
 class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
-        self.rect = pygame.Rect(x, y, w, h)
+        self.rect = GV.pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
         self.text = text
         self.txt_surface = FONT.render(text, True, self.color)
         self.active = False
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == GV.pygame.MOUSEBUTTONDOWN:
             # If the user clicked on the input_box rect.
             if self.rect.collidepoint(event.pos):
                 # Toggle the active variable.
@@ -172,13 +174,13 @@ class InputBox:
                 self.active = False
             # Change the current color of the input box.
             self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
-        if event.type == pygame.KEYDOWN:
+        if event.type == GV.pygame.KEYDOWN:
             if self.active:
-                if event.key == pygame.K_RETURN:
+                if event.key == GV.pygame.K_RETURN:
                     print(self.text)
                     self.active = False
                     #self.text = ''
-                elif event.key == pygame.K_BACKSPACE:
+                elif event.key == GV.pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
@@ -194,7 +196,7 @@ class InputBox:
         # Blit the text.
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+2))
         # Blit the rect.
-        pygame.draw.rect(screen, self.color, self.rect, 2)
+        GV.pygame.draw.rect(screen, self.color, self.rect, 2)
 
 def convertToStr(u, state, stateData):#n.send([selected,'move',[x,y]])):
     s = '%s:%s:' % (u.UnitID, state)
@@ -286,8 +288,8 @@ def gridMouse(x,y,block,offx, offy):
     return math.floor(x/(block+1)), int(y/(block+1))
 
 def highlightSquare(x,y):
-    rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-    pygame.draw.rect(DISPLAYSURF, (255,255,255), rect)
+    rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+    GV.pygame.draw.rect(DISPLAYSURF, (255,255,255), rect)
 
 def getMoveCircles(unit):#Could be more effiecint
     if not 'move' in unit.possibleStates:
@@ -543,17 +545,17 @@ def getCount(n):
     return count
 
 #Get rid of this function later
-image = pygame.image.load("assets/%s.png" % "soldier")
+image = GV.pygame.image.load("assets/%s.png" % "soldier")
 def showUnit(x,y, im = image):
     DISPLAYSURF.blit(im,(x*(block_size+1)+offset_x-1, y*(block_size+1)+offset_y-1))
     
     t = str(random.randint(0,20))#Health Value
-    Healthfont = pygame.font.SysFont("arial", 15)
+    Healthfont = GV.pygame.font.SysFont("arial", 15)
     text = Healthfont.render(t, 1, RED)
     DISPLAYSURF.blit(text, (x*(block_size+1)+offset_x+38-(7*len(t)), y*(block_size+1)+offset_y+23))
     
-    rect = pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
-    pygame.draw.rect(DISPLAYSURF, (0,255,255), rect)
+    rect = GV.pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
+    GV.pygame.draw.rect(DISPLAYSURF, (0,255,255), rect)
 unitImages = {}
 darkunitImages = {}
 playerUnitImages = {}
@@ -565,7 +567,7 @@ buildUnitImages = {}
 #playerColors = [(201, 59, 54,255),(150,150,150,255),(0, 195, 255,255),(107, 64, 0),(167, 242, 46)]
 playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
 #playerColors = [(230,230,230),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
-AIcolors = [(150,150,150),(50,50,50),(230,230,230)]
+AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),(161, 224, 255) ]
 """
 Colors:
 Red: (201, 59, 54,255)
@@ -604,8 +606,8 @@ def getImage(name, p, Pictures = 1, size = False):
             for j in range(img.size[1]):
                 if pixels[i,j] == changeColor:
                     pixels[i,j] = playerColors[p]
-        img = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-        img = pygame.transform.scale(img, (size, size))
+        img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
+        img = GV.pygame.transform.scale(img, (size, size))
         Pictures[p][name] = img
     return Pictures[p][name]
 
@@ -621,8 +623,8 @@ def showUnitNEW(unit):
     """
     if unit in game.units[player] or (not imageMani):
         if not unit.name in unitImages:
-            img = pygame.image.load("assets/%s.png" % unit.name)
-            img = pygame.transform.scale(img, (40, 40))
+            img = GV.pygame.image.load("assets/%s.png" % unit.name)
+            img = GV.pygame.transform.scale(img, (40, 40))
             unitImages[unit.name] = img
         image = unitImages[unit.name]
     else:
@@ -632,14 +634,14 @@ def showUnitNEW(unit):
             for i in range(img.size[0]): # for every pixel:
                 for j in range(img.size[1]):
                     pixels[i,j] = (int(pixels[i,j][0]/2),int(pixels[i,j][1]/2),int(pixels[i,j][2]/2),pixels[i,j][3])
-            img = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-            darkunitImages[unit.name] = pygame.transform.scale(img, (40, 40))
+            img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
+            darkunitImages[unit.name] = GV.pygame.transform.scale(img, (40, 40))
         image = darkunitImages[unit.name]
     """
     DISPLAYSURF.blit(image,(x*(block_size+1)+offset_x-1, y*(block_size+1)+offset_y-1))
     
     t = str(unit.health)
-    Healthfont = pygame.font.SysFont("arial", 15)
+    Healthfont = GV.pygame.font.SysFont("arial", 15)
     text = Healthfont.render(t, 1, WHITE)
     #DISPLAYSURF.blit(text, (x*(block_size+1)+offset_x+38-(7*len(t)), y*(block_size+1)+offset_y+23))
     DISPLAYSURF.blit(text, (x*(block_size+1)+offset_x+(block_size-2)-(7*len(t)), y*(block_size+1)+offset_y+(block_size-17)))
@@ -647,12 +649,12 @@ def showUnitNEW(unit):
     #State square
     if unit.state != None and unit in game.units[player]:
         #print(vars(unit))
-        rect = pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
+        rect = GV.pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
         if unit.state == 'resources':
             if unit.stateData and type(unit.stateData) == str and unit.stateData in resourceColors:
-                pygame.draw.rect(DISPLAYSURF, resourceColors[unit.stateData], rect)
+                GV.pygame.draw.rect(DISPLAYSURF, resourceColors[unit.stateData], rect)
         else:
-            pygame.draw.rect(DISPLAYSURF, StateColors[unit.state], rect)
+            GV.pygame.draw.rect(DISPLAYSURF, StateColors[unit.state], rect)
 
 
 def animateUnit(unit1, unit2,t,player):
@@ -672,8 +674,8 @@ def animateUnit(unit1, unit2,t,player):
             for j in range(img.size[1]):
                 if pixels[i,j] == changeColor:
                     pixels[i,j] = playerColors[player]
-        img = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-        img = pygame.transform.scale(img, (block_size, block_size))
+        img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
+        img = GV.pygame.transform.scale(img, (block_size, block_size))
         playerUnitImages[player][unit.name] = img
     """
     image = getImage(unit.name, player)
@@ -697,7 +699,7 @@ def animateUnit(unit1, unit2,t,player):
     if default:#No move
         DISPLAYSURF.blit(image,(x*(block_size+1)+offset_x-1, y*(block_size+1)+offset_y-1))
         T = str(unit.health)
-        Healthfont = pygame.font.SysFont("arial", 15)
+        Healthfont = GV.pygame.font.SysFont("arial", 15)
         text = Healthfont.render(T, 1, WHITE)
         if unit1 and unit2:
             if unit2.health < unit1.health:
@@ -716,39 +718,39 @@ def animateUnit(unit1, unit2,t,player):
             unit = unit2
         if unit.state != None and unit1 in game.units[player]:
             #print(vars(unit))
-            rect = pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
+            rect = GV.pygame.Rect(x*(block_size+1)+offset_x+block_size - 9, y*(block_size+1)+offset_y+4, 5, 5)
             if unit.state == 'resources':
                 if unit.stateData and type(unit.stateData) == str and unit.stateData in resourceColors:
-                    pygame.draw.rect(DISPLAYSURF, resourceColors[unit.stateData], rect)
+                    GV.pygame.draw.rect(DISPLAYSURF, resourceColors[unit.stateData], rect)
             else:
-                pygame.draw.rect(DISPLAYSURF, StateColors[unit.state], rect)
+                GV.pygame.draw.rect(DISPLAYSURF, StateColors[unit.state], rect)
     if unit1 == unit2:
         DISPLAYSURF.blit(RedX,(x*(block_size+1)+offset_x-1, y*(block_size+1)+offset_y-1))
 
 def drawLine(color,pos1,pos2):
-    pygame.draw.line(DISPLAYSURF, color, ((block_size+1)*pos1[0]+offset_x+block_size/2,(block_size+1)*pos1[1]+offset_y+block_size/2),((block_size+1)*pos2[0]+offset_x+block_size/2,(block_size+1)*pos2[1]+offset_y+block_size/2),10)
+    GV.pygame.draw.line(DISPLAYSURF, color, ((block_size+1)*pos1[0]+offset_x+block_size/2,(block_size+1)*pos1[1]+offset_y+block_size/2),((block_size+1)*pos2[0]+offset_x+block_size/2,(block_size+1)*pos2[1]+offset_y+block_size/2),10)
 
 def drawGrid():
     i = 0
     for y in range(board_y):
         for x in range(board_x):
-            rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-            pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
+            rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+            GV.pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
             i+=1
             
 def drawAnimateGrid():
     i = 0
     for y in range(board_y):
         for x in range(board_x):
-            rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+            rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
             if animateGrid[y][x]:
-                pass#pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
+                pass#GV.pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
             else:
-                pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
+                GV.pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
             """
             if animateGrid[y][x]:
-                rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-                pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
+                rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+                GV.pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
             """
             i+=1
 
@@ -758,10 +760,10 @@ def drawGridHighlight():
         for x in range(board_x):
             rect = None
             if [x,y] in highlightSquares:
-                rect = pygame.Rect(x*(block_size+1)+offset_x+1, y*(block_size+1)+offset_y+1, block_size-1, block_size-1)
+                rect = GV.pygame.Rect(x*(block_size+1)+offset_x+1, y*(block_size+1)+offset_y+1, block_size-1, block_size-1)
             else:
-                rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-            pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
+                rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+            GV.pygame.draw.rect(DISPLAYSURF, BoardColors[i], rect)
             i+=1
 
 animateTime = 20
@@ -792,11 +794,11 @@ cloudGrid = []
 explorationGrid = []
 animateGrid = []
 
-blueCircle = pygame.image.load("assets/MoveCircle.png")
-OrangeHex = pygame.image.load("assets/BuildHex.png")
-RedX = pygame.image.load("assets/AttackX.png")
-GreenT = pygame.image.load("assets/HealT.png")
-Beaker = pygame.image.load("assets/Beaker.png")
+blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
+RedX = GV.pygame.image.load("assets/AttackX.png")
+GreenT = GV.pygame.image.load("assets/HealT.png")
+Beaker = GV.pygame.image.load("assets/Beaker.png")
 print(type(blueCircle))
 
 DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
@@ -848,18 +850,18 @@ def drawClouds():
     for y in range(board_y):
         for x in range(board_x):
             if cloudGrid[y][x] and cloudMode != "halo":
-                rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-                pygame.draw.rect(DISPLAYSURF, CloudColors[i], rect)
+                rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+                GV.pygame.draw.rect(DISPLAYSURF, CloudColors[i], rect)
             elif cloudMode == "halo":
                 if explorationGrid[y][x]:
-                    rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
-                    pygame.draw.rect(DISPLAYSURF, CloudColors[i], rect)
+                    rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+                    GV.pygame.draw.rect(DISPLAYSURF, CloudColors[i], rect)
                 elif cloudGrid[y][x]:
-                    rect = pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
+                    rect = GV.pygame.Rect(x*(block_size+1)+offset_x, y*(block_size+1)+offset_y, block_size+1, block_size+1)
                     #color = list( map(add, CloudColors[i], BoardColors[i]) )
                     color = list( map(add, (0,0,0), BoardColors[i]) )
                     color = [x / 2 for x in color]
-                    pygame.draw.rect(DISPLAYSURF, color, rect)
+                    GV.pygame.draw.rect(DISPLAYSURF, color, rect)
             i+=1
 
 def updateSelf():
@@ -880,20 +882,20 @@ def updateSelf():
     WINDOWWIDTH = offset_x*2+(block_size+1)*board_x#640
     WINDOWHEIGHT = offset_y+60+(block_size+1)*board_y
 
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
+    DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     DISPLAYSURF.fill(BGCOLOR)
     DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
 
-    blueCircle = pygame.image.load("assets/MoveCircle.png")
-    OrangeHex = pygame.image.load("assets/BuildHex.png")
-    RedX = pygame.image.load("assets/AttackX.png")
-    GreenT = pygame.image.load("assets/HealT.png")
-    Beaker = pygame.image.load("assets/Beaker.png")
-    blueCircle = pygame.transform.scale(blueCircle, (block_size, block_size))
-    OrangeHex = pygame.transform.scale(OrangeHex, (block_size, block_size))
-    RedX = pygame.transform.scale(RedX, (block_size, block_size))
-    GreenT = pygame.transform.scale(GreenT, (block_size, block_size))
-    Beaker = pygame.transform.scale(Beaker, (block_size, block_size))
+    blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+    OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
+    RedX = GV.pygame.image.load("assets/AttackX.png")
+    GreenT = GV.pygame.image.load("assets/HealT.png")
+    Beaker = GV.pygame.image.load("assets/Beaker.png")
+    blueCircle = GV.pygame.transform.scale(blueCircle, (block_size, block_size))
+    OrangeHex = GV.pygame.transform.scale(OrangeHex, (block_size, block_size))
+    RedX = GV.pygame.transform.scale(RedX, (block_size, block_size))
+    GreenT = GV.pygame.transform.scale(GreenT, (block_size, block_size))
+    Beaker = GV.pygame.transform.scale(Beaker, (block_size, block_size))
 
     currentTechMenu = []
     
@@ -973,8 +975,8 @@ def animationGrid(g1,g2):
 NotAlreadyReady = True
 
 def animateBoard(g1,g2,t):
-    #rect = pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
-    #pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+    #rect = GV.pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
+    #GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
     drawAnimateGrid()#drawGrid()
     resourcesAnimated(g2,t/animateTime)
 
@@ -1038,10 +1040,10 @@ def animateBoard(g1,g2,t):
                             drawLine((255,170,0),u.position,u.stateData[0])
                 elif u.state == 'research':
                     if g1.checkFriendlyPlayer(u, player) and (not u.stateData in techDrawn) and (u.stateData in g2.tech[player]):
-                        img = pygame.image.load("techAssets/%s.png" % u.stateData)
-                        img = pygame.transform.scale(img, (40, 40))
-                        #img = pygame.image.load("assets/%s.png" % v)
-                        #img = pygame.transform.scale(img, (40, 40))
+                        img = GV.pygame.image.load("techAssets/%s.png" % u.stateData)
+                        img = GV.pygame.transform.scale(img, (40, 40))
+                        #img = GV.pygame.image.load("assets/%s.png" % v)
+                        #img = GV.pygame.transform.scale(img, (40, 40))
                         DISPLAYSURF.blit(img,(offset_x+(40+1)*len(techDrawn), endOfBoard_y+10))#(115+41*i, 430)
                         techDrawn.append(u.stateData)
                         
@@ -1191,8 +1193,8 @@ def researchMenu():
     #print('all',( (block_size+1)*board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
     extraY = ( (block_size+1)*board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
-    rect = pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
-    pygame.draw.rect(DISPLAYSURF, BLACK, rect)
+    rect = GV.pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
+    GV.pygame.draw.rect(DISPLAYSURF, BLACK, rect)
 
     maybeDeny = []
     if CurrentTechHover:
@@ -1205,18 +1207,18 @@ def researchMenu():
         b.active = True
         currentTechButtons.append(b)
         if not t in currentTechImages:
-            img = pygame.image.load("techAssets/%s.png" % t)
-            img = pygame.transform.scale(img, (techSize, techSize))
+            img = GV.pygame.image.load("techAssets/%s.png" % t)
+            img = GV.pygame.transform.scale(img, (techSize, techSize))
             currentTechImages[t] = img
         pos = (x*(techSize+1)+offset_x-1+extraX, y*(techSize+1)+offset_y-1+extraY)
         DISPLAYSURF.blit(currentTechImages[t], pos)
         if t in maybeDeny:
-            s = pygame.Surface((techSize, techSize))
+            s = GV.pygame.Surface((techSize, techSize))
             s.set_alpha(128)
             s.fill((0,0,0))
             DISPLAYSURF.blit(s, pos)
         if t == CurrentTechHover:
-            s = pygame.Surface((techSize, techSize))
+            s = GV.pygame.Surface((techSize, techSize))
             s.set_alpha(25)
             s.fill((255,255,255))
             DISPLAYSURF.blit(s, pos)
@@ -1226,11 +1228,11 @@ def researchMenu():
                 n -= game.progress[player][t]
             if n > 1:
                 T = str(n)
-                Healthfont = pygame.font.SysFont("arial", 15)
+                Healthfont = GV.pygame.font.SysFont("arial", 15)
                 text = Healthfont.render(T, 1, WHITE)
                 DISPLAYSURF.blit(text, pos)
         if not checkTechAffordable(selected, t):
-            s = pygame.Surface((techSize, techSize))
+            s = GV.pygame.Surface((techSize, techSize))
             s.set_alpha(160)
             s.fill((0,0,0))
             DISPLAYSURF.blit(s, pos)
@@ -1261,11 +1263,11 @@ def drawBoard():
         #print("WENT", game.went)
         #print(vars(game))
         for i in game.went:
-            rect = pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
+            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
             if game.went[i]:
-                pygame.draw.rect(DISPLAYSURF, playerColors[i], rect)
+                GV.pygame.draw.rect(DISPLAYSURF, playerColors[i], rect)
             else:
-                pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+                GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
         #print('selected',selected)
         #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
@@ -1273,8 +1275,8 @@ def drawBoard():
             researchMenu()
             return
         currentlyResearch = False
-        rect = pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
-        pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+        rect = GV.pygame.Rect(offset_x-1,offset_y-1, (block_size+1)*board_x+1,(block_size+1)*board_y+1)#+offset_x,410+offset_y)
+        GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
         for v in highlightSquares:
             highlightSquare(v[0],v[1])
         if len(highlightSquares) > 0:
@@ -1341,7 +1343,7 @@ def drawBoard():
         updateCloudCover()
         drawClouds()
     else:
-        font = pygame.font.SysFont("arial", 60)
+        font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
         DISPLAYSURF.blit(text, (200,200))
 
@@ -1360,9 +1362,9 @@ def resources():
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
     newResources = res
-    rect = pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
-    pygame.draw.rect(DISPLAYSURF, (50,50,50), rect)
-    Healthfont = pygame.font.SysFont("arial", 15)
+    rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    GV.pygame.draw.rect(DISPLAYSURF, (50,50,50), rect)
+    Healthfont = GV.pygame.font.SysFont("arial", 15)
     text = Healthfont.render("%s + %s" % (str(game.resources[player]['gold']), res['gold']), 1, (255,255,0))
     DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(game.resources[player]['metal']), res['metal']), 1, (255,255,255))
@@ -1411,9 +1413,9 @@ def resourcesAnimated(g2,t=0):
         if u.state == 'resources':
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
-    rect = pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
-    pygame.draw.rect(DISPLAYSURF, (50,50,50), rect)
-    Healthfont = pygame.font.SysFont("arial", 15)
+    rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    GV.pygame.draw.rect(DISPLAYSURF, (50,50,50), rect)
+    Healthfont = GV.pygame.font.SysFont("arial", 15)
     text = Healthfont.render("%s + %s" % (str(int(Lerp(game.resources[player]['gold'],g2.resources[player]['gold'],t))), res['gold']), 1, (255,255,0))
     DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(int(Lerp(game.resources[player]['metal'],g2.resources[player]['metal'],t))), res['metal']), 1, (255,255,255))
@@ -1430,10 +1432,10 @@ def statInfo(unit):
     currentStatInfo = unit
     if type(unit) == str:
         unit = Unit('',unit)
-    rect = pygame.Rect(endOfBoard_x+5, 5, 180,410)#+offset_x,410+offset_y)
-    pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+offset_x,410+offset_y)
+    GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
     fontsize = 15
-    font = pygame.font.SysFont("arial", fontsize)
+    font = GV.pygame.font.SysFont("arial", fontsize)
     text = [
         unit.name.title(),
         '',
@@ -1488,10 +1490,10 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     if 'tech'+tech == currentStatInfo:
         return
     currentStatInfo = 'tech'+tech
-    rect = pygame.Rect(endOfBoard_x+5, 5, 180,410)#+offset_x,410+offset_y)
-    pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+offset_x,410+offset_y)
+    GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
     fontsize = 15
-    font = pygame.font.SysFont("arial", fontsize)
+    font = GV.pygame.font.SysFont("arial", fontsize)
     text = []
     name = tech.title().split()
     for i, v in enumerate(name):
@@ -1580,7 +1582,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     for v in UnitDB[unit.name]['cost']:
         text.append('  %s %s'%(cost[v],v))
     """
-    smallFont = pygame.font.SysFont("arial", 10, bold=False, italic=True)
+    smallFont = GV.pygame.font.SysFont("arial", 10, bold=False, italic=True)
     
     #text = Healthfont.render(t, 1, (0,0,0))
     label = []
@@ -1626,8 +1628,8 @@ def cleanUpAfterSelect():
     buildHexes = []
     possibleAttacks = []
     possibleHeals = []
-    rect = pygame.Rect(endOfBoard_x+5, 5, 180,410)
-    pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)
+    GV.pygame.draw.rect(DISPLAYSURF, BGCOLOR, rect)
     for btn in btns:
         btns[btn].deDraw(DISPLAYSURF)
     for v in extraButtons:
@@ -1635,30 +1637,30 @@ def cleanUpAfterSelect():
 
 def main(playerCount = None):
     global FPSCLOCK, DISPLAYSURF, highlightSquares, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals, player,game,counter,grid,block_size,playerUnitImages, buildUnitImages,PrevTechHover,CurrentTechHover
-    #pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
+    #GV.pygame.init()
+    FPSCLOCK = GV.pygame.time.Clock()
+    DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     
     mousex = 0 # used to store x coordinate of mouse event
     mousey = 0 # used to store y coordinate of mouse event
-    pygame.display.set_caption('Blank')
+    GV.pygame.display.set_caption('Blank')
 
     DISPLAYSURF.fill(BGCOLOR)
 
     mouseDown = False
 
-    pygame.mixer.music.load("audio/overview_music.wav")
+    GV.pygame.mixer.music.load("audio/overview_music.wav")
   
     # Setting the volume
-    pygame.mixer.music.set_volume(0.3)
+    GV.pygame.mixer.music.set_volume(0.3)
     
     # Start playing the song
-    pygame.mixer.music.play(-1)
+    GV.pygame.mixer.music.play(-1)
 
     start_music = 0
     
-    #image = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
-    #image2 = pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
+    #image = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
+    #image2 = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
     """
     g = newGrid(board_x,board_y)
     #makeAreas(g)
@@ -1686,7 +1688,7 @@ def main(playerCount = None):
     drawBoard()
     
     #resources()
-    #pygame.draw.line(DISPLAYSURF, (0,255,255), (20+offset_x,20+offset_y),(61+offset_x,20+offset_y),10)
+    #GV.pygame.draw.line(DISPLAYSURF, (0,255,255), (20+offset_x,20+offset_y),(61+offset_x,20+offset_y),10)
 
     #for btn in btns:
         #btns[btn].draw(DISPLAYSURF)
@@ -1760,19 +1762,19 @@ def main(playerCount = None):
             drawBoard()
             resources()
         
-        for event in pygame.event.get():
+        for event in GV.pygame.event.get():
             if counter-animateCounter <= animateTime:#Don't continue to watch events
                 break
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
                 if serverprocess:
                     serverprocess.kill()
-                pygame.quit()
+                GV.pygame.quit()
                 sys.exit()
             elif event.type == KEYUP:
                 if event.key == 109: # 'm' Key
-                    pygame.mixer.music.pause()
+                    GV.pygame.mixer.music.pause()
                 elif event.key == 110: # 'n' Key
-                    pygame.mixer.music.unpause()
+                    GV.pygame.mixer.music.unpause()
             elif event.type == VIDEORESIZE and counter - JustResize > 20:
                 JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
@@ -1789,7 +1791,7 @@ def main(playerCount = None):
                     if 'build' in selected.possibleStates:#If they are able to build
                         unfound = True
                         for btn in extraButtons:
-                            if extraButtons[btn].click(pygame.mouse.get_pos()):#If one of the unit options is clicked
+                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
                                 statInfo(btn)
                                 unfound = False
                                 break
@@ -1798,7 +1800,7 @@ def main(playerCount = None):
                 if stateDataMode == 'research':
                     unfound = True
                     for btn in currentTechButtons:
-                        if btn.click(pygame.mouse.get_pos()):
+                        if btn.click(GV.pygame.mouse.get_pos()):
                             if btn.name != CurrentTechHover:
                                 PrevTechHover = str(CurrentTechHover)
                                 CurrentTechHover = btn.name
@@ -1849,7 +1851,7 @@ def main(playerCount = None):
                 elif stateDataMode == 'resources':
                     selected.state = None
                     for btn in resourceBtns:
-                        if resourceBtns[btn].click(pygame.mouse.get_pos()):#If one of the resources is clicked
+                        if resourceBtns[btn].click(GV.pygame.mouse.get_pos()):#If one of the resources is clicked
                             n.send(convertToStr(selected,'resources',btn))
                             selected.stateData = btn
                             selected.state = 'resources'
@@ -1863,7 +1865,7 @@ def main(playerCount = None):
                 elif stateDataMode == 'build':
                     offclick = True
                     for btn in extraButtons:
-                        if extraButtons[btn].click(pygame.mouse.get_pos()):#If one of the unit options is clicked
+                        if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
                             selected.stateData = [btn]
                             stateDataMode = 'build2'
                             statInfo(btn)
@@ -1895,16 +1897,16 @@ def main(playerCount = None):
                     print('RESEARCH CLICK')
                     selected.state = None
 
-                    play_time = pygame.mixer.music.get_pos()
-                    pygame.mixer.music.load("audio/overview_music.mp3")
-                    pygame.mixer.music.set_volume(0.3)
+                    play_time = GV.pygame.mixer.music.get_pos()
+                    GV.pygame.mixer.music.load("audio/overview_music.mp3")
+                    GV.pygame.mixer.music.set_volume(0.3)
                     start_music = (start_music + play_time/1000.0) % 32
-                    pygame.mixer.music.play(-1, start_music)
+                    GV.pygame.mixer.music.play(-1, start_music)
 
 
                     print('currentTechButtons',currentTechButtons)
                     for btn in currentTechButtons:
-                        if btn.click(pygame.mouse.get_pos()):
+                        if btn.click(GV.pygame.mouse.get_pos()):
                             print('ONE OF THEM WAS CLICKKKEDD!!')
 
                             research_selected_audio.play()
@@ -1917,7 +1919,7 @@ def main(playerCount = None):
                     drawBoard()   
                 elif selected:
                     for btn in btns:
-                        if btns[btn].click(pygame.mouse.get_pos()):#If button clicked, set state of unit
+                        if btns[btn].click(GV.pygame.mouse.get_pos()):#If button clicked, set state of unit
                             selected.state = btn
                             selected.stateData = None
                             stateDataMode = btn
@@ -1942,15 +1944,15 @@ def main(playerCount = None):
                                     b.draw(DISPLAYSURF)
                                     img = getImage(v, player, buildUnitImages, 40)
                                     #buildUnitImages
-                                    #img = pygame.image.load("assets/%s.png" % v)
-                                    #img = pygame.transform.scale(img, (40, 40))
+                                    #img = GV.pygame.image.load("assets/%s.png" % v)
+                                    #img = GV.pygame.transform.scale(img, (40, 40))
                                     DISPLAYSURF.blit(img,(offset_x+(block_size+1)*i, endOfBoard_y+10))
                                     extraButtons[v] = b
                                     i+=1
                             drawBoard()
                     if 'build' in selected.possibleStates:#If they are able to build
                         for btn in extraButtons:
-                            if extraButtons[btn].click(pygame.mouse.get_pos()):#If one of the unit options is clicked
+                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
                                 selected.stateData = [btn]
                                 stateDataMode = 'build2'
                                 statInfo(btn)
@@ -1996,11 +1998,11 @@ def main(playerCount = None):
                                 if 'research' in newSelected.possibleStates:
                                     stateDataMode = 'research'
 
-                                    play_time = pygame.mixer.music.get_pos()
-                                    pygame.mixer.music.load("audio/lab_music.mp3")
-                                    pygame.mixer.music.set_volume(0.3)
+                                    play_time = GV.pygame.mixer.music.get_pos()
+                                    GV.pygame.mixer.music.load("audio/lab_music.mp3")
+                                    GV.pygame.mixer.music.set_volume(0.3)
                                     start_music = (start_music + play_time/1000.0) % 32
-                                    pygame.mixer.music.play(-1, start_music)
+                                    GV.pygame.mixer.music.play(-1, start_music)
 
                                     drawBoard()
                                     #selected.stateData = game.getAnyUnitFromPos(x,y)
@@ -2039,8 +2041,8 @@ def main(playerCount = None):
                                         b = Button("", offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
                                         b.draw(DISPLAYSURF)
                                         img = getImage(v, player, buildUnitImages, 40)
-                                        #img = pygame.image.load("assets/%s.png" % v)
-                                        #img = pygame.transform.scale(img, (40, 40))
+                                        #img = GV.pygame.image.load("assets/%s.png" % v)
+                                        #img = GV.pygame.transform.scale(img, (40, 40))
                                         DISPLAYSURF.blit(img,(offset_x+(40+1)*i, endOfBoard_y+10))
                                         extraButtons[v] = b
                                         i+=1
@@ -2081,8 +2083,8 @@ def main(playerCount = None):
                                     b = Button("", offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
                                     b.draw(DISPLAYSURF)
                                     img = getImage(v, player, buildUnitImages, 40)
-                                    #img = pygame.image.load("assets/%s.png" % v)
-                                    #img = pygame.transform.scale(img, (40, 40))
+                                    #img = GV.pygame.image.load("assets/%s.png" % v)
+                                    #img = GV.pygame.transform.scale(img, (40, 40))
                                     DISPLAYSURF.blit(img,(offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
                                     extraButtons[v] = b
                                     i+=1
@@ -2093,36 +2095,36 @@ def main(playerCount = None):
                 elif event.button == 3:
                     n.send('done')
                 if event.button == 1:
-                     if DoneButton.click(pygame.mouse.get_pos()):
+                     if DoneButton.click(GV.pygame.mouse.get_pos()):
                          DoneButton.color = (30,120,30)
                          DoneButton.draw(DISPLAYSURF)
                          n.send('done')
                 mouseDown = True
-        pygame.display.update()
+        GV.pygame.display.update()
         FPSCLOCK.tick(FPS)
 
 def menu_screen():
     global serverprocess
-    pygame.init()
+    GV.pygame.init()
     run = True
     Cont = True
-    clock = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    pygame.display.set_caption('Tussel')
+    clock = GV.pygame.time.Clock()
+    DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    GV.pygame.display.set_caption('Tussel')
     box = InputBox(77, 33, 80, 20)
-    font = pygame.font.SysFont("arial", 40)
+    font = GV.pygame.font.SysFont("arial", 40)
 
     launchServer = Button("Start Server", 10, 60, BLACK, WHITE,18,(150,30))
     serverRunning = False
     
-    pygame.mixer.music.load("audio/menu_music.mp3")
-    pygame.mixer.music.set_volume(0.5)
-    pygame.mixer.music.play(-1)
+    GV.pygame.mixer.music.load("audio/menu_music.mp3")
+    GV.pygame.mixer.music.set_volume(0.5)
+    GV.pygame.mixer.music.play(-1)
 
     while run:
         
         DISPLAYSURF.fill((128, 128, 128))
-        font = pygame.font.SysFont("arial", 14)
+        font = GV.pygame.font.SysFont("arial", 14)
         #text = font.render("Click to Play!", 1, (255,0,0))
         #DISPLAYSURF.blit(text, (200,250))
 
@@ -2141,15 +2143,15 @@ def menu_screen():
         DISPLAYSURF.blit(line1,(10,35))
 
 
-        for event in pygame.event.get():
+        for event in GV.pygame.event.get():
             box.handle_event(event)
-            if event.type == pygame.QUIT:
+            if event.type == GV.pygame.QUIT:
                 if serverprocess:
                     serverprocess.kill()
-                pygame.quit()
+                GV.pygame.quit()
                 run = False
                 Cont = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == GV.pygame.MOUSEBUTTONDOWN:
                 if multiplayer.click(event.pos):
                     main()
                     run = False
@@ -2160,8 +2162,8 @@ def menu_screen():
                     serverRunning = True
                     launchServer.text = "Server Running"
                     serverprocess = subprocess.Popen(['python', 'server.py'])
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
+            if event.type == GV.pygame.KEYDOWN:
+                if event.key == GV.pygame.K_RETURN:
                     if network.checkIfIP(box.text):
                         box.color = GREEN
                         network.serverIP = box.text
@@ -2169,7 +2171,7 @@ def menu_screen():
                         box.color = RED
 
         
-        pygame.display.update()
+        GV.pygame.display.update()
         clock.tick(30)
     return Cont
     
