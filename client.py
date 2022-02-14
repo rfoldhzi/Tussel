@@ -1768,6 +1768,11 @@ def main(playerCount = None):
                     serverprocess.kill()
                 pygame.quit()
                 sys.exit()
+            elif event.type == KEYUP:
+                if event.key == 109: # 'm' Key
+                    pygame.mixer.music.pause()
+                elif event.key == 110: # 'n' Key
+                    pygame.mixer.music.unpause()
             elif event.type == VIDEORESIZE and counter - JustResize > 20:
                 JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
