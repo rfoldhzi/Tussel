@@ -63,26 +63,13 @@ except:
     print("No Pillow module found. Please use folling command to install for quality images:")
     print("python3 -m pip install --upgrade Pillow")
 folder = Path(pathlib.Path(__file__).parent.absolute())
-game = Game(0, False)
-player = 0
+GV.game = Game(0, False)
+GV.player = 0
 cloudMode = "halo"#sight, poly, halo, clear
 
 serverprocess = None
 
-if False:#Starting board
-    import game as gameMod
-    game.addPlayer();
-    u1 = gameMod.Unit([3,6])
-    game.units[0].append(u1);
-    u2 = gameMod.Unit([6,3])
-    game.units[0].append(u2);
-    b = gameMod.Unit([5,5], 'town')
-    game.units[0].append(b);
-    b.state = 'build'
-    b.stateData = [[2,0],'soldier']
-    game.resources[0]['gold'] = 2000
-    game.resources[0]['metal'] = 2000
-    game.resources[0]['energy'] = 2000
+
 
 FPS = 30 # frames per second, the general speed of the program
 GV.pygame.display.set_caption('Hello World!')
@@ -100,7 +87,7 @@ otherColor = (100, 100, 100)
 
 BGCOLOR = LIGHTGREY
 
-StateColors = {
+GV.StateColors = {
     'attack': (255,0,0),
     'move': (0,255,255),
     'resources': (255,255,0),
@@ -108,7 +95,7 @@ StateColors = {
     'heal':(255,255,255),
     'research':(66, 135, 245),
     }
-resourceColors = {
+GV.resourceColors = {
     'gold': (255,255,0),
     'metal': (100,100,100),
     'energy':(100,100,255),
@@ -305,7 +292,7 @@ def getMoveCircles(unit):#Could be more effiecint
                 for x in range(pos[0]-1, pos[0]+2):
                     for y in range(pos[1]-1, pos[1]+2):
                         if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
-                            if game.getAnyUnitFromPos(x,y) == None:
+                            if GV.game.getAnyUnitFromPos(x,y) == None:
                                 water = Grid[y][x]
                                 if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                                     newSpaces.append([x,y])
@@ -315,7 +302,7 @@ def getMoveCircles(unit):#Could be more effiecint
         for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
                 if x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
-                    if game.getAnyUnitFromPos(x,y) == None:
+                    if GV.game.getAnyUnitFromPos(x,y) == None:
                         water = Grid[y][x]
                         if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                             spaces.append([x,y])
@@ -329,7 +316,7 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
-                if anyBlock or game.getAnyUnitFromPos(x,y) == None:
+                if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
                     water = Grid[y][x]
                     if built:
                         t = UnitDB[built].get('type') or 0
@@ -498,7 +485,7 @@ def getAttacks(unit):
     spaces = getRangeCircles(unit, True)
     finalSpaces = []
     for pos in spaces:
-        u = game.getAnyUnitFromPos(pos[0],pos[1])
+        u = GV.game.getAnyUnitFromPos(pos[0],pos[1])
         if u:
             goodToAdd = True
             if u == unit:
@@ -506,7 +493,7 @@ def getAttacks(unit):
             if 'onlyHit' in unit.abilities:
                 if not (u.type in unit.abilities['onlyHit']):
                     goodToAdd = False
-            if goodToAdd and (game.checkFriendlyPlayer(u, player)):
+            if goodToAdd and (GV.game.checkFriendlyPlayer(u, GV.player)):
                 goodToAdd = False
             if goodToAdd:
                 finalSpaces.append(pos)
@@ -518,7 +505,7 @@ def getHeals(unit):
     spaces = getRangeCircles(unit, True)
     finalSpaces = []
     for pos in spaces:
-        u = game.getAnyUnitFromPos(pos[0],pos[1])
+        u = GV.game.getAnyUnitFromPos(pos[0],pos[1])
         if u:
             goodToAdd = True
             if u == unit:
@@ -526,7 +513,7 @@ def getHeals(unit):
             if 'onlyHeal' in unit.abilities:
                 if not (u.type in unit.abilities['onlyHeal']):
                     goodToAdd = False
-            if goodToAdd and (not game.checkFriendlyPlayer(u, player)):
+            if goodToAdd and (not GV.game.checkFriendlyPlayer(u, GV.player)):
                 goodToAdd = False
             if u.health == u.maxHealth:
                 goodToAdd = False
@@ -539,7 +526,7 @@ def roundEnd(g1,g2):
 
 def getCount(n):
     count = 0
-    for u in game.units[player]:
+    for u in GV.game.units[GV.player]:
         if u.name == n:
             count+=1
     return count
@@ -558,15 +545,15 @@ def showUnit(x,y, im = image):
     GV.pygame.draw.rect(GV.DISPLAYSURF, (0,255,255), rect)
 unitImages = {}
 darkunitImages = {}
-playerUnitImages = {}
+GV.playerUnitImages = {}
 buildUnitImages = {}
-#playerColors = [(201, 59, 54,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#playerColors = [(201, 59, 54,255),(167, 242, 46,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#playerColors = [(201, 59, 54,255),(150,150,150,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#playerColors = [(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#playerColors = [(201, 59, 54,255),(150,150,150,255),(0, 195, 255,255),(107, 64, 0),(167, 242, 46)]
-playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
-#playerColors = [(230,230,230),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
+#GV.playerColors = [(201, 59, 54,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
+#GV.playerColors = [(201, 59, 54,255),(167, 242, 46,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
+#GV.playerColors = [(201, 59, 54,255),(150,150,150,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
+#GV.playerColors = [(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
+#GV.playerColors = [(201, 59, 54,255),(150,150,150,255),(0, 195, 255,255),(107, 64, 0),(167, 242, 46)]
+###GV.playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
+#GV.playerColors = [(230,230,230),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
 AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),(161, 224, 255) ]
 """
 Colors:
@@ -583,18 +570,15 @@ bright orange: (255, 136, 0)
 
 """
 
-#random.shuffle(playerColors)
+#random.shuffle(GV.playerColors)
 
-changeColor = (233,19,212,255)
+#GV.changeColor = (233,19,212,255)
 
-GV.block_size = 40
+#GV.block_size = 40
 
 def getImage(name, p, Pictures = 1, size = False):
-    #print('pictures', Pictures)
-    #print('playerUnitImages',playerUnitImages)
-    #print('buildimages', buildUnitImages)
     if Pictures == 1:
-        Pictures = playerUnitImages
+        Pictures = GV.playerUnitImages
     if not size:
         size = GV.block_size
     if not p in Pictures:
@@ -604,8 +588,8 @@ def getImage(name, p, Pictures = 1, size = False):
         pixels = img.load()
         for i in range(img.size[0]): # for every pixel:
             for j in range(img.size[1]):
-                if pixels[i,j] == changeColor:
-                    pixels[i,j] = playerColors[p]
+                if pixels[i,j] == GV.changeColor:
+                    pixels[i,j] = GV.playerColors[p]
         img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
         img = GV.pygame.transform.scale(img, (size, size))
         Pictures[p][name] = img
@@ -616,12 +600,12 @@ def showUnitNEW(unit):
     y = unit.position[1]
     image = None
     
-    for p in game.units:
-        if unit in game.units[p]:
+    for p in GV.game.units:
+        if unit in GV.game.units[p]:
             image = getImage(unit.name, p)
             break
     """
-    if unit in game.units[player] or (not imageMani):
+    if unit in GV.game.units[GV.player] or (not imageMani):
         if not unit.name in unitImages:
             img = GV.pygame.image.load("assets/%s.png" % unit.name)
             img = GV.pygame.transform.scale(img, (40, 40))
@@ -647,17 +631,17 @@ def showUnitNEW(unit):
     GV.DISPLAYSURF.blit(text, (x*(GV.block_size+1)+GV.offset_x+(GV.block_size-2)-(7*len(t)), y*(GV.block_size+1)+GV.offset_y+(GV.block_size-17)))
 
     #State square
-    if unit.state != None and unit in game.units[player]:
+    if unit.state != None and unit in GV.game.units[GV.player]:
         #print(vars(unit))
         rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+GV.block_size - 9, y*(GV.block_size+1)+GV.offset_y+4, 5, 5)
         if unit.state == 'resources':
-            if unit.stateData and type(unit.stateData) == str and unit.stateData in resourceColors:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, resourceColors[unit.stateData], rect)
+            if unit.stateData and type(unit.stateData) == str and unit.stateData in GV.resourceColors:
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.resourceColors[unit.stateData], rect)
         else:
-            GV.pygame.draw.rect(GV.DISPLAYSURF, StateColors[unit.state], rect)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
 
 
-def animateUnit(unit1, unit2,t,player):
+def animateUnit(unit1, unit2,t,specfic_player):
     unit = unit1
     if not unit1:
         unit = unit2
@@ -666,23 +650,12 @@ def animateUnit(unit1, unit2,t,player):
     image = None
     if animateGrid[y][x]:
         return
-    """
-    if not unit.name in playerUnitImages[player]:
-        img = Image.open("assets/%s.png" % unit.name)
-        pixels = img.load()
-        for i in range(img.size[0]): # for every pixel:
-            for j in range(img.size[1]):
-                if pixels[i,j] == changeColor:
-                    pixels[i,j] = playerColors[player]
-        img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-        img = GV.pygame.transform.scale(img, (GV.block_size, GV.block_size))
-        playerUnitImages[player][unit.name] = img
-    """
-    image = getImage(unit.name, player)
+
+    image = getImage(unit.name, specfic_player)
     
     default = True
     if not unit1:
-        parent = game.getUnitFromID(unit2.parent)
+        parent = GV.game.getUnitFromID(unit2.parent)
         if parent:
             default = False
             x2,y2 = parent.position
@@ -716,14 +689,14 @@ def animateUnit(unit1, unit2,t,player):
         #State square
         if unit2:
             unit = unit2
-        if unit.state != None and unit1 in game.units[player]:
+        if unit.state != None and unit1 in GV.game.units[specfic_player]:
             #print(vars(unit))
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+GV.block_size - 9, y*(GV.block_size+1)+GV.offset_y+4, 5, 5)
             if unit.state == 'resources':
-                if unit.stateData and type(unit.stateData) == str and unit.stateData in resourceColors:
-                    GV.pygame.draw.rect(GV.DISPLAYSURF, resourceColors[unit.stateData], rect)
+                if unit.stateData and type(unit.stateData) == str and unit.stateData in GV.resourceColors:
+                    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.resourceColors[unit.stateData], rect)
             else:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, StateColors[unit.state], rect)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
     if unit1 == unit2:
         GV.DISPLAYSURF.blit(RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
 
@@ -836,7 +809,7 @@ def updateCloudCover():
             for x in range(board_x):
                 l.append(True)
             cloudGrid.append(l)
-    for u in game.units[player]:
+    for u in GV.game.units[GV.player]:
         spaces = getRangeCircles(u, True)
         for pos in spaces:
             if cloudGrid[pos[1]][pos[0]]:
@@ -865,16 +838,16 @@ def drawClouds():
             i+=1
 
 def updateSelf():
-    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid, BoardColors,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode, playerColors,currentTechMenu
+    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid, BoardColors,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
     print('blocksize',GV.block_size)
-    board_x = game.width
-    board_y = game.height
-    cloudMode = game.mode
+    board_x = GV.game.width
+    board_y = GV.game.height
+    cloudMode = GV.game.mode
 
-    if game.ai > 0:
+    if GV.game.ai > 0:
         j = 0
-        for i in range(len(game.units)-game.ai,len(game.units)):
-            playerColors.insert(i, AIcolors[j])
+        for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
+            GV.playerColors.insert(i, AIcolors[j])
             j+=1
     endOfBoard_x = (GV.block_size+1)*board_x+GV.offset_x#525
     endOfBoard_y = (GV.block_size+1)*board_y+GV.offset_y#420
@@ -899,7 +872,7 @@ def updateSelf():
 
     currentTechMenu = []
     
-    Grid = intToList(game.intGrid, board_x)
+    Grid = intToList(GV.game.intGrid, board_x)
     print(Grid)
     cloudGrid = []
     for y in range(board_y):
@@ -945,8 +918,8 @@ def animationGrid(g1,g2):
     global animateGrid
     animateGrid = methods.newGrid2(board_x,board_y)
     l = []
-    for i in game.units:
-        for u in game.units[i]:
+    for i in GV.game.units:
+        for u in GV.game.units[i]:
             u2 = g2.getUnitFromID(u.UnitID)
             if u2:#Unit changed
                 if u.health != u2.health or u.position != u2.position:
@@ -955,9 +928,9 @@ def animationGrid(g1,g2):
                 l.append([u.position])#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
-            u = game.getUnitFromID(u2.UnitID)
+            u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
-                parent = game.getUnitFromID(u2.parent)
+                parent = GV.game.getUnitFromID(u2.parent)
                 if parent:
                     l.append([u2.position, parent.position])
     for v in l:
@@ -983,7 +956,7 @@ def animateBoard(g1,g2,t):
     techDrawn = []
 
     for i in g1.units:
-        for u in game.units[i]:
+        for u in GV.game.units[i]:
             if u.stateData:#In case target isn't selected yet
                 #print("Rodeo")
                 color = False
@@ -1039,7 +1012,7 @@ def animateBoard(g1,g2,t):
                             spots = (u.position,u.stateData[0])
                             drawLine((255,170,0),u.position,u.stateData[0])
                 elif u.state == 'research':
-                    if g1.checkFriendlyPlayer(u, player) and (not u.stateData in techDrawn) and (u.stateData in g2.tech[player]):
+                    if g1.checkFriendlyPlayer(u, GV.player) and (not u.stateData in techDrawn) and (u.stateData in g2.tech[GV.player]):
                         img = GV.pygame.image.load("techAssets/%s.png" % u.stateData)
                         img = GV.pygame.transform.scale(img, (40, 40))
                         #img = GV.pygame.image.load("assets/%s.png" % v)
@@ -1051,8 +1024,8 @@ def animateBoard(g1,g2,t):
                 if color:
                     drawLine(color,spots[0],spots[1])
                     
-    for i in game.units:
-        for u in game.units[i]:
+    for i in GV.game.units:
+        for u in GV.game.units[i]:
             u2 = g2.getUnitFromID(u.UnitID)
             if u2:
                 animateUnit(u,u2,t,i) #Unit changed
@@ -1060,7 +1033,7 @@ def animateBoard(g1,g2,t):
                 animateUnit(u,u,t,i)#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
-            u = game.getUnitFromID(u2.UnitID)
+            u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
                 print('here we go')
                 animateUnit(None,u2,t,i)#New unit is built
@@ -1069,8 +1042,8 @@ def animateBoard(g1,g2,t):
 def changeAnimateSpeed(g1,g2):
     global animateTime
     units = 0
-    for i in game.units:
-        for u in game.units[i]:
+    for i in GV.game.units:
+        for u in GV.game.units[i]:
             u2 = g2.getUnitFromID(u.UnitID)
             if not u2: #Unit died
                 units+=1
@@ -1080,23 +1053,23 @@ def changeAnimateSpeed(g1,g2):
                 units+=1
     for i in g2.units:
         for u2 in g2.units[i]:
-            u = game.getUnitFromID(u2.UnitID)
+            u = GV.game.getUnitFromID(u2.UnitID)
             if not u: #New unit built
                 units+=1
     animateTime = min(20,10+units*2)
 
 def GetUnlockedTechs():
     techs = []
-    for t in game.tech[player]:
+    for t in GV.game.tech[GV.player]:
         for t2 in TechDB[t]['unlocks']:
-            if (not t2 in techs) and (not t2 in game.tech[player]):
+            if (not t2 in techs) and (not t2 in GV.game.tech[GV.player]):
                 techs.append(t2)
     starters = ['bionics', 'time travel','recruitment','armament','aviation']
     for t in starters:
-        if (not t in techs) and (not t in game.tech[player]):
+        if (not t in techs) and (not t in GV.game.tech[GV.player]):
             techs.append(t)
     toRemove = []
-    for t in game.tech[player]:
+    for t in GV.game.tech[GV.player]:
         if TechDB[t].get('deny'):
             for t2 in TechDB[t].get('deny'):
                 if t2 in techs:
@@ -1124,11 +1097,11 @@ def techButtonSize(n):
 
 def checkTechAffordable(unit, tech):
     cost = TechDB[tech]['cost']
-    resource = dict(game.resources[player])["energy"]
+    resource = dict(GV.game.resources[GV.player])["energy"]
 
     #Account for costs of planned units (and planned research)
     newEnergyCosts = 0
-    for u in game.units[player]:
+    for u in GV.game.units[GV.player]:
         if u != unit and u.state == 'build' and type(u.stateData) == list:
             cost2 = UnitDB[u.stateData[1]]['cost']
             if 'abilities' in UnitDB[u.stateData[1]] and 'costly' in UnitDB[u.stateData[1]]['abilities']:
@@ -1224,8 +1197,8 @@ def researchMenu():
             GV.DISPLAYSURF.blit(s, pos)
         if TechDB[t]['time'] > 1:
             n = TechDB[t]['time'] 
-            if t in game.progress[player]:
-                n -= game.progress[player][t]
+            if t in GV.game.progress[GV.player]:
+                n -= GV.game.progress[GV.player][t]
             if n > 1:
                 T = str(n)
                 Healthfont = GV.pygame.font.SysFont("arial", 15)
@@ -1242,30 +1215,30 @@ def researchMenu():
 
 def drawBoard():
     print('drawing BOARD')
-    global NotAlreadyReady, game,currentlyResearch
+    global NotAlreadyReady, currentlyResearch
     #print("______________________________")
-    #print(vars(game))
-    if game.ready:
+    #print(vars(GV.game))
+    if GV.game.ready:
         if NotAlreadyReady:
             NotAlreadyReady = False
             updateSelf()
-        if not game.went[player]:
+        if not GV.game.went[GV.player]:
             allElseWent = True
-            for v in game.went:
-                if (not game.went[v]) and v != player:
+            for v in GV.game.went:
+                if (not GV.game.went[v]) and v != GV.player:
                     allElseWent = False
-            if allElseWent and len(game.went) > 1 and (counter%40)//20 == 0:
+            if allElseWent and len(GV.game.went) > 1 and (counter%40)//20 == 0:
                 DoneButton.color = (255,255,255)
             else:
                 DoneButton.color = (50,200,50)
             DoneButton.draw(GV.DISPLAYSURF)
         #print('We are here we are here we are here')
-        #print("WENT", game.went)
-        #print(vars(game))
-        for i in game.went:
+        #print("WENT", GV.game.went)
+        #print(vars(GV.game))
+        for i in GV.game.went:
             rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
-            if game.went[i]:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, playerColors[i], rect)
+            if GV.game.went[i]:
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
             else:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
         #print('selected',selected)
@@ -1283,7 +1256,7 @@ def drawBoard():
             drawGridHighlight()
         else:
             drawGrid()
-        for u in game.units[player]:
+        for u in GV.game.units[GV.player]:
             if u.stateData:#In case target isn't selected yet
                 if u.state == 'move' and type(u.stateData) == list and type(u.stateData[0]) == int:
                     if checkRange(u,u.stateData) > u.speed:
@@ -1322,8 +1295,8 @@ def drawBoard():
                             drawLine((110, 106, 46),u.position,u.stateData[0])
                         else:
                             drawLine((255,170,0),u.position,u.stateData[0])
-        for i in game.units:
-            for u in game.units[i]:
+        for i in GV.game.units:
+            for u in GV.game.units[i]:
                 showUnitNEW(u)
         for pos in moveCircles:
             GV.DISPLAYSURF.blit(blueCircle,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
@@ -1357,7 +1330,7 @@ def resources():
         'metal':0,
         'energy':0
     }
-    for u in game.units[player]:
+    for u in GV.game.units[GV.player]:
         if u.state == 'resources':
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
@@ -1365,11 +1338,11 @@ def resources():
     rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
-    text = Healthfont.render("%s + %s" % (str(game.resources[player]['gold']), res['gold']), 1, (255,255,0))
+    text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['gold']), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
-    text = Healthfont.render("%s + %s" % (str(game.resources[player]['metal']), res['metal']), 1, (255,255,255))
+    text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['metal']), res['metal']), 1, (255,255,255))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-35))#445
-    text = Healthfont.render("%s + %s" % (str(game.resources[player]['energy']), res['energy']), 1, (0,255,255))
+    text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['energy']), res['energy']), 1, (0,255,255))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-20))#460
 
 def checkIfAffordable(unit, built):
@@ -1379,11 +1352,11 @@ def checkIfAffordable(unit, built):
         count = getCount(built)
         for v in cost:
             cost[v] = cost[v]*(UnitDB[built]['abilities']['costly']**count)//5*5
-    resource = dict(game.resources[player])
+    resource = dict(GV.game.resources[GV.player])
     
     #Account for costs of planned units (and planned research)
     newCosts = {'gold':0,'metal':0,'energy':0}
-    for u in game.units[player]:
+    for u in GV.game.units[GV.player]:
         if u != unit and u.state == 'build' and type(u.stateData) == list:
             cost2 = UnitDB[u.stateData[1]]['cost']
             if 'abilities' in UnitDB[u.stateData[1]] and 'costly' in UnitDB[u.stateData[1]]['abilities']:
@@ -1409,18 +1382,18 @@ def checkIfAffordable(unit, built):
 
 def resourcesAnimated(g2,t=0):
     res = {'gold':0,'metal':0,'energy':0}
-    for u in g2.units[player]:
+    for u in g2.units[GV.player]:
         if u.state == 'resources':
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
     rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
-    text = Healthfont.render("%s + %s" % (str(int(Lerp(game.resources[player]['gold'],g2.resources[player]['gold'],t))), res['gold']), 1, (255,255,0))
+    text = Healthfont.render("%s + %s" % (str(int(Lerp(GV.game.resources[GV.player]['gold'],g2.resources[GV.player]['gold'],t))), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
-    text = Healthfont.render("%s + %s" % (str(int(Lerp(game.resources[player]['metal'],g2.resources[player]['metal'],t))), res['metal']), 1, (255,255,255))
+    text = Healthfont.render("%s + %s" % (str(int(Lerp(GV.game.resources[GV.player]['metal'],g2.resources[GV.player]['metal'],t))), res['metal']), 1, (255,255,255))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-35))#445
-    text = Healthfont.render("%s + %s" % (str(int(Lerp(game.resources[player]['energy'],g2.resources[player]['energy'],t))), res['energy']), 1, (0,255,255))
+    text = Healthfont.render("%s + %s" % (str(int(Lerp(GV.game.resources[GV.player]['energy'],g2.resources[GV.player]['energy'],t))), res['energy']), 1, (0,255,255))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-20))#460
 
 currentStatInfo = None
@@ -1512,7 +1485,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     text.append('')
 
     T = TechDB[tech]
-    progress = game.progress[player].get(tech) or 0
+    progress = GV.game.progress[GV.player].get(tech) or 0
     text.append('Time: %s/%s' % (progress, T['time']))
     text.append('Cost: %s' % T['cost'])
     text.append('')
@@ -1636,7 +1609,7 @@ def cleanUpAfterSelect():
         extraButtons[v].deDraw(GV.DISPLAYSURF)
 
 def main(playerCount = None):
-    global FPSCLOCK, highlightSquares, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals, player,game,counter,grid,playerUnitImages, buildUnitImages,PrevTechHover,CurrentTechHover
+    global FPSCLOCK, highlightSquares, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
     #GV.pygame.init()
     FPSCLOCK = GV.pygame.time.Clock()
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -1694,7 +1667,7 @@ def main(playerCount = None):
         #btns[btn].draw(GV.DISPLAYSURF)
     
     n = Network()
-    player = int(n.getP())
+    GV.player = int(n.getP())
     if playerCount == 1:
         n.send("SOLO")
     
@@ -1706,7 +1679,7 @@ def main(playerCount = None):
     animateCounter = animateTime*-2
     newGame = None
     
-    while run: # main game loop
+    while run: # main GV.game loop
         #mouseClicked = False
 
         #GV.DISPLAYSURF.fill(BGCOLOR)#Draw window
@@ -1722,23 +1695,23 @@ def main(playerCount = None):
                     
                 print("IT WAS DIFFERENT")
                 print(vars(r))
-                if roundEnd(game,r):
+                if roundEnd(GV.game,r):
                     print("I think the round ended.....")
                     end_of_round_beeps.play()
                     animateCounter = int(counter)
                     if r:
                         if r.ready:
                             newGame = r
-                            changeAnimateSpeed(game,newGame)
-                            animationGrid(game,newGame)
+                            changeAnimateSpeed(GV.game,newGame)
+                            animationGrid(GV.game,newGame)
                             print(animateTime)
                         else:
-                            game = r
+                            GV.game = r
                 else:
-                    #print("stuff", roundEnd(game,r))
-                    game = r
+                    #print("stuff", roundEnd(GV.game,r))
+                    GV.game = r
                     newGame = r#######
-                    #print("GAME", vars(game))
+                    #print("GAME", vars(GV.game))
                     #print("newGAME", vars(newGame))
                     #print("R", vars(r))
             elif type(R) == str:
@@ -1746,19 +1719,19 @@ def main(playerCount = None):
                 pass#print(r)
         except Exception as e:
             run = False
-            print("Couldn't get game",e)
+            print("Couldn't get GV.game",e)
             break
         
         counter += 1
         if counter-animateCounter <= animateTime:
-            animateBoard(game, newGame, counter-animateCounter)
+            animateBoard(GV.game, newGame, counter-animateCounter)
         elif counter%10 == 0:
-            #print("MORE ", vars(game))
+            #print("MORE ", vars(GV.game))
             if newGame:
                 #print("Even MORE", vars(newGame))
-                game = newGame
+                GV.game = newGame
             #print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-            #print(vars(game))
+            #print(vars(GV.game))
             drawBoard()
             resources()
         
@@ -1782,7 +1755,7 @@ def main(playerCount = None):
                 else:
                     GV.block_size = (event.w-65)//board_x
                 print('blocksize',GV.block_size)
-                playerUnitImages = {} #To reset all unit images
+                GV.playerUnitImages = {} #To reset all unit images
                 buildUnitImages = {}
                 updateSelf()
             elif event.type == MOUSEMOTION:
@@ -1838,12 +1811,12 @@ def main(playerCount = None):
                     drawBoard()
                 if stateDataMode == 'attack':
                     selected.state = None
-                    if game.getAnyUnitFromPos(x,y):
+                    if GV.game.getAnyUnitFromPos(x,y):
                         
                         PlaySoundByUnit(selected, stateDataMode)
 
-                        n.send(convertToStr(selected,'attack',game.getAnyUnitFromPos(x,y)))
-                        selected.stateData = game.getAnyUnitFromPos(x,y)
+                        n.send(convertToStr(selected,'attack',GV.game.getAnyUnitFromPos(x,y)))
+                        selected.stateData = GV.game.getAnyUnitFromPos(x,y)
                         selected.state = 'attack'
                     cleanUpAfterSelect()
                     #Here is to sumbit to server
@@ -1942,7 +1915,7 @@ def main(playerCount = None):
                                             btnColor = otherColor
                                     b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
                                     b.draw(GV.DISPLAYSURF)
-                                    img = getImage(v, player, buildUnitImages, 40)
+                                    img = getImage(v, GV.player, buildUnitImages, 40)
                                     #buildUnitImages
                                     #img = GV.pygame.image.load("assets/%s.png" % v)
                                     #img = GV.pygame.transform.scale(img, (40, 40))
@@ -1978,7 +1951,7 @@ def main(playerCount = None):
                             print(selected)
                             #Here is to sumbit to server
                         elif [x,y] in possibleAttacks:
-                            selected.stateData = game.getAnyUnitFromPos(x,y)
+                            selected.stateData = GV.game.getAnyUnitFromPos(x,y)
                             selected.state = 'attack'
 
                             PlaySoundByUnit(selected, "attack")
@@ -1987,12 +1960,12 @@ def main(playerCount = None):
                             cleanUpAfterSelect()
                             #Here is to sumbit to server
                         elif [x,y] in possibleHeals:
-                            selected.stateData = game.getAnyUnitFromPos(x,y)
+                            selected.stateData = GV.game.getAnyUnitFromPos(x,y)
                             selected.state = 'heal'
                             n.send(convertToStr(selected,'heal',selected.stateData))
                             cleanUpAfterSelect()
                         else:
-                            newSelected = game.getUnitFromPos(player,x,y)
+                            newSelected = GV.game.getUnitFromPos(GV.player,x,y)
                             if newSelected == selected:
                                 print('the same was clicked')
                                 if 'research' in newSelected.possibleStates:
@@ -2005,9 +1978,9 @@ def main(playerCount = None):
                                     GV.pygame.mixer.music.play(-1, start_music)
 
                                     drawBoard()
-                                    #selected.stateData = game.getAnyUnitFromPos(x,y)
+                                    #selected.stateData = GV.game.getAnyUnitFromPos(x,y)
                                     #selected.state = 'attack'
-                            #selected = newSelected#game.getUnitFromPos(player,x,y)
+                            #selected = newSelected#GV.game.getUnitFromPos(GV.player,x,y)
                             elif newSelected:#Unit is clicked
                                 print('a unit was clicked')
                                 selected = newSelected
@@ -2040,7 +2013,7 @@ def main(playerCount = None):
                                                 btnColor = otherColor
                                         b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
                                         b.draw(GV.DISPLAYSURF)
-                                        img = getImage(v, player, buildUnitImages, 40)
+                                        img = getImage(v, GV.player, buildUnitImages, 40)
                                         #img = GV.pygame.image.load("assets/%s.png" % v)
                                         #img = GV.pygame.transform.scale(img, (40, 40))
                                         GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))
@@ -2052,7 +2025,7 @@ def main(playerCount = None):
                         drawBoard()
                 elif event.button == 1:
                     if x >= 0 and y >= 0 and y<board_y and x<board_x:
-                        selected = game.getUnitFromPos(player,x,y)
+                        selected = GV.game.getUnitFromPos(GV.player,x,y)
                         if selected:#When unit clicked
                             
                             PlaySoundByUnit(selected, "affirmative")
@@ -2082,7 +2055,7 @@ def main(playerCount = None):
                                             btnColor = otherColor
                                     b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
                                     b.draw(GV.DISPLAYSURF)
-                                    img = getImage(v, player, buildUnitImages, 40)
+                                    img = getImage(v, GV.player, buildUnitImages, 40)
                                     #img = GV.pygame.image.load("assets/%s.png" % v)
                                     #img = GV.pygame.transform.scale(img, (40, 40))
                                     GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
