@@ -58,3 +58,15 @@ def showUnitNEW(unit):
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.resourceColors[unit.stateData], rect)
         else:
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
+
+
+def drawLine(color,pos1,pos2):
+    GV.pygame.draw.line(GV.DISPLAYSURF, color, ((GV.block_size+1)*pos1[0]+GV.offset_x+GV.block_size/2,(GV.block_size+1)*pos1[1]+GV.offset_y+GV.block_size/2),((GV.block_size+1)*pos2[0]+GV.offset_x+GV.block_size/2,(GV.block_size+1)*pos2[1]+GV.offset_y+GV.block_size/2),10)
+
+def drawGrid():
+    i = 0
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
+            rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
+            i+=1

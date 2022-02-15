@@ -708,7 +708,7 @@ def drawGrid():
     for y in range(board_y):
         for x in range(board_x):
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            GV.pygame.draw.rect(GV.DISPLAYSURF, BoardColors[i], rect)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             i+=1
             
 def drawAnimateGrid():
@@ -717,13 +717,13 @@ def drawAnimateGrid():
         for x in range(board_x):
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
             if animateGrid[y][x]:
-                pass#GV.pygame.draw.rect(GV.DISPLAYSURF, BoardColors[i], rect)
+                pass#GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             else:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, BoardColors[i], rect)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             """
             if animateGrid[y][x]:
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                GV.pygame.draw.rect(GV.DISPLAYSURF, BoardColors[i], rect)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             """
             i+=1
 
@@ -736,7 +736,7 @@ def drawGridHighlight():
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+1, y*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
             else:
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            GV.pygame.draw.rect(GV.DISPLAYSURF, BoardColors[i], rect)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             i+=1
 
 animateTime = 20
@@ -756,7 +756,7 @@ WINDOWHEIGHT = 480#GV.offset_y+60+(GV.block_size+1)*board_y#480
 print('x&y',WINDOWWIDTH,WINDOWHEIGHT)
 
 highlightSquares = []
-BoardColors = []
+#GV.BoardColors = []
 CloudColors = []
 moveCircles = []
 possibleAttacks = []
@@ -831,14 +831,14 @@ def drawClouds():
                     GV.pygame.draw.rect(GV.DISPLAYSURF, CloudColors[i], rect)
                 elif cloudGrid[y][x]:
                     rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                    #color = list( map(add, CloudColors[i], BoardColors[i]) )
-                    color = list( map(add, (0,0,0), BoardColors[i]) )
+                    #color = list( map(add, CloudColors[i], GV.BoardColors[i]) )
+                    color = list( map(add, (0,0,0), GV.BoardColors[i]) )
                     color = [x / 2 for x in color]
                     GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
             i+=1
 
 def updateSelf():
-    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid, BoardColors,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
+    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
     print('blocksize',GV.block_size)
     board_x = GV.game.width
     board_y = GV.game.height
@@ -889,22 +889,22 @@ def updateSelf():
                 l.append(True)
             explorationGrid.append(l)
     
-    BoardColors = []
+    GV.BoardColors = []
     CloudColors = []
     y = 0
     for v in Grid:
         x = 0
         for v2 in v:
             if v2:
-                BoardColors.append(randomBlue())
+                GV.BoardColors.append(randomBlue())
             else:
-                #BoardColors.append(randomGreen())
+                #GV.BoardColors.append(randomGreen())
                 if isNextToWater([x,y]):
                     #print("YELLOW")
-                    BoardColors.append(randomYellow())
+                    GV.BoardColors.append(randomYellow())
                 else:
                     #print("GRWEEN")
-                    BoardColors.append(randomGreen())
+                    GV.BoardColors.append(randomGreen())
             x+=1
         y+=1
     for v in Grid:
@@ -1645,18 +1645,18 @@ def main(playerCount = None):
         y = 0
         for v2 in v:
             if [x,y] in stuff:
-                 BoardColors.append(randomGrey())
+                 GV.BoardColors.append(randomGrey())
                  y+=1
                  continue
             if v2:
-                BoardColors.append(randomBlue())
+                GV.BoardColors.append(randomBlue())
             else:
-                BoardColors.append(randomGreen())
+                GV.BoardColors.append(randomGreen())
             y+=1
         x+=1
     """
     for i in range(board_x*board_y):
-        BoardColors.append(randomGreen())
+        GV.BoardColors.append(randomGreen())
         
     drawBoard()
     

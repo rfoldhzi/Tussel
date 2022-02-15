@@ -15,6 +15,8 @@ DISPLAYSURF = None
 game = None
 player = 0
 
+BoardColors = []
+
 playerUnitImages = {}
 
 changeColor = (233,19,212,255)
