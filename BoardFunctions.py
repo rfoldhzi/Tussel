@@ -70,3 +70,26 @@ def drawGrid():
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             i+=1
+
+def drawAnimateGrid():
+    i = 0
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
+            if GV.animateGrid[y][x]:
+                pass
+            else:
+                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
+            i+=1
+
+def drawGridHighlight():
+    i = 0
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
+            rect = None
+            if [x,y] in GV.highlightSquares:
+                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+1, y*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
+            else:
+                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
+            i+=1

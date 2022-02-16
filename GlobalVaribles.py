@@ -15,7 +15,17 @@ DISPLAYSURF = None
 game = None
 player = 0
 
+highlightSquares = []
 BoardColors = []
+CloudColors = []
+moveCircles = []
+possibleAttacks = []
+possibleHeals = []
+buildHexes = []
+Grid = []
+cloudGrid = []
+explorationGrid = []
+animateGrid = []
 
 playerUnitImages = {}
 

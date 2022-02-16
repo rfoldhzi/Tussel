@@ -291,7 +291,7 @@ def getMoveCircles(unit):#Could be more effiecint
             for pos in spaces:
                 for x in range(pos[0]-1, pos[0]+2):
                     for y in range(pos[1]-1, pos[1]+2):
-                        if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
+                        if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                             if GV.game.getAnyUnitFromPos(x,y) == None:
                                 water = Grid[y][x]
                                 if (water == (unit.type == 'boat')) or unit.type == "aircraft":
@@ -301,7 +301,7 @@ def getMoveCircles(unit):#Could be more effiecint
     else:
         for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
-                if x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
+                if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                     if GV.game.getAnyUnitFromPos(x,y) == None:
                         water = Grid[y][x]
                         if (water == (unit.type == 'boat')) or unit.type == "aircraft":
@@ -315,7 +315,7 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
     spaces = []
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
-            if x >= 0 and y >= 0 and y<board_y and x<board_x:#If within board:
+            if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                 if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
                     water = Grid[y][x]
                     if built:
@@ -330,7 +330,7 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
 def isNextToWater(pos):
     for x in range(pos[0]-1, pos[0]+2):
         for y in range(pos[1]-1, pos[1]+2):
-            if x >= 0 and y >= 0 and y<board_y and x<board_x:
+            if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                 if Grid[y][x]:
                     return True
     return False
@@ -341,7 +341,7 @@ def isNextToWater(pos):
     for i in range(4):
         x = pos[0]+xs[i]
         y = pos[1]+ys[i]
-        if x >= 0 and y >= 0 and y<board_y and x<board_x:
+        if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                 if Grid[y][x]:
                     return True
     return False
@@ -648,7 +648,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
     x = unit.position[0]
     y = unit.position[1]
     image = None
-    if animateGrid[y][x]:
+    if GV.animateGrid[y][x]:
         return
 
     image = getImage(unit.name, specfic_player)
@@ -705,34 +705,29 @@ def drawLine(color,pos1,pos2):
 
 def drawGrid():
     i = 0
-    for y in range(board_y):
-        for x in range(board_x):
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
             i+=1
             
 def drawAnimateGrid():
     i = 0
-    for y in range(board_y):
-        for x in range(board_x):
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            if animateGrid[y][x]:
-                pass#GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
+            if GV.animateGrid[y][x]:
+                pass
             else:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            """
-            if animateGrid[y][x]:
-                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            """
             i+=1
 
 def drawGridHighlight():
     i = 0
-    for y in range(board_y):
-        for x in range(board_x):
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
             rect = None
-            if [x,y] in highlightSquares:
+            if [x,y] in GV.highlightSquares:
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+1, y*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
             else:
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
@@ -745,17 +740,17 @@ animateTime = 20
 #GV.offset_x = 115
 #GV.offset_y = 10
 
-board_x = 10
-board_y = 10
+GV.board_x = 10
+GV.board_y = 10
 
-endOfBoard_x = (GV.block_size+1)*board_x+GV.offset_x#525
-endOfBoard_y = (GV.block_size+1)*board_y+GV.offset_y#420
+endOfBoard_x = (GV.block_size+1)*GV.board_x+GV.offset_x#525
+endOfBoard_y = (GV.block_size+1)*GV.board_y+GV.offset_y#420
 
-WINDOWWIDTH = 640#GV.offset_x*2+(GV.block_size+1)*board_x#640
-WINDOWHEIGHT = 480#GV.offset_y+60+(GV.block_size+1)*board_y#480
+WINDOWWIDTH = 640#GV.offset_x*2+(GV.block_size+1)*GV.board_x#640
+WINDOWHEIGHT = 480#GV.offset_y+60+(GV.block_size+1)*GV.board_y#480
 print('x&y',WINDOWWIDTH,WINDOWHEIGHT)
 
-highlightSquares = []
+GV.highlightSquares = []
 #GV.BoardColors = []
 CloudColors = []
 moveCircles = []
@@ -765,7 +760,7 @@ buildHexes = []
 Grid = []
 cloudGrid = []
 explorationGrid = []
-animateGrid = []
+GV.animateGrid = []
 
 blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
 OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
@@ -804,9 +799,9 @@ def updateCloudCover():
     global cloudGrid,explorationGrid
     if cloudMode == "sight" or cloudMode == "halo":
         cloudGrid = []
-        for y in range(board_y):
+        for y in range(GV.board_y):
             l = []
-            for x in range(board_x):
+            for x in range(GV.board_x):
                 l.append(True)
             cloudGrid.append(l)
     for u in GV.game.units[GV.player]:
@@ -820,8 +815,8 @@ def drawClouds():
     if cloudMode == "clear":
         return
     i = 0
-    for y in range(board_y):
-        for x in range(board_x):
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
             if cloudGrid[y][x] and cloudMode != "halo":
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, CloudColors[i], rect)
@@ -838,10 +833,10 @@ def drawClouds():
             i+=1
 
 def updateSelf():
-    global board_x, board_y, endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
+    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
     print('blocksize',GV.block_size)
-    board_x = GV.game.width
-    board_y = GV.game.height
+    GV.board_x = GV.game.width
+    GV.board_y = GV.game.height
     cloudMode = GV.game.mode
 
     if GV.game.ai > 0:
@@ -849,11 +844,11 @@ def updateSelf():
         for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
             GV.playerColors.insert(i, AIcolors[j])
             j+=1
-    endOfBoard_x = (GV.block_size+1)*board_x+GV.offset_x#525
-    endOfBoard_y = (GV.block_size+1)*board_y+GV.offset_y#420
+    endOfBoard_x = (GV.block_size+1)*GV.board_x+GV.offset_x#525
+    endOfBoard_y = (GV.block_size+1)*GV.board_y+GV.offset_y#420
 
-    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*board_x#640
-    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*board_y
+    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*GV.board_x#640
+    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*GV.board_y
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     GV.DISPLAYSURF.fill(BGCOLOR)
@@ -872,20 +867,20 @@ def updateSelf():
 
     currentTechMenu = []
     
-    Grid = intToList(GV.game.intGrid, board_x)
+    Grid = intToList(GV.game.intGrid, GV.board_x)
     print(Grid)
     cloudGrid = []
-    for y in range(board_y):
+    for y in range(GV.board_y):
         l = []
-        for x in range(board_x):
+        for x in range(GV.board_x):
             l.append(True)
         cloudGrid.append(l)
         
     if cloudMode == "halo": 
         explorationGrid = []
-        for y in range(board_y):
+        for y in range(GV.board_y):
             l = []
-            for x in range(board_x):
+            for x in range(GV.board_x):
                 l.append(True)
             explorationGrid.append(l)
     
@@ -915,8 +910,7 @@ def updateSelf():
                 CloudColors.append(randomWhite())
 
 def animationGrid(g1,g2):
-    global animateGrid
-    animateGrid = methods.newGrid2(board_x,board_y)
+    GV.animateGrid = methods.newGrid2(GV.board_x,GV.board_y)
     l = []
     for i in GV.game.units:
         for u in GV.game.units[i]:
@@ -935,7 +929,7 @@ def animationGrid(g1,g2):
                     l.append([u2.position, parent.position])
     for v in l:
         if len(v) == 1:
-            animateGrid[v[0][1]][v[0][0]] = False
+            GV.animateGrid[v[0][1]][v[0][0]] = False
         else:
             a = min(v[0][0], v[1][0])
             b = max(v[0][0], v[1][0])
@@ -943,12 +937,12 @@ def animationGrid(g1,g2):
             d = max(v[0][1], v[1][1])
             for y in range(c,d+1):
                 for x in range(a,b+1):
-                    animateGrid[y][x] = False
+                    GV.animateGrid[y][x] = False
 
 NotAlreadyReady = True
 
 def animateBoard(g1,g2,t):
-    #rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_x+1,(GV.block_size+1)*board_y+1)#+GV.offset_x,410+GV.offset_y)
+    #rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
     #GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
     drawAnimateGrid()#drawGrid()
     resourcesAnimated(g2,t/animateTime)
@@ -1083,8 +1077,8 @@ techSize = 60
 
 def techButtonSize(n):
     global techSize
-    width = (GV.block_size+1)*board_x
-    height = (GV.block_size+1)*board_y
+    width = (GV.block_size+1)*GV.board_x
+    height = (GV.block_size+1)*GV.board_y
     if techSize < 60:
         if math.floor(width/(41))*math.floor(height/(41)) >= n:
             techSize = 60
@@ -1152,21 +1146,21 @@ def researchMenu():
         currentTechImages = {}
     currentTechButtons = []
     w = math.ceil(math.sqrt(len(techs)))#len(techs)//math.ceil(math.sqrt(w)
-    #w = math.floor((GV.block_size+1)*board_x/(techSize+1))
+    #w = math.floor((GV.block_size+1)*GV.board_x/(techSize+1))
     print('w',w)
     #w = len(techs)//math.ceil(math.sqrt(w))
     if w == 0: w = 1;
     print(w)
-    if w > math.floor((GV.block_size+1)*board_x/(techSize+1)):
-        w = math.floor((GV.block_size+1)*board_x/(techSize+1))
-    extraX = ( (GV.block_size+1)*board_x - (w*(techSize+1)) )//2
-    #print('(GV.block_size+1)*board_y',(GV.block_size+1)*board_y)
+    if w > math.floor((GV.block_size+1)*GV.board_x/(techSize+1)):
+        w = math.floor((GV.block_size+1)*GV.board_x/(techSize+1))
+    extraX = ( (GV.block_size+1)*GV.board_x - (w*(techSize+1)) )//2
+    #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
     #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
     #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
-    #print('all',( (GV.block_size+1)*board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
-    extraY = ( (GV.block_size+1)*board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
+    #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
+    extraY = ( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
-    rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_x+1,(GV.block_size+1)*board_y+1)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
 
     maybeDeny = []
@@ -1248,11 +1242,11 @@ def drawBoard():
             researchMenu()
             return
         currentlyResearch = False
-        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_x+1,(GV.block_size+1)*board_y+1)#+GV.offset_x,410+GV.offset_y)
+        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
         GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
-        for v in highlightSquares:
+        for v in GV.highlightSquares:
             highlightSquare(v[0],v[1])
-        if len(highlightSquares) > 0:
+        if len(GV.highlightSquares) > 0:
             drawGridHighlight()
         else:
             drawGrid()
@@ -1592,11 +1586,11 @@ extraButtons = {}
 grid = []
 
 def cleanUpAfterSelect():
-    global highlightSquares, moveCircles, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
+    global moveCircles, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
     selected = None
     print(selected)
     stateDataMode = None
-    highlightSquares = []
+    GV.highlightSquares = []
     moveCircles = []
     buildHexes = []
     possibleAttacks = []
@@ -1609,7 +1603,7 @@ def cleanUpAfterSelect():
         extraButtons[v].deDraw(GV.DISPLAYSURF)
 
 def main(playerCount = None):
-    global FPSCLOCK, highlightSquares, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
+    global FPSCLOCK, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
     #GV.pygame.init()
     FPSCLOCK = GV.pygame.time.Clock()
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -1635,7 +1629,7 @@ def main(playerCount = None):
     #image = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
     #image2 = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
     """
-    g = newGrid(board_x,board_y)
+    g = newGrid(GV.board_x,GV.board_y)
     #makeAreas(g)
     stuff = findStartSpots(g,2)
     print(stuff)
@@ -1655,7 +1649,7 @@ def main(playerCount = None):
             y+=1
         x+=1
     """
-    for i in range(board_x*board_y):
+    for i in range(GV.board_x*GV.board_y):
         GV.BoardColors.append(randomGreen())
         
     drawBoard()
@@ -1751,9 +1745,9 @@ def main(playerCount = None):
             elif event.type == VIDEORESIZE and counter - JustResize > 20:
                 JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
-                    GV.block_size = (event.h-65)//board_y
+                    GV.block_size = (event.h-65)//GV.board_y
                 else:
-                    GV.block_size = (event.w-65)//board_x
+                    GV.block_size = (event.w-65)//GV.board_x
                 print('blocksize',GV.block_size)
                 GV.playerUnitImages = {} #To reset all unit images
                 buildUnitImages = {}
@@ -1799,7 +1793,7 @@ def main(playerCount = None):
                 print('selected', selected)
                 if stateDataMode == 'move':
                     selected.state = None
-                    if x >= 0 and y >= 0 and y<board_y and x<board_x:
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
 
                         PlaySoundByUnit(selected, stateDataMode)
 
@@ -1858,7 +1852,7 @@ def main(playerCount = None):
                         drawBoard()
                 elif stateDataMode == 'build2':
                     selected.state = None
-                    if x >= 0 and y >= 0 and y<board_y and x<board_x:
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                         construction.play()
                         selected.stateData.insert(0,[x,y])
                         n.send(convertToStr(selected,'build',selected.stateData))
@@ -1939,7 +1933,7 @@ def main(playerCount = None):
                                 offclick = False
                                 drawBoard()
                                 break
-                    if x >= 0 and y >= 0 and y<board_y and x<board_x:
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                         if [x,y] in moveCircles: #A move was clicked
                             selected.stateData = [x,y]
                             selected.state = 'move'
@@ -1987,7 +1981,7 @@ def main(playerCount = None):
 
                                 PlaySoundByUnit(selected, "affirmative")
 
-                                highlightSquares = [[x,y]]
+                                GV.highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
                                 possibleAttacks = getAttacks(selected)
                                 possibleHeals = getHeals(selected)
@@ -2024,14 +2018,14 @@ def main(playerCount = None):
                                 cleanUpAfterSelect()
                         drawBoard()
                 elif event.button == 1:
-                    if x >= 0 and y >= 0 and y<board_y and x<board_x:
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                         selected = GV.game.getUnitFromPos(GV.player,x,y)
                         if selected:#When unit clicked
                             
                             PlaySoundByUnit(selected, "affirmative")
 
                             print(vars(selected))
-                            highlightSquares = [[x,y]]
+                            GV.highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
                             possibleAttacks = getAttacks(selected)
                             possibleHeals = getHeals(selected)
