@@ -97,21 +97,20 @@ def drawGridHighlight():
             i+=1
 
 def updateCloudCover():
-    global cloudGrid,explorationGrid
     if GV.cloudMode == "sight" or GV.cloudMode == "halo":
-        cloudGrid = []
+        GV.cloudGrid = []
         for y in range(GV.board_y):
             l = []
             for x in range(GV.board_x):
                 l.append(True)
-            cloudGrid.append(l)
+            GV.cloudGrid.append(l)
     for u in GV.game.units[GV.player]:
         spaces = ClientFunctions.getRangeCircles(u, True)
         for pos in spaces:
-            if cloudGrid[pos[1]][pos[0]]:
-                cloudGrid[pos[1]][pos[0]] = False
-            if GV.cloudMode == "halo" and explorationGrid[pos[1]][pos[0]]:
-                explorationGrid[pos[1]][pos[0]] = False
+            if GV.cloudGrid[pos[1]][pos[0]]:
+                GV.cloudGrid[pos[1]][pos[0]] = False
+            if GV.cloudMode == "halo" and GV.explorationGrid[pos[1]][pos[0]]:
+                GV.explorationGrid[pos[1]][pos[0]] = False
 
 def drawClouds():
     if GV.cloudMode == "clear":
@@ -119,17 +118,20 @@ def drawClouds():
     i = 0
     for y in range(GV.board_y):
         for x in range(GV.board_x):
-            if cloudGrid[y][x] and GV.cloudMode != "halo":
+            if GV.cloudGrid[y][x] and GV.cloudMode != "halo":
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
             elif GV.cloudMode == "halo":
-                if explorationGrid[y][x]:
+                if GV.explorationGrid[y][x]:
                     rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
-                elif cloudGrid[y][x]:
+                elif GV.cloudGrid[y][x]:
                     rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                     
                     color = list( map(add, (0,0,0), GV.BoardColors[i]) )
                     color = [x / 2 for x in color]
                     GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
             i+=1
+
+def drawIcon(image, pos):
+    GV.DISPLAYSURF.blit(image,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
