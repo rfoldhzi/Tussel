@@ -14,6 +14,7 @@ block_size = 40
 DISPLAYSURF = None
 game = None
 player = 0
+cloudMode = "halo"
 
 highlightSquares = []
 BoardColors = []

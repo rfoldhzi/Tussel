@@ -65,7 +65,7 @@ except:
 folder = Path(pathlib.Path(__file__).parent.absolute())
 GV.game = Game(0, False)
 GV.player = 0
-cloudMode = "halo"#sight, poly, halo, clear
+GV.cloudMode = "halo"#sight, poly, halo, clear
 
 serverprocess = None
 
@@ -293,7 +293,7 @@ def getMoveCircles(unit):#Could be more effiecint
                     for y in range(pos[1]-1, pos[1]+2):
                         if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                             if GV.game.getAnyUnitFromPos(x,y) == None:
-                                water = Grid[y][x]
+                                water = GV.Grid[y][x]
                                 if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                                     newSpaces.append([x,y])
             spaces += newSpaces
@@ -303,7 +303,7 @@ def getMoveCircles(unit):#Could be more effiecint
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
                 if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                     if GV.game.getAnyUnitFromPos(x,y) == None:
-                        water = Grid[y][x]
+                        water = GV.Grid[y][x]
                         if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                             spaces.append([x,y])
     
@@ -317,7 +317,7 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
                 if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
-                    water = Grid[y][x]
+                    water = GV.Grid[y][x]
                     if built:
                         t = UnitDB[built].get('type') or 0
                         if (water == (t == 'boat')) or t == "aircraft":
@@ -326,15 +326,7 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
                         if anyBlock or (not water):
                             spaces.append([x,y])
     return spaces
-"""
-def isNextToWater(pos):
-    for x in range(pos[0]-1, pos[0]+2):
-        for y in range(pos[1]-1, pos[1]+2):
-            if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
-                if Grid[y][x]:
-                    return True
-    return False
-"""
+
 def isNextToWater(pos):
     xs = [1,0,-1,0]
     ys = [0,1,0,-1]
@@ -342,15 +334,9 @@ def isNextToWater(pos):
         x = pos[0]+xs[i]
         y = pos[1]+ys[i]
         if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
-                if Grid[y][x]:
+                if GV.Grid[y][x]:
                     return True
     return False
-
-"""
-x = np.array(g)
-b = np.packbits(np.uint8(x))
-intToList(b)
-"""
 
 def int_to_bool_list(num):
     return [bool(num & (1<<n)) for n in range(8)][::-1]
@@ -752,12 +738,12 @@ print('x&y',WINDOWWIDTH,WINDOWHEIGHT)
 
 GV.highlightSquares = []
 #GV.BoardColors = []
-CloudColors = []
+GV.CloudColors = []
 moveCircles = []
 possibleAttacks = []
 possibleHeals = []
 buildHexes = []
-Grid = []
+#GV.Grid = []
 cloudGrid = []
 explorationGrid = []
 GV.animateGrid = []
@@ -797,7 +783,7 @@ def intToList(x, width):
 
 def updateCloudCover():
     global cloudGrid,explorationGrid
-    if cloudMode == "sight" or cloudMode == "halo":
+    if GV.cloudMode == "sight" or GV.cloudMode == "halo":
         cloudGrid = []
         for y in range(GV.board_y):
             l = []
@@ -809,35 +795,35 @@ def updateCloudCover():
         for pos in spaces:
             if cloudGrid[pos[1]][pos[0]]:
                 cloudGrid[pos[1]][pos[0]] = False
-            if cloudMode == "halo" and explorationGrid[pos[1]][pos[0]]:
+            if GV.cloudMode == "halo" and explorationGrid[pos[1]][pos[0]]:
                 explorationGrid[pos[1]][pos[0]] = False
 def drawClouds():
-    if cloudMode == "clear":
+    if GV.cloudMode == "clear":
         return
     i = 0
     for y in range(GV.board_y):
         for x in range(GV.board_x):
-            if cloudGrid[y][x] and cloudMode != "halo":
+            if cloudGrid[y][x] and GV.cloudMode != "halo":
                 rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                GV.pygame.draw.rect(GV.DISPLAYSURF, CloudColors[i], rect)
-            elif cloudMode == "halo":
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
+            elif GV.cloudMode == "halo":
                 if explorationGrid[y][x]:
                     rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                    GV.pygame.draw.rect(GV.DISPLAYSURF, CloudColors[i], rect)
+                    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
                 elif cloudGrid[y][x]:
                     rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                    #color = list( map(add, CloudColors[i], GV.BoardColors[i]) )
+                    #color = list( map(add, GV.CloudColors[i], GV.BoardColors[i]) )
                     color = list( map(add, (0,0,0), GV.BoardColors[i]) )
                     color = [x / 2 for x in color]
                     GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
             i+=1
 
 def updateSelf():
-    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton, Grid,cloudGrid,explorationGrid,CloudColors,blueCircle,OrangeHex,RedX,GreenT,Beaker,cloudMode,currentTechMenu
+    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,cloudGrid,explorationGrid,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
     GV.board_x = GV.game.width
     GV.board_y = GV.game.height
-    cloudMode = GV.game.mode
+    GV.cloudMode = GV.game.mode
 
     if GV.game.ai > 0:
         j = 0
@@ -867,8 +853,8 @@ def updateSelf():
 
     currentTechMenu = []
     
-    Grid = intToList(GV.game.intGrid, GV.board_x)
-    print(Grid)
+    GV.Grid = intToList(GV.game.intGrid, GV.board_x)
+    #print(Grid)
     cloudGrid = []
     for y in range(GV.board_y):
         l = []
@@ -876,7 +862,7 @@ def updateSelf():
             l.append(True)
         cloudGrid.append(l)
         
-    if cloudMode == "halo": 
+    if GV.cloudMode == "halo": 
         explorationGrid = []
         for y in range(GV.board_y):
             l = []
@@ -885,9 +871,9 @@ def updateSelf():
             explorationGrid.append(l)
     
     GV.BoardColors = []
-    CloudColors = []
+    GV.CloudColors = []
     y = 0
-    for v in Grid:
+    for v in GV.Grid:
         x = 0
         for v2 in v:
             if v2:
@@ -902,12 +888,12 @@ def updateSelf():
                     GV.BoardColors.append(randomGreen())
             x+=1
         y+=1
-    for v in Grid:
+    for v in GV.Grid:
         for v2 in v:
-            if cloudMode == "halo": 
-                CloudColors.append(randomDark())
+            if GV.cloudMode == "halo": 
+                GV.CloudColors.append(randomDark())
             else:
-                CloudColors.append(randomWhite())
+                GV.CloudColors.append(randomWhite())
 
 def animationGrid(g1,g2):
     GV.animateGrid = methods.newGrid2(GV.board_x,GV.board_y)
@@ -1626,29 +1612,6 @@ def main(playerCount = None):
 
     start_music = 0
     
-    #image = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\soldier2.png")
-    #image2 = GV.pygame.image.load(r"C:\Users\reega\Downloads\Python\Game\assets\town.png")
-    """
-    g = newGrid(GV.board_x,GV.board_y)
-    #makeAreas(g)
-    stuff = findStartSpots(g,2)
-    print(stuff)
-    print(g)
-    x = 0
-    for v in g:
-        y = 0
-        for v2 in v:
-            if [x,y] in stuff:
-                 GV.BoardColors.append(randomGrey())
-                 y+=1
-                 continue
-            if v2:
-                GV.BoardColors.append(randomBlue())
-            else:
-                GV.BoardColors.append(randomGreen())
-            y+=1
-        x+=1
-    """
     for i in range(GV.board_x*GV.board_y):
         GV.BoardColors.append(randomGreen())
         
