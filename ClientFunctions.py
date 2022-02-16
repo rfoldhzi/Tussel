@@ -1,6 +1,15 @@
 import GlobalVaribles as GV
 from UnitDB import UnitDB
 
+def Lerp(a,b,t):
+    return a+t*(b-a)
+
+def LerpPoint(a,b,t):
+    return (Lerp(a[0],b[0],t),Lerp(a[1],b[1],t))
+
+def intPoint(p):
+    return (int(p[0]),int(p[1]))
+
 def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiecint
     sp = unit.range
     spaces = []

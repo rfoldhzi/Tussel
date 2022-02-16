@@ -3,6 +3,7 @@ pygame = pygame
 
 animateTime = 20
 JustResize = 0
+animateTime = 20
 
 offset_x = 115
 offset_y = 10
@@ -35,6 +36,8 @@ explorationGrid = []
 animateGrid = []
 
 playerUnitImages = {}
+
+RedX = pygame.image.load("assets/AttackX.png")
 
 changeColor = (233,19,212,255)
 playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]

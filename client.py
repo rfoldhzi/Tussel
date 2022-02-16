@@ -554,13 +554,13 @@ def animateUnit(unit1, unit2,t,specfic_player):
             x2,y2 = parent.position
             start = (x2*(GV.block_size+1)+GV.offset_x-1, y2*(GV.block_size+1)+GV.offset_y-1)
             end = (x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1)
-            Pos = intPoint(LerpPoint(start, end, t/animateTime))
+            Pos = intPoint(LerpPoint(start, end, t/GV.animateTime))
             GV.DISPLAYSURF.blit(image,Pos)
     elif unit1.position != unit2.position:
         default = False
         start = (x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1)
         end = (unit2.position[0]*(GV.block_size+1)+GV.offset_x-1, unit2.position[1]*(GV.block_size+1)+GV.offset_y-1)
-        Pos = intPoint(LerpPoint(start, end, t/animateTime))
+        Pos = intPoint(LerpPoint(start, end, t/GV.animateTime))
         GV.DISPLAYSURF.blit(image,Pos)
     if default:#No move
         GV.DISPLAYSURF.blit(image,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
@@ -569,13 +569,13 @@ def animateUnit(unit1, unit2,t,specfic_player):
         text = Healthfont.render(T, 1, WHITE)
         if unit1 and unit2:
             if unit2.health < unit1.health:
-                T = str(int(Lerp(unit1.health, unit2.health, t/animateTime)))
+                T = str(int(Lerp(unit1.health, unit2.health, t/GV.animateTime)))
                 text = Healthfont.render(T, 1, RED)
             elif unit2.health > unit1.health:
-                T = str(int(Lerp(unit1.health, unit2.health, t/animateTime)))
+                T = str(int(Lerp(unit1.health, unit2.health, t/GV.animateTime)))
                 text = Healthfont.render(T, 1, WHITE)
             elif unit1 == unit2:
-                T = str(int(Lerp(unit1.health, 0, t/animateTime)))
+                T = str(int(Lerp(unit1.health, 0, t/GV.animateTime)))
                 text = Healthfont.render(T, 1, RED)
         GV.DISPLAYSURF.blit(text, (x*(GV.block_size+1)+GV.offset_x+(GV.block_size-2)-(7*len(T)), y*(GV.block_size+1)+GV.offset_y+(GV.block_size-17)))
 
@@ -594,7 +594,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
         GV.DISPLAYSURF.blit(RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
 
 
-animateTime = 20
+GV.animateTime = 20
 
 
 GV.board_x = 10
@@ -621,7 +621,7 @@ GV.animateGrid = []
 
 blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
 OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
-RedX = GV.pygame.image.load("assets/AttackX.png")
+RedX = GV.RedX#GV.pygame.image.load("assets/AttackX.png")
 GreenT = GV.pygame.image.load("assets/HealT.png")
 Beaker = GV.pygame.image.load("assets/Beaker.png")
 print(type(blueCircle))
@@ -766,7 +766,7 @@ def animateBoard(g1,g2,t):
     #rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
     #GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
     BF.drawAnimateGrid()#drawGrid()
-    resourcesAnimated(g2,t/animateTime)
+    resourcesAnimated(g2,t/GV.animateTime)
 
     techDrawn = []
 
@@ -843,19 +843,18 @@ def animateBoard(g1,g2,t):
         for u in GV.game.units[i]:
             u2 = g2.getUnitFromID(u.UnitID)
             if u2:
-                animateUnit(u,u2,t,i) #Unit changed
+                BF.animateUnit(u,u2,t,i) #Unit changed
             else:
-                animateUnit(u,u,t,i)#Unit destroyed
+                BF.animateUnit(u,u,t,i)#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
             u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
                 print('here we go')
-                animateUnit(None,u2,t,i)#New unit is built
+                BF.animateUnit(None,u2,t,i)#New unit is built
     BF.drawClouds()
 
 def changeAnimateSpeed(g1,g2):
-    global animateTime
     units = 0
     for i in GV.game.units:
         for u in GV.game.units[i]:
@@ -871,7 +870,7 @@ def changeAnimateSpeed(g1,g2):
             u = GV.game.getUnitFromID(u2.UnitID)
             if not u: #New unit built
                 units+=1
-    animateTime = min(20,10+units*2)
+    GV.animateTime = min(20,10+units*2)
 
 def GetUnlockedTechs():
     techs = []
@@ -1063,7 +1062,7 @@ def drawBoard():
             researchMenu()
             return
         currentlyResearch = False
-        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
+        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*(GV.board_x-GV.board_x_start)+1,(GV.block_size+1)*(GV.board_y-GV.board_y_start)+1)#+GV.offset_x,410+GV.offset_y)
         GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
         for v in GV.highlightSquares:
             BF.highlightSquare(v[0],v[1])
@@ -1464,7 +1463,7 @@ def main(playerCount = None):
     counter = 0
 
     GV.JustResize = 0
-    animateCounter = animateTime*-2
+    animateCounter = GV.animateTime*-2
     newGame = None
     
     while run: # main GV.game loop
@@ -1492,7 +1491,7 @@ def main(playerCount = None):
                             newGame = r
                             changeAnimateSpeed(GV.game,newGame)
                             animationGrid(GV.game,newGame)
-                            print(animateTime)
+                            print(GV.animateTime)
                         else:
                             GV.game = r
                 else:
@@ -1511,7 +1510,7 @@ def main(playerCount = None):
             break
         
         counter += 1
-        if counter-animateCounter <= animateTime:
+        if counter-animateCounter <= GV.animateTime:
             animateBoard(GV.game, newGame, counter-animateCounter)
         elif counter%10 == 0:
             #print("MORE ", vars(GV.game))
@@ -1524,7 +1523,7 @@ def main(playerCount = None):
             resources()
         
         for event in GV.pygame.event.get():
-            if counter-animateCounter <= animateTime:#Don't continue to watch events
+            if counter-animateCounter <= GV.animateTime:#Don't continue to watch events
                 break
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
                 if serverprocess:
@@ -1539,7 +1538,7 @@ def main(playerCount = None):
                     updateSelf()
                     #GV.pygame.mixer.music.pause()
                 elif event.key == 110: # 'n' Key
-                    GV.board_x_start = 1
+                    GV.board_x_start = 3
                     GV.board_y_start = 1
                     GV.JustResize = counter
                     updateSelf()

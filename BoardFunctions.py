@@ -1,6 +1,6 @@
 import GlobalVaribles as GV
 from operator import add
-import ClientFunctions
+import ClientFunctions as CF
 
 try:
     from PIL import Image
@@ -38,6 +38,9 @@ def showUnitNEW(unit):
     y = unit.position[1]
     image = None
     
+    if x < GV.board_x_start or GV.board_x_end < x or y < GV.board_y_start or GV.board_y_end < y:
+        return
+
     for p in GV.game.units:
         if unit in GV.game.units[p]:
             image = getImage(unit.name, p)
@@ -67,27 +70,23 @@ def drawLine(color,pos1,pos2):
                                                ((GV.block_size+1)*(pos2[0]-GV.board_x_start)+GV.offset_x+GV.block_size/2,(GV.block_size+1)*(pos2[1]-GV.board_y_start)+GV.offset_y+GV.block_size/2),10)
 
 def drawGrid():
-    i = 0
     for y in range(GV.board_y_start, GV.board_y):
         for x in range(GV.board_x_start, GV.board_x):
             i = (y*GV.board_x) + x
             rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
 
 def drawAnimateGrid():
-    i = 0
     for y in range(GV.board_y_start, GV.board_y):
         for x in range(GV.board_x_start, GV.board_x):
             if GV.animateGrid[y][x]:
                 pass
             else:
+                i = (y*GV.board_x) + x
                 rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
 
 def drawGridHighlight():
-    i = 0
     for y in range(GV.board_y_start, GV.board_y):
         for x in range(GV.board_x_start, GV.board_x):
             rect = None
@@ -95,8 +94,8 @@ def drawGridHighlight():
                 rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x+1, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
             else:
                 rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
+            i = (y*GV.board_x) + x
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
 
 def updateCloudCover():
     if GV.cloudMode == "sight" or GV.cloudMode == "halo":
@@ -107,7 +106,7 @@ def updateCloudCover():
                 l.append(True)
             GV.cloudGrid.append(l)
     for u in GV.game.units[GV.player]:
-        spaces = ClientFunctions.getRangeCircles(u, True)
+        spaces = CF.getRangeCircles(u, True)
         for pos in spaces:
             if GV.cloudGrid[pos[1]][pos[0]]:
                 GV.cloudGrid[pos[1]][pos[0]] = False
@@ -137,3 +136,62 @@ def drawClouds():
 
 def drawIcon(image, pos):
     GV.DISPLAYSURF.blit(image,((pos[0] - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (pos[1]-GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1))
+
+def animateUnit(unit1, unit2,t,specfic_player):
+    unit = unit1
+    if not unit1:
+        unit = unit2
+    x = unit.position[0]
+    y = unit.position[1]
+    image = None
+    if GV.animateGrid[y][x]:
+        return
+
+    image = getImage(unit.name, specfic_player)
+    
+    default = True
+    if not unit1:
+        parent = GV.game.getUnitFromID(unit2.parent)
+        if parent:
+            default = False
+            x2,y2 = parent.position
+            start = ((x2 - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y2 - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
+            end = ((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
+            Pos = CF.intPoint(CF.LerpPoint(start, end, t/GV.animateTime))
+            GV.DISPLAYSURF.blit(image,Pos)
+    elif unit1.position != unit2.position:
+        default = False
+        start = ((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
+        end = ((unit2.position[0] - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (unit2.position[1] - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
+        Pos = CF.intPoint(CF.LerpPoint(start, end, t/GV.animateTime))
+        GV.DISPLAYSURF.blit(image,Pos)
+    if default:#No move
+        GV.DISPLAYSURF.blit(image,((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1))
+        T = str(unit.health)
+        Healthfont = GV.pygame.font.SysFont("arial", 15)
+        text = Healthfont.render(T, 1, (255,255,255))
+        if unit1 and unit2:
+            if unit2.health < unit1.health:
+                T = str(int(CF.Lerp(unit1.health, unit2.health, t/GV.animateTime)))
+                text = Healthfont.render(T, 1, (255,0,0))
+            elif unit2.health > unit1.health:
+                T = str(int(CF.Lerp(unit1.health, unit2.health, t/GV.animateTime)))
+                text = Healthfont.render(T, 1, (255,255,255))
+            elif unit1 == unit2:
+                T = str(int(CF.Lerp(unit1.health, 0, t/GV.animateTime)))
+                text = Healthfont.render(T, 1, (255,0,0))
+        GV.DISPLAYSURF.blit(text, ((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x+(GV.block_size-2)-(7*len(T)), (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y+(GV.block_size-17)))
+
+        #State square
+        if unit2:
+            unit = unit2
+        if unit.state != None and unit1 in GV.game.units[specfic_player]:
+            #print(vars(unit))
+            rect = GV.pygame.Rect((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x+GV.block_size - 9, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y+4, 5, 5)
+            if unit.state == 'resources':
+                if unit.stateData and type(unit.stateData) == str and unit.stateData in GV.resourceColors:
+                    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.resourceColors[unit.stateData], rect)
+            else:
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
+    if unit1 == unit2:
+        GV.DISPLAYSURF.blit(GV.RedX,((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1))
