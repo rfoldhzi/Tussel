@@ -664,11 +664,16 @@ def updateSelf():
         for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
             GV.playerColors.insert(i, AIcolors[j])
             j+=1
-    endOfBoard_x = (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+GV.offset_x#525
-    endOfBoard_y = (GV.block_size+1)*(GV.board_y_end-GV.board_y_start)+GV.offset_y#420
+    minBoardSize = 5
+    endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+    endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+    #endOfBoard_x = (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+GV.offset_x#525
+    #endOfBoard_y = (GV.block_size+1)*(GV.board_y_end-GV.board_y_start)+GV.offset_y#420
 
-    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
-    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
+    WINDOWWIDTH = GV.offset_x + endOfBoard_x
+    WINDOWHEIGHT = 60 + endOfBoard_y
+    #WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
+    #WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -1576,7 +1581,7 @@ def main(playerCount = None):
                 updateSelf()
             elif event.type == MOUSEMOTION:
                 mousex, mousey = event.pos
-                if selected and mousey > 410+GV.offset_y and stateDataMode != 'build2':
+                if selected and mousey > endOfBoard_y and stateDataMode != 'build2':
                     if 'build' in selected.possibleStates:#If they are able to build
                         unfound = True
                         for btn in extraButtons:
