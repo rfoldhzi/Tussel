@@ -275,12 +275,6 @@ def gridMouse(x,y,block,offx, offy):
     y = y - offy
     return math.floor(x/(block+1)), int(y/(block+1))
 
-"""
-def highlightSquare(x,y):
-    rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-    GV.pygame.draw.rect(GV.DISPLAYSURF, (255,255,255), rect)
-"""
-
 def getMoveCircles(unit):#Could be more effiecint
     if not 'move' in unit.possibleStates:
         return []
@@ -536,100 +530,9 @@ unitImages = {}
 darkunitImages = {}
 GV.playerUnitImages = {}
 buildUnitImages = {}
-#GV.playerColors = [(201, 59, 54,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#GV.playerColors = [(201, 59, 54,255),(167, 242, 46,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#GV.playerColors = [(201, 59, 54,255),(150,150,150,255), (255, 115, 0,255),(59, 151, 217,255),(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#GV.playerColors = [(117, 69, 143,255),(167, 242, 46,255),(122, 129, 153),(107, 64, 0)]
-#GV.playerColors = [(201, 59, 54,255),(150,150,150,255),(0, 195, 255,255),(107, 64, 0),(167, 242, 46)]
-###GV.playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
-#GV.playerColors = [(230,230,230),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
+
 AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),(161, 224, 255) ]
-"""
-Colors:
-Red: (201, 59, 54,255)
-Blue: (59, 151, 217,255)
-Grey: (150,150,150,255)
 
-
-Dark Purple: (117, 69, 143,255)
-Electric Blue : (0, 195, 255)
-Bright Purple: (170, 0, 255)
-Lime Green: (167, 242, 46)
-bright orange: (255, 136, 0)
-
-"""
-
-#random.shuffle(GV.playerColors)
-
-#GV.changeColor = (233,19,212,255)
-
-#GV.block_size = 40
-"""
-def getImage(name, p, Pictures = 1, size = False):
-    if Pictures == 1:
-        Pictures = GV.playerUnitImages
-    if not size:
-        size = GV.block_size
-    if not p in Pictures:
-        Pictures[p] = {}
-    if not name in Pictures[p]:
-        img = Image.open("assets/%s.png" % name)
-        pixels = img.load()
-        for i in range(img.size[0]): # for every pixel:
-            for j in range(img.size[1]):
-                if pixels[i,j] == GV.changeColor:
-                    pixels[i,j] = GV.playerColors[p]
-        img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-        img = GV.pygame.transform.scale(img, (size, size))
-        Pictures[p][name] = img
-    return Pictures[p][name]
-"""
-"""
-def showUnitNEW(unit):
-    x = unit.position[0]
-    y = unit.position[1]
-    image = None
-    
-    for p in GV.game.units:
-        if unit in GV.game.units[p]:
-            image = BF.getImage(unit.name, p)
-            break
-    
-    if unit in GV.game.units[GV.player] or (not imageMani):
-        if not unit.name in unitImages:
-            img = GV.pygame.image.load("assets/%s.png" % unit.name)
-            img = GV.pygame.transform.scale(img, (40, 40))
-            unitImages[unit.name] = img
-        image = unitImages[unit.name]
-    else:
-        if not unit.name in darkunitImages:
-            img = Image.open("assets/%s.png" % unit.name)
-            pixels = img.load()
-            for i in range(img.size[0]): # for every pixel:
-                for j in range(img.size[1]):
-                    pixels[i,j] = (int(pixels[i,j][0]/2),int(pixels[i,j][1]/2),int(pixels[i,j][2]/2),pixels[i,j][3])
-            img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-            darkunitImages[unit.name] = GV.pygame.transform.scale(img, (40, 40))
-        image = darkunitImages[unit.name]
-    
-    GV.DISPLAYSURF.blit(image,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
-    
-    t = str(unit.health)
-    Healthfont = GV.pygame.font.SysFont("arial", 15)
-    text = Healthfont.render(t, 1, WHITE)
-    #GV.DISPLAYSURF.blit(text, (x*(GV.block_size+1)+GV.offset_x+38-(7*len(t)), y*(GV.block_size+1)+GV.offset_y+23))
-    GV.DISPLAYSURF.blit(text, (x*(GV.block_size+1)+GV.offset_x+(GV.block_size-2)-(7*len(t)), y*(GV.block_size+1)+GV.offset_y+(GV.block_size-17)))
-
-    #State square
-    if unit.state != None and unit in GV.game.units[GV.player]:
-        #print(vars(unit))
-        rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+GV.block_size - 9, y*(GV.block_size+1)+GV.offset_y+4, 5, 5)
-        if unit.state == 'resources':
-            if unit.stateData and type(unit.stateData) == str and unit.stateData in GV.resourceColors:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.resourceColors[unit.stateData], rect)
-        else:
-            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
-"""
 
 def animateUnit(unit1, unit2,t,specfic_player):
     unit = unit1
@@ -690,50 +593,9 @@ def animateUnit(unit1, unit2,t,specfic_player):
     if unit1 == unit2:
         GV.DISPLAYSURF.blit(RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
 
-"""
-def drawLine(color,pos1,pos2):
-    GV.pygame.draw.line(GV.DISPLAYSURF, color, ((GV.block_size+1)*pos1[0]+GV.offset_x+GV.block_size/2,(GV.block_size+1)*pos1[1]+GV.offset_y+GV.block_size/2),((GV.block_size+1)*pos2[0]+GV.offset_x+GV.block_size/2,(GV.block_size+1)*pos2[1]+GV.offset_y+GV.block_size/2),10)
-"""
 
-"""
-def drawGrid():
-    i = 0
-    for y in range(GV.board_y):
-        for x in range(GV.board_x):
-            rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
-"""
-"""
-def drawAnimateGrid():
-    i = 0
-    for y in range(GV.board_y):
-        for x in range(GV.board_x):
-            rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            if GV.animateGrid[y][x]:
-                pass
-            else:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
-"""
-"""
-def drawGridHighlight():
-    i = 0
-    for y in range(GV.board_y):
-        for x in range(GV.board_x):
-            rect = None
-            if [x,y] in GV.highlightSquares:
-                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+1, y*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
-            else:
-                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
-            i+=1
-"""
 animateTime = 20
 
-
-#GV.offset_x = 115
-#GV.offset_y = 10
 
 GV.board_x = 10
 GV.board_y = 10
@@ -789,46 +651,7 @@ def intToList(x, width):
     for i in range(len(l)//width):
             l2.append(l[(i*width):((i+1)*width)])
     return l2
-"""
-def updateCloudCover():
-    global GV.cloudGrid,GV.explorationGrid
-    if GV.cloudMode == "sight" or GV.cloudMode == "halo":
-        GV.cloudGrid = []
-        for y in range(GV.board_y):
-            l = []
-            for x in range(GV.board_x):
-                l.append(True)
-            GV.cloudGrid.append(l)
-    for u in GV.game.units[GV.player]:
-        spaces = getRangeCircles(u, True)
-        for pos in spaces:
-            if GV.cloudGrid[pos[1]][pos[0]]:
-                GV.cloudGrid[pos[1]][pos[0]] = False
-            if GV.cloudMode == "halo" and GV.explorationGrid[pos[1]][pos[0]]:
-                GV.explorationGrid[pos[1]][pos[0]] = False
-"""
-"""
-def drawClouds():
-    if GV.cloudMode == "clear":
-        return
-    i = 0
-    for y in range(GV.board_y):
-        for x in range(GV.board_x):
-            if GV.cloudGrid[y][x] and GV.cloudMode != "halo":
-                rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
-            elif GV.cloudMode == "halo":
-                if GV.explorationGrid[y][x]:
-                    rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
-                elif GV.cloudGrid[y][x]:
-                    rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x, y*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                    #color = list( map(add, GV.CloudColors[i], GV.BoardColors[i]) )
-                    color = list( map(add, (0,0,0), GV.BoardColors[i]) )
-                    color = [x / 2 for x in color]
-                    GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
-            i+=1
-"""
+
 def updateSelf():
     global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
@@ -1468,15 +1291,6 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     for i, v in enumerate(name):
         if v == 'Of':
             name[i] = 'of'
-    """
-    i = 0
-    while i < len(name):
-        x = ''
-        while i < len(name) and len(x)+len(name[i]) < 14:
-            x+= name[i] + " "
-            i+=1
-        text.append(x)
-    """
     text.extend(textToLines(NameTitle(tech)))
     text.append('')
 
