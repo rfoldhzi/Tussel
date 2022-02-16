@@ -2,10 +2,16 @@ import pygame
 pygame = pygame
 
 animateTime = 20
-
+JustResize = 0
 
 offset_x = 115
 offset_y = 10
+
+board_x_start = 1
+board_y_start = 1
+board_x_end = 15
+board_y_end = 15
+
 
 board_x = 10
 board_y = 10

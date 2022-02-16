@@ -664,11 +664,12 @@ def updateSelf():
         for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
             GV.playerColors.insert(i, AIcolors[j])
             j+=1
-    endOfBoard_x = (GV.block_size+1)*GV.board_x+GV.offset_x#525
-    endOfBoard_y = (GV.block_size+1)*GV.board_y+GV.offset_y#420
+    endOfBoard_x = (GV.block_size+1)*(GV.board_x-GV.board_x_start)+GV.offset_x#525
+    endOfBoard_y = (GV.block_size+1)*(GV.board_y-GV.board_y_start)+GV.offset_y#420
 
-    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*GV.board_x#640
-    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*GV.board_y
+    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x-GV.board_x_start)#640
+    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y-GV.board_y_start)
+    print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     GV.DISPLAYSURF.fill(BGCOLOR)
@@ -1462,7 +1463,7 @@ def main(playerCount = None):
 
     counter = 0
 
-    JustResize = 0
+    GV.JustResize = 0
     animateCounter = animateTime*-2
     newGame = None
     
@@ -1532,11 +1533,19 @@ def main(playerCount = None):
                 sys.exit()
             elif event.type == KEYUP:
                 if event.key == 109: # 'm' Key
-                    GV.pygame.mixer.music.pause()
+                    GV.board_x_start = 0
+                    GV.board_y_start = 0
+                    GV.JustResize = counter
+                    updateSelf()
+                    #GV.pygame.mixer.music.pause()
                 elif event.key == 110: # 'n' Key
-                    GV.pygame.mixer.music.unpause()
-            elif event.type == VIDEORESIZE and counter - JustResize > 20:
-                JustResize = counter
+                    GV.board_x_start = 1
+                    GV.board_y_start = 1
+                    GV.JustResize = counter
+                    updateSelf()
+                    #GV.pygame.mixer.music.unpause()
+            elif event.type == VIDEORESIZE and counter - GV.JustResize > 20:
+                GV.JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
                     GV.block_size = (event.h-65)//GV.board_y
                 else:
@@ -1581,6 +1590,8 @@ def main(playerCount = None):
             elif event.type == MOUSEBUTTONDOWN:
                 mousex, mousey = event.pos
                 x,y = gridMouse(mousex, mousey, GV.block_size,GV.offset_x,GV.offset_y)
+                x += GV.board_x_start
+                y += GV.board_y_start
                 print(x,y)
                 print('datamode', stateDataMode)
                 print('selected', selected)
