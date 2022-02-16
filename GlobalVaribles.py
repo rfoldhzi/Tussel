@@ -20,6 +20,7 @@ board_y = 10
 block_size = 40
 DISPLAYSURF = None
 game = None
+newGame = None
 player = 0
 cloudMode = "halo"
 

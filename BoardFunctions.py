@@ -38,7 +38,7 @@ def showUnitNEW(unit):
     y = unit.position[1]
     image = None
     
-    if x < GV.board_x_start or GV.board_x_end < x or y < GV.board_y_start or GV.board_y_end < y:
+    if x < GV.board_x_start or GV.board_x_end <= x or y < GV.board_y_start or GV.board_y_end <= y:
         return
 
     for p in GV.game.units:
@@ -66,29 +66,32 @@ def showUnitNEW(unit):
 
 
 def drawLine(color,pos1,pos2):
+    if pos1[0] < GV.board_x_start or GV.board_x_end <= pos1[0] or pos1[1] < GV.board_y_start or GV.board_y_end <= pos1[1]:
+        if pos2[0] < GV.board_x_start or GV.board_x_end <= pos2[0] or pos2[1] < GV.board_y_start or GV.board_y_end <= pos2[1]:
+            return
     GV.pygame.draw.line(GV.DISPLAYSURF, color, ((GV.block_size+1)*(pos1[0]-GV.board_x_start)+GV.offset_x+GV.block_size/2,(GV.block_size+1)*(pos1[1]-GV.board_y_start)+GV.offset_y+GV.block_size/2),
                                                ((GV.block_size+1)*(pos2[0]-GV.board_x_start)+GV.offset_x+GV.block_size/2,(GV.block_size+1)*(pos2[1]-GV.board_y_start)+GV.offset_y+GV.block_size/2),10)
 
 def drawGrid():
-    for y in range(GV.board_y_start, GV.board_y):
-        for x in range(GV.board_x_start, GV.board_x):
+    for y in range(GV.board_y_start, GV.board_y_end):
+        for x in range(GV.board_x_start, GV.board_x_end):
             i = (y*GV.board_x) + x
             rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
 
 def drawAnimateGrid():
-    for y in range(GV.board_y_start, GV.board_y):
-        for x in range(GV.board_x_start, GV.board_x):
+    for y in range(GV.board_y_start, GV.board_y_end):
+        for x in range(GV.board_x_start, GV.board_x_end):
             if GV.animateGrid[y][x]:
                 pass
             else:
-                i = (y*GV.board_x) + x
+                color = GV.BoardColors[(y*GV.board_x) + x]
                 rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
 
 def drawGridHighlight():
-    for y in range(GV.board_y_start, GV.board_y):
-        for x in range(GV.board_x_start, GV.board_x):
+    for y in range(GV.board_y_start, GV.board_y_end):
+        for x in range(GV.board_x_start, GV.board_x_end):
             rect = None
             if [x,y] in GV.highlightSquares:
                 rect = GV.pygame.Rect((x-GV.board_x_start)*(GV.block_size+1)+GV.offset_x+1, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y+1, GV.block_size-1, GV.block_size-1)
@@ -97,7 +100,9 @@ def drawGridHighlight():
             i = (y*GV.board_x) + x
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BoardColors[i], rect)
 
-def updateCloudCover():
+def updateCloudCover(SpecificGame = None):
+    if SpecificGame == None:
+        SpecificGame = GV.game
     if GV.cloudMode == "sight" or GV.cloudMode == "halo":
         GV.cloudGrid = []
         for y in range(GV.board_y):
@@ -105,7 +110,7 @@ def updateCloudCover():
             for x in range(GV.board_x):
                 l.append(True)
             GV.cloudGrid.append(l)
-    for u in GV.game.units[GV.player]:
+    for u in SpecificGame.units[GV.player]:
         spaces = CF.getRangeCircles(u, True)
         for pos in spaces:
             if GV.cloudGrid[pos[1]][pos[0]]:
@@ -116,9 +121,9 @@ def updateCloudCover():
 def drawClouds():
     if GV.cloudMode == "clear":
         return
-    i = 0
-    for y in range(GV.board_y_start, GV.board_y):
-        for x in range(GV.board_x_start, GV.board_x):
+    for y in range(GV.board_y_start, GV.board_y_end):
+        for x in range(GV.board_x_start, GV.board_x_end):
+            i = (y*GV.board_x) + x
             if GV.cloudGrid[y][x] and GV.cloudMode != "halo":
                 rect = GV.pygame.Rect((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x, (y-GV.board_y_start)*(GV.block_size+1)+GV.offset_y, GV.block_size+1, GV.block_size+1)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.CloudColors[i], rect)
@@ -132,7 +137,6 @@ def drawClouds():
                     color = list( map(add, (0,0,0), GV.BoardColors[i]) )
                     color = [x / 2 for x in color]
                     GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
-            i+=1
 
 def drawIcon(image, pos):
     GV.DISPLAYSURF.blit(image,((pos[0] - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (pos[1]-GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1))
@@ -145,6 +149,11 @@ def animateUnit(unit1, unit2,t,specfic_player):
     y = unit.position[1]
     image = None
     if GV.animateGrid[y][x]:
+        return
+
+    if x < GV.board_x_start or GV.board_x_end <= x or y < GV.board_y_start or GV.board_y_end <= y:
+        return
+    if unit2.position[0] < GV.board_x_start or GV.board_x_end <= unit2.position[0] or unit2.position[1] < GV.board_y_start or GV.board_y_end <= unit2.position[1]:
         return
 
     image = getImage(unit.name, specfic_player)
@@ -195,3 +204,26 @@ def animateUnit(unit1, unit2,t,specfic_player):
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
     if unit1 == unit2:
         GV.DISPLAYSURF.blit(GV.RedX,((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1))
+
+
+def updateEdges():
+    updateCloudCover(GV.newGame)
+    leastX = GV.board_x
+    leastY = GV.board_y
+    mostX = 0
+    mostY = 0
+    for y in range(GV.board_y):
+        for x in range(GV.board_x):
+            if not GV.explorationGrid[y][x]:
+                if x - 1 < leastX: # The minus is so you can see so clouds at the edge
+                    leastX = x - 1
+                elif x + 2 > mostX: # The most needs an extra 1 (off by 1), so plus 2
+                    mostX = x + 2
+                if y - 1 < leastY:
+                    leastY = y - 1
+                elif y + 2 > mostY:
+                    mostY = y + 2
+    GV.board_x_start = max(leastX, 0)
+    GV.board_y_start = max(leastY, 0)
+    GV.board_x_end = min(mostX, GV.board_x)
+    GV.board_y_end = min(mostY, GV.board_y)

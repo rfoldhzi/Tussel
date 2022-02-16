@@ -664,11 +664,11 @@ def updateSelf():
         for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
             GV.playerColors.insert(i, AIcolors[j])
             j+=1
-    endOfBoard_x = (GV.block_size+1)*(GV.board_x-GV.board_x_start)+GV.offset_x#525
-    endOfBoard_y = (GV.block_size+1)*(GV.board_y-GV.board_y_start)+GV.offset_y#420
+    endOfBoard_x = (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+GV.offset_x#525
+    endOfBoard_y = (GV.block_size+1)*(GV.board_y_end-GV.board_y_start)+GV.offset_y#420
 
-    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x-GV.board_x_start)#640
-    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y-GV.board_y_start)
+    WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
+    WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -690,6 +690,10 @@ def updateSelf():
     
     GV.Grid = intToList(GV.game.intGrid, GV.board_x)
     #print(Grid)
+    
+    if len(GV.cloudGrid) == GV.board_y and len(GV.cloudGrid[0]) == GV.board_x:
+        return
+
     GV.cloudGrid = []
     for y in range(GV.board_y):
         l = []
@@ -780,12 +784,12 @@ def animateBoard(g1,g2,t):
                     if checkRange(u,u.stateData) > u.speed:
                         color = (45, 150, 138)
                         spots = (u.position,u.stateData)
-                        BF.drawLine((45, 150, 138),u.position,u.stateData)
+                        #BF.drawLine((45, 150, 138),u.position,u.stateData)
                     else:
                         color = (0,255,255)
                         print("more colro", color)
                         spots = (u.position,u.stateData)
-                        BF.drawLine((0,255,255),u.position,u.stateData)
+                        #BF.drawLine((0,255,255),u.position,u.stateData)
                 elif u.state == 'attack':
                     pos = None
                     if type(u.stateData) == dict:
@@ -795,11 +799,11 @@ def animateBoard(g1,g2,t):
                     if checkRange(u,pos) > u.range:
                         color = (148, 55, 49)
                         spots = (u.position,pos)
-                        BF.drawLine((148, 55, 49),u.position,pos)
+                        #BF.drawLine((148, 55, 49),u.position,pos)
                     else:
                         color = (255,0,0)
                         spots = (u.position,pos)
-                        BF.drawLine((255,0,0),u.position,pos)
+                        #BF.drawLine((255,0,0),u.position,pos)
                 elif u.state == 'heal':
                     pos = None
                     if type(u.stateData) == dict:
@@ -809,23 +813,23 @@ def animateBoard(g1,g2,t):
                     if checkRange(u,pos) > u.range:
                         color = (150, 150, 150)
                         spots = (u.position,pos)
-                        BF.drawLine((150, 150, 150),u.position,pos)
+                        #BF.drawLine((150, 150, 150),u.position,pos)
                     else:
                         color = (255,255,255)
                         spots = (u.position,pos)
-                        BF.drawLine((255,255,255),u.position,pos)
+                        #BF.drawLine((255,255,255),u.position,pos)
                 elif u.state == 'build':
                     print('BUILD BUILD BIT')
                     if len(u.stateData) == 2:
                         if checkRange(u,u.stateData[0]) > u.range:
                             color = (110, 106, 46)
                             spots = (u.position,u.stateData[0])
-                            BF.drawLine((110, 106, 46),u.position,u.stateData[0])
+                            #BF.drawLine((110, 106, 46),u.position,u.stateData[0])
                         else:
                             color = (255,170,0)
                             print("more colro", color)
                             spots = (u.position,u.stateData[0])
-                            BF.drawLine((255,170,0),u.position,u.stateData[0])
+                            #BF.drawLine((255,170,0),u.position,u.stateData[0])
                 elif u.state == 'research':
                     if g1.checkFriendlyPlayer(u, GV.player) and (not u.stateData in techDrawn) and (u.stateData in g2.tech[GV.player]):
                         img = GV.pygame.image.load("techAssets/%s.png" % u.stateData)
@@ -837,6 +841,9 @@ def animateBoard(g1,g2,t):
                         
                 print("COLOR",color, u.state, u.stateData)
                 if color:
+                    if spots[0][0] < GV.board_x_start or GV.board_x_end <= spots[0][0] or spots[0][1] < GV.board_y_start or GV.board_y_end <= spots[0][1]:
+                        if spots[1][0] < GV.board_x_start or GV.board_x_end <= spots[1][0] or spots[1][1] < GV.board_y_start or GV.board_y_end <= spots[1][1]:
+                            continue
                     BF.drawLine(color,spots[0],spots[1])
                     
     for i in GV.game.units:
@@ -1062,7 +1069,7 @@ def drawBoard():
             researchMenu()
             return
         currentlyResearch = False
-        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*(GV.board_x-GV.board_x_start)+1,(GV.block_size+1)*(GV.board_y-GV.board_y_start)+1)#+GV.offset_x,410+GV.offset_y)
+        rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+1,(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)+1)#+GV.offset_x,410+GV.offset_y)
         GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
         for v in GV.highlightSquares:
             BF.highlightSquare(v[0],v[1])
@@ -1464,7 +1471,7 @@ def main(playerCount = None):
 
     GV.JustResize = 0
     animateCounter = GV.animateTime*-2
-    newGame = None
+    GV.newGame = None
     
     while run: # main GV.game loop
         #mouseClicked = False
@@ -1488,18 +1495,18 @@ def main(playerCount = None):
                     animateCounter = int(counter)
                     if r:
                         if r.ready:
-                            newGame = r
-                            changeAnimateSpeed(GV.game,newGame)
-                            animationGrid(GV.game,newGame)
+                            GV.newGame = r
+                            changeAnimateSpeed(GV.game,GV.newGame)
+                            animationGrid(GV.game,GV.newGame)
                             print(GV.animateTime)
                         else:
                             GV.game = r
                 else:
                     #print("stuff", roundEnd(GV.game,r))
                     GV.game = r
-                    newGame = r#######
+                    GV.newGame = r#######
                     #print("GAME", vars(GV.game))
-                    #print("newGAME", vars(newGame))
+                    #print("GV.newGame", vars(GV.newGame))
                     #print("R", vars(r))
             elif type(R) == str:
                 #print("HERE2", r)
@@ -1511,12 +1518,22 @@ def main(playerCount = None):
         
         counter += 1
         if counter-animateCounter <= GV.animateTime:
-            animateBoard(GV.game, newGame, counter-animateCounter)
+            print("animateCounter",animateCounter,"counter",counter)
+            if animateCounter + 1 == counter:
+                print("WE ARE HERE WE ARE HERE WE ARE HERE")
+                BF.updateEdges()
+                print("THE EDGES",GV.board_x_start,GV.board_x_end,GV.board_y_start,GV.board_y_end)
+                updateSelf()
+                BF.updateEdges()
+                drawBoard()
+            animateBoard(GV.game, GV.newGame, counter-animateCounter)
+            if counter-animateCounter == GV.animateTime:
+                pass#GV.DISPLAYSURF.fill(BGCOLOR) #Used to clear the board after animating, but blinks when doing so
         elif counter%10 == 0:
             #print("MORE ", vars(GV.game))
-            if newGame:
-                #print("Even MORE", vars(newGame))
-                GV.game = newGame
+            if GV.newGame:
+                #print("Even MORE", vars(GV.newGame))
+                GV.game = GV.newGame
             #print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
             #print(vars(GV.game))
             drawBoard()
@@ -1534,12 +1551,16 @@ def main(playerCount = None):
                 if event.key == 109: # 'm' Key
                     GV.board_x_start = 0
                     GV.board_y_start = 0
+                    GV.board_x_end = 15
+                    GV.board_y_end = 15
                     GV.JustResize = counter
                     updateSelf()
                     #GV.pygame.mixer.music.pause()
                 elif event.key == 110: # 'n' Key
                     GV.board_x_start = 3
                     GV.board_y_start = 1
+                    GV.board_x_end = 14
+                    GV.board_y_end = 14
                     GV.JustResize = counter
                     updateSelf()
                     #GV.pygame.mixer.music.unpause()

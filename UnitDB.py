@@ -232,7 +232,7 @@ UnitDB = {
         'possibleStates': ['none'],
         'type': 'building',
         'range': 3,
-        'abilities':{'closeBuild':1},
+        'abilities':{'closebuild':1},
         'resourceGen':{
             "gold": 0,
         }
