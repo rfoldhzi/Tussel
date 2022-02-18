@@ -1052,6 +1052,8 @@ def drawBoard():
         if NotAlreadyReady:
             NotAlreadyReady = False
             updateSelf()
+            BF.updateEdges()
+            updateSelf()
         if not GV.game.went[GV.player]:
             allElseWent = True
             for v in GV.game.went:
@@ -1576,9 +1578,9 @@ def main(playerCount = None):
             elif event.type == VIDEORESIZE and counter - GV.JustResize > 20:
                 GV.JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
-                    GV.block_size = (event.h-65)//GV.board_y
+                    GV.block_size = (event.h-65)//max(7, (GV.board_y_end - GV.board_y_start))
                 else:
-                    GV.block_size = (event.w-65)//GV.board_x
+                    GV.block_size = (event.w-65)//max(7, (GV.board_x_end - GV.board_x_start))
                 print('blocksize',GV.block_size)
                 GV.playerUnitImages = {} #To reset all unit images
                 buildUnitImages = {}
