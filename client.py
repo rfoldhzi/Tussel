@@ -664,7 +664,7 @@ def updateSelf():
         for i in range(len(GV.game.units)-GV.game.ai,len(GV.game.units)):
             GV.playerColors.insert(i, AIcolors[j])
             j+=1
-    minBoardSize = 5
+    minBoardSize = 7
     endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
     endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
     #endOfBoard_x = (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+GV.offset_x#525
@@ -1232,7 +1232,7 @@ currentStatInfo = None
 def statInfo(unit):
     global currentStatInfo
     if unit == currentStatInfo:
-        return
+        pass#return
     currentStatInfo = unit
     if type(unit) == str:
         unit = Unit('',unit)
@@ -1762,7 +1762,9 @@ def main(playerCount = None):
                                 offclick = False
                                 drawBoard()
                                 break
-                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
+                    #if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
+                    if x >= GV.board_x_start and y >= GV.board_y_start and y<GV.board_y_end and x<GV.board_x_end:
+                        print("An extra thing")
                         if [x,y] in moveCircles: #A move was clicked
                             selected.stateData = [x,y]
                             selected.state = 'move'
