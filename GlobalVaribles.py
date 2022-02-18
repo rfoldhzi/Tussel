@@ -42,6 +42,7 @@ RedX = pygame.image.load("assets/AttackX.png")
 
 changeColor = (233,19,212,255)
 playerColors = [(201, 59, 54,255),(0, 195, 255),(255, 136, 0,255),(107, 64, 0),(167, 242, 46)]
+BGCOLOR = (200,200,200)
 
 StateColors = {
     'attack': (255,0,0),

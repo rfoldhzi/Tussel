@@ -64,6 +64,11 @@ def showUnitNEW(unit):
         else:
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
 
+def clearGrid():
+    board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
+    board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+    rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
+    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
 
 def drawLine(color,pos1,pos2):
     if pos1[0] < GV.board_x_start or GV.board_x_end <= pos1[0] or pos1[1] < GV.board_y_start or GV.board_y_end <= pos1[1]:

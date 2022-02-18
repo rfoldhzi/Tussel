@@ -86,7 +86,7 @@ errorColor = (255, 100, 100)
 goodColor = (100, 100, 255)
 otherColor = (100, 100, 100)
 
-BGCOLOR = LIGHTGREY
+#GV.BGCOLOR = LIGHTGREY
 
 GV.StateColors = {
     'attack': (255,0,0),
@@ -128,7 +128,7 @@ class Button:
         self.active = True
 
     def deDraw(self, win):
-        GV.pygame.draw.rect(win, BGCOLOR, (self.x-1, self.y-1, self.width+2, self.height+2))
+        GV.pygame.draw.rect(win, GV.BGCOLOR, (self.x-1, self.y-1, self.width+2, self.height+2))
         self.active = False
 
     def click(self, pos):
@@ -677,7 +677,7 @@ def updateSelf():
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
-    GV.DISPLAYSURF.fill(BGCOLOR)
+    GV.DISPLAYSURF.fill(GV.BGCOLOR)
     DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
 
     blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
@@ -773,7 +773,7 @@ NotAlreadyReady = True
 
 def animateBoard(g1,g2,t):
     #rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
-    #GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+    #GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
     BF.drawAnimateGrid()#drawGrid()
     resourcesAnimated(g2,t/GV.animateTime)
 
@@ -909,8 +909,10 @@ techSize = 60
 
 def techButtonSize(n):
     global techSize
-    width = (GV.block_size+1)*GV.board_x
-    height = (GV.block_size+1)*GV.board_y
+    board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
+    board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+    width = (GV.block_size+1)*board_size_x
+    height = (GV.block_size+1)*board_size_y
     if techSize < 60:
         if math.floor(width/(41))*math.floor(height/(41)) >= n:
             techSize = 60
@@ -983,16 +985,18 @@ def researchMenu():
     #w = len(techs)//math.ceil(math.sqrt(w))
     if w == 0: w = 1;
     print(w)
-    if w > math.floor((GV.block_size+1)*GV.board_x/(techSize+1)):
-        w = math.floor((GV.block_size+1)*GV.board_x/(techSize+1))
-    extraX = ( (GV.block_size+1)*GV.board_x - (w*(techSize+1)) )//2
+    board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
+    board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+    if w > math.floor((GV.block_size+1)*board_size_x/(techSize+1)):
+        w = math.floor((GV.block_size+1)*board_size_y/(techSize+1))
+    extraX = ( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
     #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
     #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
     #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
     #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
-    extraY = ( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
+    extraY = ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
-    rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*GV.board_x+1,(GV.block_size+1)*GV.board_y+1)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
 
     maybeDeny = []
@@ -1066,7 +1070,7 @@ def drawBoard():
             if GV.game.went[i]:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
             else:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
         #print('selected',selected)
         #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
@@ -1075,7 +1079,7 @@ def drawBoard():
             return
         currentlyResearch = False
         rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*(GV.board_x_end-GV.board_x_start)+1,(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)+1)#+GV.offset_x,410+GV.offset_y)
-        GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
         for v in GV.highlightSquares:
             BF.highlightSquare(v[0],v[1])
         if len(GV.highlightSquares) > 0:
@@ -1237,7 +1241,7 @@ def statInfo(unit):
     if type(unit) == str:
         unit = Unit('',unit)
     rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
-    GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
     fontsize = 15
     font = GV.pygame.font.SysFont("arial", fontsize)
     text = [
@@ -1295,7 +1299,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
         return
     currentStatInfo = 'tech'+tech
     rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
-    GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
     fontsize = 15
     font = GV.pygame.font.SysFont("arial", fontsize)
     text = []
@@ -1424,7 +1428,7 @@ def cleanUpAfterSelect():
     possibleAttacks = []
     possibleHeals = []
     rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)
-    GV.pygame.draw.rect(GV.DISPLAYSURF, BGCOLOR, rect)
+    GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
     for btn in btns:
         btns[btn].deDraw(GV.DISPLAYSURF)
     for v in extraButtons:
@@ -1440,7 +1444,7 @@ def main(playerCount = None):
     mousey = 0 # used to store y coordinate of mouse event
     GV.pygame.display.set_caption('Blank')
 
-    GV.DISPLAYSURF.fill(BGCOLOR)
+    GV.DISPLAYSURF.fill(GV.BGCOLOR)
 
     mouseDown = False
 
@@ -1481,7 +1485,7 @@ def main(playerCount = None):
     while run: # main GV.game loop
         #mouseClicked = False
 
-        #GV.DISPLAYSURF.fill(BGCOLOR)#Draw window
+        #GV.DISPLAYSURF.fill(GV.BGCOLOR)#Draw window
         try:
             R = n.send("get")
             if R != "Nothing" and R != None: #and type(r) != str:
@@ -1533,7 +1537,7 @@ def main(playerCount = None):
                 drawBoard()
             animateBoard(GV.game, GV.newGame, counter-animateCounter)
             if counter-animateCounter == GV.animateTime:
-                pass#GV.DISPLAYSURF.fill(BGCOLOR) #Used to clear the board after animating, but blinks when doing so
+                pass#GV.DISPLAYSURF.fill(GV.BGCOLOR) #Used to clear the board after animating, but blinks when doing so
         elif counter%10 == 0:
             #print("MORE ", vars(GV.game))
             if GV.newGame:
@@ -1711,6 +1715,7 @@ def main(playerCount = None):
                             n.send(convertToStr(selected,'research',selected.stateData))
                             selected.state = 'research'
                             break
+                    BF.clearGrid()
                     cleanUpAfterSelect()
                     drawBoard()   
                 elif selected:
