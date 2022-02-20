@@ -1,7 +1,6 @@
 UnitDB = {
     'soldier':{
         'cost': {'gold':20},
-        'abilities':{'charge':0},
     },
     'scout':{
         'cost': {'gold':30},
@@ -649,11 +648,24 @@ UnitDB = {
         'possibleBuilds': ['blob'],
         'possibleStates': ['move','attack','resources', 'build'],
         'health':20,
-        'abilities':{'takeover':'slime'},
         'resourceGen':{
             "gold": 0,
             "metal": 0,
             "energy": 10
+        }
+    },
+    'king of the blob nation of the southeastern blob continent on the blob planet hiding behind jupiter':{
+        'cost': {'energy':153},
+        'possibleBuilds': ['blob', 'king blob'],
+        'possibleStates': ['move','attack','resources', 'build'],
+        'health':10,
+        'attack':0.5,
+        'defense':3.5,
+        'range':2,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 0,
+            "energy": 20
         }
     },
     'king slime':{
@@ -661,6 +673,7 @@ UnitDB = {
         'possibleBuilds': ['slime'],
         'possibleStates': ['move','attack','resources', 'build'],
         'health':20,
+        'abilities':{'takeover':'slime'},
         'resourceGen':{
             "gold": 0,
             "metal": 0,
