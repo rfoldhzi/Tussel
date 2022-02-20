@@ -93,8 +93,8 @@ def CheckIfGoodToBuild(self, playerNum, u, Grid, pos = False):
             return False #Can't build boat on land
     if t == 'building':#Can't build buildings near enemy buildings
         Range = UnitDB[u.stateData[1]].get('range') or 1
-        if 'abilities' in UnitDB[u.stateData[1]] and '' in UnitDB[u.stateData[1]]['abilities']:
-            Range = UnitDB[u.stateData[1]]['abilities']['closeBuild']
+        if 'abilities' in UnitDB[u.stateData[1]] and 'closebuild' in UnitDB[u.stateData[1]]['abilities']:
+            Range = UnitDB[u.stateData[1]]['abilities']['closebuild']
         for v in getRangeCircles(self,u,Range,pos, True):
             unit = self.getAnyUnitFromPos(v[0],v[1])
             if unit and unit.type == 'building':
