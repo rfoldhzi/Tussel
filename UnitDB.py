@@ -19,6 +19,8 @@ UnitDB = {
     },
     'defender':{
         'cost': {'gold':20,'metal':10},
+        'possibleBuilds': [],
+        'possibleStates': ['move','attack','build'],
         'health': 15,
         'defense':3,
     },
@@ -1028,13 +1030,31 @@ TechDB = {
         'cost': 20,
         'time': 2,
         'ability': [['stat', 'barracks', 'maxPopulation', 1]],
-        'unlocks': ['tougher'],
+        'unlocks': ['tougher','defenders'],
+    },
+    'defenders':{
+        'cost': 20,
+        'time': 1,
+        'ability': [['unlock build', 'barracks', 'defender']],
+        'unlocks': ['blockade'],
+    },
+    'blockade':{
+        'cost': 10,
+        'time': 3,
+        'ability': [['unlock build', 'defender', 'wall']],
+        'unlocks': [],
     },
     'tougher':{
         'cost': 20,
         'time': 4,
         'ability': [['typeStat', 'trooper', 'defense', 0.5]],
         'unlocks': ['commanding presence'],
+    },
+    'anti air':{
+        'cost': 20,
+        'time': 3,
+        'ability': [['unlock build', 'barracks', 'rocket']],
+        'unlocks': [],
     },
     'commanding presence':{
         'cost': 50,
@@ -1058,15 +1078,34 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['charge'],
+        'unlocks': ['charge', 'brute force', 'ranged support'],
         'deny': ['defensive tactics'],
+    },
+    'brute force':{
+        'cost': 30,
+        'time': 1,
+        'ability': [['unlock build', 'barracks', 'brute']],
+        'unlocks': [],
+    },
+    'ranged support':{
+        'cost': 30,
+        'time': 3,
+        'ability': [['unlock build', 'barracks', 'sniper']],
+        'unlocks': [],
     },
     'charge':{
         'cost': 50,
-        'time': 4,
+        'time': 6,
         'ability': [['typeAbility', 'trooper', 'charge', 0]],
+        'unlocks': ['stronger soldiers'],
+    },
+    'stronger soldiers':{
+        'cost': 50,
+        'time': 8,
+        'ability': [['typeStat', 'trooper', 'attack', 0.5]],
         'unlocks': [],
     },
+    
     
     #Yellow
     'armament':{
