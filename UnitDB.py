@@ -455,6 +455,18 @@ UnitDB = {
         'attack':3,
         'resourceGen':{"gold": 0}
     },
+    'sea plane':{
+        'cost': {'gold':100, 'metal':120, 'energy':20},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':15,
+        'speed':2,
+        'range':2,
+        'defense':1.5,
+        'attack':3,
+        'resourceGen':{"gold": 0}
+        'abilities':{'onlyHit':['boat']},
+    },
     'docks':{
         'cost': {'gold':50, 'metal':100},
         'possibleBuilds': ['boat', 'transport boat'],
@@ -681,6 +693,13 @@ UnitDB = {
             "metal": 0,
             "energy": 10
         }
+    },
+    'ninja':{
+        'cost': {'gold':200,'metal':10},
+        'possibleStates': ['move','attack'],
+        'attack':3.5,
+        'defense':2,
+        'speed':2,
     },
     'king':{
         'cost': {'gold':200},
