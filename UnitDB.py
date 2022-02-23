@@ -954,7 +954,7 @@ TechDB = {
         'time': 3,
         'ability': [['stat', 'slime', 'maxHealth', 2],
                     ['stat', 'slime', 'health', 2]],
-        'unlocks': [],
+        'unlocks': ['usurper'],
         'deny': ['negotiations'],
         'quote':"VERY slimy bois",
     },
@@ -1280,7 +1280,7 @@ TechDB = {
         'cost': 80,
         'time': 5,
         'ability': [['unlock build', 'docks', 'aircraft carrier']],
-        'unlocks': ['sea plane','copter launch'],
+        'unlocks': ['sea plane'],
     },
     'sea plane':{
         'cost': 30,
