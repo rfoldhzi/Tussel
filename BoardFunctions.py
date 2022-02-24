@@ -213,6 +213,12 @@ def animateUnit(unit1, unit2,t,specfic_player):
 
 def updateEdges():
     updateCloudCover(GV.newGame)
+    if GV.cloudMode == "clear":
+        GV.board_x_start = 0
+        GV.board_y_start = 0
+        GV.board_x_end = GV.board_x
+        GV.board_y_end = GV.board_y
+        return
     leastX = GV.board_x
     leastY = GV.board_y
     mostX = 0
