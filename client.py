@@ -971,17 +971,29 @@ def getTreeSizes(tree, key, n = 0):
     else:
         total = 0
         for subTech in TechDB[key]["unlocks"]:
-            total += getTreeSizes(tree,subTech, n + 1)
+            if subTech in currentTechMenu:
+                total += getTreeSizes(tree,subTech, n + 1)
+        if total == 0:
+            if len(treeSizes[tree]) <= n:
+                while len(treeSizes[tree]) <= n:
+                    treeSizes[tree].append([])
+                    treeOffsets[tree].append(0)
+            total = 1
+        #print("treeSizes", treeSizes[tree])
+        #print("key",key,'n',n,'tree',tree)
         treeSizes[tree][n].append(total)
         return total
 
 #Tree is the tech that starts the tree, key is current tech, and n is layer of tree
 def placeBoxes(tree,key, n = 0):
+    noSubtrees = True
     for subTech in TechDB[key]["unlocks"]:
-        placeBoxes(tree, subTech, n + 1)
+        if subTech in currentTechMenu:
+            noSubtrees = False
+            placeBoxes(tree, subTech, n + 1)
     boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
     treeOffsets[tree][n] += treeSizes[tree][n][0]
-    if TechDB[key]["unlocks"] == []:
+    if noSubtrees:
         for i in range(n+1, len(treeSizes[tree])):
             treeOffsets[tree][i] += treeSizes[tree][n][0]
     treeSizes[tree][n].pop(0)
@@ -1008,6 +1020,9 @@ def researchMenu():
     currentTechMenu = techs
     print(currentTechMenu)
 
+    #TODO: make something to store size of trees
+    #TODO: update size of squares based on size of trees
+    #TODO: put trees next to each other
     treeSizes = {}
     treeOffsets = {}
     boxPlacements = {}  
@@ -1018,6 +1033,7 @@ def researchMenu():
         getTreeSizes(tech, tech)
         placeBoxes(tech,tech)
 
+    print("aviation",boxPlacements["aviation"])
 
     size = int(techSize)
     print('tech size', techSize)
@@ -1049,9 +1065,13 @@ def researchMenu():
     if CurrentTechHover:
         maybeDeny = TechDB[CurrentTechHover].get('deny') or []
     
-    for i, t in enumerate(currentTechMenu):
-        x = i%w
-        y = i//w
+    for i, techPlacement in enumerate(boxPlacements["aviation"]):
+    #for i, t in enumerate(currentTechMenu):
+        #x = i%w
+        #y = i//w
+        t = techPlacement[1]
+        x = techPlacement[0][0]
+        y = techPlacement[0][1]
         b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
         b.active = True
         currentTechButtons.append(b)
