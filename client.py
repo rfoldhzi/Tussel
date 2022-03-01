@@ -884,15 +884,16 @@ def changeAnimateSpeed(g1,g2):
                 units+=1
     GV.animateTime = min(20,10+units*2)
 
+starters = ['bionics', 'time travel','recruitment','armament','aviation']
+
 def GetUnlockedTechs():
     techs = []
     for t in GV.game.tech[GV.player]:
         for t2 in TechDB[t]['unlocks']:
-            if (not t2 in techs) and (not t2 in GV.game.tech[GV.player]):
+            if (not t2 in techs):
                 techs.append(t2)
-    starters = ['bionics', 'time travel','recruitment','armament','aviation']
     for t in starters:
-        if (not t in techs) and (not t in GV.game.tech[GV.player]):
+        if (not t in techs):
             techs.append(t)
     toRemove = []
     for t in GV.game.tech[GV.player]:
@@ -904,6 +905,8 @@ def GetUnlockedTechs():
         techs.remove(t)
     #TODO: Add starter techs {DONE}
     return techs
+
+
 
 techSize = 60
 
@@ -956,6 +959,34 @@ def checkTechAffordable(unit, tech):
         return False
     return True
 
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def getTreeSizes(tree, key, n = 0):
+    if TechDB[key]["unlocks"] == []:
+        if len(treeSizes[tree]) <= n:
+            while len(treeSizes[tree]) <= n:
+                treeSizes[tree].append([])
+                treeOffsets[tree].append(0)
+        treeSizes[tree][n].append(1)
+        return 1
+    else:
+        total = 0
+        for subTech in TechDB[key]["unlocks"]:
+            total += getTreeSizes(tree,subTech, n + 1)
+        treeSizes[tree][n].append(total)
+        return total
+
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def placeBoxes(tree,key, n = 0):
+    for subTech in TechDB[key]["unlocks"]:
+        placeBoxes(tree, subTech, n + 1)
+    boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
+    treeOffsets[tree][n] += treeSizes[tree][n][0]
+    if TechDB[key]["unlocks"] == []:
+        for i in range(n+1, len(treeSizes[tree])):
+            treeOffsets[tree][i] += treeSizes[tree][n][0]
+    treeSizes[tree][n].pop(0)
+
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -963,9 +994,12 @@ currentlyResearch = False
 PrevTechHover = False
 CurrentTechHover = False
 knownTechHover = False
+treeSizes = {}
+treeOffsets = {}
+boxPlacements = {}
 
 def researchMenu():
-    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover
+    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover,treeSizes,treeOffsets,boxPlacements
     techs = GetUnlockedTechs()
     if techs == currentTechMenu and currentlyResearch and knownTechHover == CurrentTechHover:
         return
@@ -973,6 +1007,18 @@ def researchMenu():
     currentlyResearch = True
     currentTechMenu = techs
     print(currentTechMenu)
+
+    treeSizes = {}
+    treeOffsets = {}
+    boxPlacements = {}  
+    for tech in starters:
+        treeSizes[tech] = [] #initilize each tree
+        treeOffsets[tech] = [] #initilize each tree
+        boxPlacements[tech] = [] #initilize each tree
+        getTreeSizes(tech, tech)
+        placeBoxes(tech,tech)
+
+
     size = int(techSize)
     print('tech size', techSize)
     techButtonSize(len(currentTechMenu))
