@@ -924,17 +924,20 @@ def techButtonSize(n):
             height_of_techs[0] = max(height_of_techs[0], treeHeight[key])
         else:
             width_of_techs[1] += treeWidth[key]
-            height_of_techs[1] = max(height_of_techs[0], treeHeight[key])
+            height_of_techs[1] = max(height_of_techs[1], treeHeight[key])
         i += 1
     
     width_of_techs = max(width_of_techs) #Max on width because stacked like hamburger
     height_of_techs = sum(height_of_techs) #Sum on height for same reason
 
+    print("width_of_techs",width_of_techs)
+    print("height_of_techs",height_of_techs)
+
     width = (GV.block_size+1)*board_size_x
     height = (GV.block_size+1)*board_size_y
 
     techSize = 60
-    while height_of_techs * techSize > width or height_of_techs * techSize > height:
+    while width_of_techs * (techSize+1) > width or height_of_techs * (techSize+1) > height:
         techSize-=1
     return
 
@@ -1045,7 +1048,10 @@ def researchMenu():
     currentTechMenu = techs
     print(currentTechMenu)
 
-    #TODO: update size of squares based on size of trees
+    #TODO: double unlocks are buggy
+    #TODO: Draw the lines
+    #TODO: Show which are unlocked, and prevent their click
+    #TODO: Potentially Show future unlocks
 
     treeSizes = {}
     treeOffsets = {}
@@ -1082,12 +1088,12 @@ def researchMenu():
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
     if w > math.floor((GV.block_size+1)*board_size_x/(techSize+1)):
         w = math.floor((GV.block_size+1)*board_size_y/(techSize+1))
-    extraX = ( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
+    extraX = 0#( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
     #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
     #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
     #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
     #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
-    extraY = ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
+    extraY = 0# ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
     rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
