@@ -996,9 +996,10 @@ def getTreeSizes(tree, key, n = 0):
         return 1
     else:
         total = 0
-        for subTech in TechDB[key]["unlocks"]:
-            if subTech in currentTechMenu:
-                total += getTreeSizes(tree,subTech, n + 1)
+        if key in GV.game.tech[GV.player]:
+            for subTech in TechDB[key]["unlocks"]:
+                if subTech in currentTechMenu:
+                    total += getTreeSizes(tree,subTech, n + 1)
         if total == 0:
             if len(treeSizes[tree]) <= n:
                 while len(treeSizes[tree]) <= n:
@@ -1013,10 +1014,11 @@ def getTreeSizes(tree, key, n = 0):
 #Tree is the tech that starts the tree, key is current tech, and n is layer of tree
 def placeBoxes(tree,key, n = 0):
     noSubtrees = True
-    for subTech in TechDB[key]["unlocks"]:
-        if subTech in currentTechMenu:
-            noSubtrees = False
-            placeBoxes(tree, subTech, n + 1)
+    if key in GV.game.tech[GV.player]:
+        for subTech in TechDB[key]["unlocks"]:
+            if subTech in currentTechMenu:
+                noSubtrees = False
+                placeBoxes(tree, subTech, n + 1)
     boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
     treeOffsets[tree][n] += treeSizes[tree][n][0]
     if noSubtrees:
@@ -1063,6 +1065,7 @@ def researchMenu():
         treeOffsets[tech] = [] #initilize each tree
         boxPlacements[tech] = [] #initilize each tree
         getTreeSizes(tech, tech)
+        print(treeSizes[tech])
         treeWidth[tech] = treeSizes[tech][0][0]
         placeBoxes(tech,tech)
         treeHeight[tech] = len(treeSizes[tech])
