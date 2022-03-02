@@ -914,8 +914,30 @@ def techButtonSize(n):
     global techSize
     board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+
+    width_of_techs = [0,0]
+    height_of_techs = [0,0]
+    i = 0
+    for key in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+        if i < len(treeWidth) / 2:
+            width_of_techs[0] += treeWidth[key]
+            height_of_techs[0] = max(height_of_techs[0], treeHeight[key])
+        else:
+            width_of_techs[1] += treeWidth[key]
+            height_of_techs[1] = max(height_of_techs[0], treeHeight[key])
+        i += 1
+    
+    width_of_techs = max(width_of_techs) #Max on width because stacked like hamburger
+    height_of_techs = sum(height_of_techs) #Sum on height for same reason
+
     width = (GV.block_size+1)*board_size_x
     height = (GV.block_size+1)*board_size_y
+
+    techSize = 60
+    while height_of_techs * techSize > width or height_of_techs * techSize > height:
+        techSize-=1
+    return
+
     if techSize < 60:
         if math.floor(width/(41))*math.floor(height/(41)) >= n:
             techSize = 60
@@ -961,6 +983,7 @@ def checkTechAffordable(unit, tech):
 
 #Tree is the tech that starts the tree, key is current tech, and n is layer of tree
 def getTreeSizes(tree, key, n = 0):
+    global treeSizes, treeOffsets
     if TechDB[key]["unlocks"] == []:
         if len(treeSizes[tree]) <= n:
             while len(treeSizes[tree]) <= n:
@@ -1009,9 +1032,11 @@ knownTechHover = False
 treeSizes = {}
 treeOffsets = {}
 boxPlacements = {}
+treeWidth = {}
+treeHeight = {}
 
 def researchMenu():
-    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover,treeSizes,treeOffsets,boxPlacements
+    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover,treeSizes,treeOffsets,boxPlacements,treeWidth, treeHeight
     techs = GetUnlockedTechs()
     if techs == currentTechMenu and currentlyResearch and knownTechHover == CurrentTechHover:
         return
@@ -1020,20 +1045,26 @@ def researchMenu():
     currentTechMenu = techs
     print(currentTechMenu)
 
-    #TODO: make something to store size of trees
     #TODO: update size of squares based on size of trees
-    #TODO: put trees next to each other
+
     treeSizes = {}
     treeOffsets = {}
     boxPlacements = {}  
+    treeWidth = {}
+    treeHeight = {}
     for tech in starters:
         treeSizes[tech] = [] #initilize each tree
         treeOffsets[tech] = [] #initilize each tree
         boxPlacements[tech] = [] #initilize each tree
         getTreeSizes(tech, tech)
+        treeWidth[tech] = treeSizes[tech][0][0]
         placeBoxes(tech,tech)
+        treeHeight[tech] = len(treeSizes[tech])
+
 
     print("aviation",boxPlacements["aviation"])
+    print("hieght and width", treeHeight, treeWidth)
+    print("treeSizes",treeSizes)
 
     size = int(techSize)
     print('tech size', techSize)
@@ -1065,49 +1096,74 @@ def researchMenu():
     if CurrentTechHover:
         maybeDeny = TechDB[CurrentTechHover].get('deny') or []
     
-    for i, techPlacement in enumerate(boxPlacements["aviation"]):
-    #for i, t in enumerate(currentTechMenu):
-        #x = i%w
-        #y = i//w
-        t = techPlacement[1]
-        x = techPlacement[0][0]
-        y = techPlacement[0][1]
-        b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
-        b.active = True
-        currentTechButtons.append(b)
-        if not t in currentTechImages:
-            img = GV.pygame.image.load("techAssets/%s.png" % t)
-            img = GV.pygame.transform.scale(img, (techSize, techSize))
-            currentTechImages[t] = img
-        pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(techSize+1)+GV.offset_y-1+extraY)
-        GV.DISPLAYSURF.blit(currentTechImages[t], pos)
-        if t in maybeDeny:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(128)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        if t == CurrentTechHover:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(25)
-            s.fill((255,255,255))
-            GV.DISPLAYSURF.blit(s, pos)
-        if TechDB[t]['time'] > 1:
-            n = TechDB[t]['time'] 
-            if t in GV.game.progress[GV.player]:
-                n -= GV.game.progress[GV.player][t]
-            if n > 1:
-                T = str(n)
-                Healthfont = GV.pygame.font.SysFont("arial", 15)
-                text = Healthfont.render(T, 1, WHITE)
-                GV.DISPLAYSURF.blit(text, pos)
-        if not checkTechAffordable(selected, t):
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(160)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        #Make images (similar to getImage) {DONE}
-        #Display button with image on top {Done}
-        #add buttons to techbuttons {DONE}
+    treeXOffset = 0
+    treeYOffset = 0
+    
+    print(boxPlacements, "boxPlacements")
+
+    j = 0
+    for key in boxPlacements:
+        if j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5:
+            print("key is this zone",key)
+            treeXOffset = 0
+            k = 0
+            for key2 in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+                if k < len(treeWidth) / 2:
+                    treeYOffset = max(treeYOffset, treeHeight[key2])
+                else:
+                    break
+                k += 1
+            
+        print("We are going at the key: ", key,j)
+        print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
+        for i, techPlacement in enumerate(boxPlacements[key]):
+        #for i, t in enumerate(currentTechMenu):
+            #x = i%w
+            #y = i//w
+            t = techPlacement[1]
+            x = techPlacement[0][0] + treeXOffset
+            y = techPlacement[0][1] + treeYOffset
+            b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
+            b.active = True
+            currentTechButtons.append(b)
+            if not t in currentTechImages:
+                img = GV.pygame.image.load("techAssets/%s.png" % t)
+                img = GV.pygame.transform.scale(img, (techSize, techSize))
+                currentTechImages[t] = img
+            pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(techSize+1)+GV.offset_y-1+extraY)
+            GV.DISPLAYSURF.blit(currentTechImages[t], pos)
+            if t in maybeDeny:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(128)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            if t == CurrentTechHover:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(25)
+                s.fill((255,255,255))
+                GV.DISPLAYSURF.blit(s, pos)
+            if TechDB[t]['time'] > 1:
+                n = TechDB[t]['time'] 
+                if t in GV.game.progress[GV.player]:
+                    n -= GV.game.progress[GV.player][t]
+                if n > 1:
+                    T = str(n)
+                    Healthfont = GV.pygame.font.SysFont("arial", 15)
+                    text = Healthfont.render(T, 1, WHITE)
+                    GV.DISPLAYSURF.blit(text, pos)
+            if not checkTechAffordable(selected, t):
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(160)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            #Make images (similar to getImage) {DONE}
+            #Display button with image on top {Done}
+            #add buttons to techbuttons {DONE}
+        
+        #if not (j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5): 
+        #    print("key in bottom zone", key)
+        treeXOffset += treeWidth[key]
+        j+=1
 
 def drawBoard():
     print('drawing BOARD')
