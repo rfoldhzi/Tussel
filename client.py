@@ -937,7 +937,7 @@ def techButtonSize(n):
     height = (GV.block_size+1)*board_size_y
 
     techSize = 60
-    while width_of_techs * (techSize+1) > width or height_of_techs * (techSize+1) > height:
+    while width_of_techs * (techSize+1) > width or height_of_techs * (mult*techSize+1) > height:
         techSize-=1
     return
 
@@ -1026,6 +1026,40 @@ def placeBoxes(tree,key, n = 0):
             treeOffsets[tree][i] += treeSizes[tree][n][0]
     treeSizes[tree][n].pop(0)
 
+mult = 1.5
+
+def drawLinesHelper(key, d,treeXOffset, treeYOffset):
+    print("KeY:",key,"Current D+",d)
+    extraX = -2
+    extraY = -2
+    if key in GV.game.tech[GV.player]:
+        for subTech in TechDB[key]["unlocks"]:
+            if subTech in currentTechMenu:
+                drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
+        for subTech in TechDB[key]["unlocks"]:
+            if subTech in currentTechMenu:
+                print(key, d[key], d[subTech])
+                x1 = d[key][0][0] + treeXOffset
+                y1 = d[key][0][1] + treeYOffset
+                x2 = d[subTech][0][0] + treeXOffset
+                y2 = d[subTech][0][1] + treeYOffset
+                (x1+0.5)*(techSize+1)+GV.offset_x+1+extraX
+                GV.pygame.draw.line(GV.DISPLAYSURF, (255,255,255), 
+                        #((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((y1+0.5)*(int(mult*techSize)+1)+GV.offset_y+1+extraY))),
+                        ((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y1*mult + 0.5)+GV.offset_y+1-mult+extraY))),
+                        ((int((x2+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y2*mult + 0.5)+GV.offset_y+1-mult+extraY))), 3)
+                d[subTech].pop(0)
+
+def drawLines(tree, treeXOffset, treeYOffset):
+    d = {}
+    for key in boxPlacements[tree]:
+        #img = Image.open('techAssets/%s.png' % key[1])
+        #blank.paste(img, (int(key[0][0]*20), int(key[0][1]*30)))
+        #d[key[1]] = key[0]
+        if not (key[1] in d):
+            d[key[1]] = []
+        d[key[1]].append(key[0])
+    drawLinesHelper(tree, d,treeXOffset, treeYOffset)
 
 currentTechMenu = []
 currentTechImages = {}
@@ -1050,7 +1084,6 @@ def researchMenu():
     currentTechMenu = techs
     print(currentTechMenu)
 
-    #TODO: double unlocks are buggy
     #TODO: Draw the lines
     #TODO: Show which are unlocked, and prevent their click
     #TODO: Potentially Show future unlocks
@@ -1065,7 +1098,6 @@ def researchMenu():
         treeOffsets[tech] = [] #initilize each tree
         boxPlacements[tech] = [] #initilize each tree
         getTreeSizes(tech, tech)
-        print(treeSizes[tech])
         treeWidth[tech] = treeSizes[tech][0][0]
         placeBoxes(tech,tech)
         treeHeight[tech] = len(treeSizes[tech])
@@ -1125,6 +1157,9 @@ def researchMenu():
             
         print("We are going at the key: ", key,j)
         print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
+
+        drawLines(key, treeXOffset, treeYOffset)
+        
         for i, techPlacement in enumerate(boxPlacements[key]):
         #for i, t in enumerate(currentTechMenu):
             #x = i%w
@@ -1132,14 +1167,15 @@ def researchMenu():
             t = techPlacement[1]
             x = techPlacement[0][0] + treeXOffset
             y = techPlacement[0][1] + treeYOffset
-            b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
+            
+            b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(int(mult*techSize)+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
             b.active = True
             currentTechButtons.append(b)
             if not t in currentTechImages:
                 img = GV.pygame.image.load("techAssets/%s.png" % t)
                 img = GV.pygame.transform.scale(img, (techSize, techSize))
                 currentTechImages[t] = img
-            pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(techSize+1)+GV.offset_y-1+extraY)
+            pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(int(mult*techSize)+1)+GV.offset_y-1+extraY)
             GV.DISPLAYSURF.blit(currentTechImages[t], pos)
             if t in maybeDeny:
                 s = GV.pygame.Surface((techSize, techSize))
