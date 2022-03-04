@@ -996,9 +996,9 @@ def getTreeSizes(tree, key, n = 0):
         return 1
     else:
         total = 0
-        if key in GV.game.tech[GV.player]:
+        if key in GV.game.tech[GV.player] or key in currentTechMenu:
             for subTech in TechDB[key]["unlocks"]:
-                if subTech in currentTechMenu:
+                if True:#subTech in currentTechMenu:
                     total += getTreeSizes(tree,subTech, n + 1)
         if total == 0:
             if len(treeSizes[tree]) <= n:
@@ -1014,9 +1014,9 @@ def getTreeSizes(tree, key, n = 0):
 #Tree is the tech that starts the tree, key is current tech, and n is layer of tree
 def placeBoxes(tree,key, n = 0):
     noSubtrees = True
-    if key in GV.game.tech[GV.player]:
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
         for subTech in TechDB[key]["unlocks"]:
-            if subTech in currentTechMenu:
+            if True:#subTech in currentTechMenu:
                 noSubtrees = False
                 placeBoxes(tree, subTech, n + 1)
     boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
@@ -1032,19 +1032,22 @@ def drawLinesHelper(key, d,treeXOffset, treeYOffset):
     print("KeY:",key,"Current D+",d)
     extraX = -2
     extraY = -2
-    if key in GV.game.tech[GV.player]:
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
         for subTech in TechDB[key]["unlocks"]:
-            if subTech in currentTechMenu:
-                drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
+            #if subTech in currentTechMenu:
+            drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
         for subTech in TechDB[key]["unlocks"]:
-            if subTech in currentTechMenu:
+            if True:#subTech in currentTechMenu:
                 print(key, d[key], d[subTech])
                 x1 = d[key][0][0] + treeXOffset
                 y1 = d[key][0][1] + treeYOffset
                 x2 = d[subTech][0][0] + treeXOffset
                 y2 = d[subTech][0][1] + treeYOffset
                 (x1+0.5)*(techSize+1)+GV.offset_x+1+extraX
-                GV.pygame.draw.line(GV.DISPLAYSURF, (255,255,255), 
+                ColorOfLine = (255,255,255)
+                if not (subTech in GV.game.tech[GV.player] or subTech in currentTechMenu):
+                    ColorOfLine = (100,100,100)
+                GV.pygame.draw.line(GV.DISPLAYSURF, ColorOfLine, 
                         #((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((y1+0.5)*(int(mult*techSize)+1)+GV.offset_y+1+extraY))),
                         ((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y1*mult + 0.5)+GV.offset_y+1-mult+extraY))),
                         ((int((x2+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y2*mult + 0.5)+GV.offset_y+1-mult+extraY))), 3)
@@ -1185,6 +1188,11 @@ def researchMenu():
                 s = GV.pygame.Surface((techSize, techSize))
                 s.set_alpha(128)
                 s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            if not (t in GV.game.tech[GV.player] or t in currentTechMenu):
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(170)
+                s.fill((20,20,20))
                 GV.DISPLAYSURF.blit(s, pos)
             if t == CurrentTechHover:
                 s = GV.pygame.Surface((techSize, techSize))
