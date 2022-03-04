@@ -1084,7 +1084,6 @@ def researchMenu():
     currentTechMenu = techs
     print(currentTechMenu)
 
-    #TODO: Draw the lines
     #TODO: Show which are unlocked, and prevent their click
     #TODO: Potentially Show future unlocks
 
@@ -1159,7 +1158,7 @@ def researchMenu():
         print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
 
         drawLines(key, treeXOffset, treeYOffset)
-        
+
         for i, techPlacement in enumerate(boxPlacements[key]):
         #for i, t in enumerate(currentTechMenu):
             #x = i%w
@@ -1177,6 +1176,11 @@ def researchMenu():
                 currentTechImages[t] = img
             pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(int(mult*techSize)+1)+GV.offset_y-1+extraY)
             GV.DISPLAYSURF.blit(currentTechImages[t], pos)
+
+            if t in GV.game.tech[GV.player]:
+                rect = GV.pygame.Rect(pos, (techSize+1, techSize+1))#+GV.offset_x,410+GV.offset_y)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, (220,220,220), rect, 1)
+
             if t in maybeDeny:
                 s = GV.pygame.Surface((techSize, techSize))
                 s.set_alpha(128)
