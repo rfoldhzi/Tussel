@@ -713,13 +713,22 @@ def updateSelf():
     #WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
 
     monitorSize = getMonitorSize()
- 
+
     if WINDOWHEIGHT > monitorSize[1] - 70: #If board grows larger than screen, shrink block size so it fits again
         GV.block_size = int((monitorSize[1] - 70 -GV.offset_y-60)/max(GV.board_y_end-GV.board_y_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
         endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
         WINDOWHEIGHT = 60 + endOfBoard_y
         GV.playerUnitImages = {} #To reset all unit images
-        #buildUnitImages = {}
+
+    if WINDOWWIDTH > monitorSize[0]: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[0] - GV.offset_x * 2)/max(GV.board_x_end-GV.board_x_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {}
 
     #Ensure the window doesn't grow below bottom of screen
     rect = getWindowRectangle()
@@ -729,6 +738,12 @@ def updateSelf():
         rect = getWindowRectangle()
         if rect.top < 0:
             moveWin(rect.left, 0)
+    
+    if rect.right > monitorSize[0]: # - 70  is for taskbar at bottom of screen
+        moveWin(monitorSize[0] - WINDOWWIDTH, rect.top)
+        rect = getWindowRectangle()
+        if rect.left < 0:
+            moveWin(0, rect.top)
 
 
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
