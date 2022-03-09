@@ -652,6 +652,43 @@ def intToList(x, width):
             l2.append(l[(i*width):((i+1)*width)])
     return l2
 
+
+from ctypes import POINTER, WINFUNCTYPE, windll
+from ctypes.wintypes import BOOL, HWND, RECT    
+import ctypes
+
+def getWindowRectangle(): #Use rect.top, rect.left, rect.bottom, rect.right
+        # get our window ID:
+    hwnd = GV.pygame.display.get_wm_info()["window"]
+
+    # Jump through all the ctypes hoops:
+    prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
+    paramflags = (1, "hwnd"), (2, "lprect")
+
+    GetWindowRect = prototype(("GetWindowRect", windll.user32), paramflags)
+
+    # finally get our data!
+    rect = GetWindowRect(hwnd)
+    return rect
+
+def getMonitorSize():
+
+    user32 = ctypes.windll.user32
+    screensize = user32.GetSystemMetrics(78), user32.GetSystemMetrics(79)
+
+    return screensize
+
+from ctypes import windll
+
+def moveWin(x, y):
+    # the handle to the window
+    hwnd = GV.pygame.display.get_wm_info()['window']
+
+    # user32.MoveWindow also recieves a new size for the window
+    w, h = GV.pygame.display.get_surface().get_size()
+
+    windll.user32.MoveWindow(hwnd, x, y, w, h, False)
+
 def updateSelf():
     global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
@@ -674,6 +711,26 @@ def updateSelf():
     WINDOWHEIGHT = 60 + endOfBoard_y
     #WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
     #WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
+
+    monitorSize = getMonitorSize()
+ 
+    if WINDOWHEIGHT > monitorSize[1] - 70: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[1] - 70 -GV.offset_y-60)/max(GV.board_y_end-GV.board_y_start, minBoardSize)) - 1
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {} #To reset all unit images
+        #buildUnitImages = {}
+
+    #Ensure the window doesn't grow below bottom of screen
+    rect = getWindowRectangle()
+    
+    if rect.top + WINDOWHEIGHT > monitorSize[1] - 70: # - 70  is for taskbar at bottom of screen
+        moveWin(rect.left, monitorSize[1] - WINDOWHEIGHT - 70)
+        rect = getWindowRectangle()
+        if rect.top < 0:
+            moveWin(rect.left, 0)
+
+
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
