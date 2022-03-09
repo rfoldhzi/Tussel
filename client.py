@@ -1494,7 +1494,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     T = TechDB[tech]
     progress = GV.game.progress[GV.player].get(tech) or 0
     text.append('Time: %s/%s' % (progress, T['time']))
-    text.append('Cost: %s' % T['cost'])
+    text.append('Cost: %s energy' % T['cost'])
     text.append('')
     d = {}
     for v in T['ability']:
@@ -1520,7 +1520,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
             #text.append('%s:' % v[1].title())
             #text.append('  +%s %s' % (v[3], v[2]))
         elif v[0] == 'unlock build':
-            text.extend(textToLines('Unlocks %s' % NameTitle(v[2])))
+            text.extend(textToLines('Unlocks %s at %s' % (NameTitle(v[2]), NameTitle(v[1]))))
             """
             if not v[1] in d:
                 d[v[1]] = []
