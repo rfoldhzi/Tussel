@@ -1314,10 +1314,9 @@ def statInfo(unit):
     currentStatInfo = unit
     if type(unit) == str:
         unit = Unit('',unit)
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     text = [
         unit.name.title(),
         '',
@@ -1345,6 +1344,13 @@ def statInfo(unit):
     for v in UnitDB[unit.name]['cost']:
         text.append('  %s %s'%(cost[v],v))
     #text = Healthfont.render(t, 1, (0,0,0))
+
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     label = []
     for line in text: 
         label.append(font.render(line, True, (0,0,0)))
@@ -1372,10 +1378,9 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     if 'tech'+tech == currentStatInfo:
         return
     currentStatInfo = 'tech'+tech
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+
     text = []
     name = tech.title().split()
     for i, v in enumerate(name):
@@ -1457,6 +1462,13 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     """
     smallFont = GV.pygame.font.SysFont("arial", 10, bold=False, italic=True)
     
+        
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+
     #text = Healthfont.render(t, 1, (0,0,0))
     label = []
     for line in text: 
