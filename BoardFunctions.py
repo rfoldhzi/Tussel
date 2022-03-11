@@ -170,6 +170,8 @@ def animateUnit(unit1, unit2,t,specfic_player):
         if parent:
             default = False
             x2,y2 = parent.position
+            if x2 < GV.board_x_start or GV.board_x_end <= x2 or y2 < GV.board_y_start or GV.board_y_end <= y2:
+                return
             start = ((x2 - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y2 - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
             end = ((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
             Pos = CF.intPoint(CF.LerpPoint(start, end, t/GV.animateTime))
