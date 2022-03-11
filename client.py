@@ -1122,10 +1122,13 @@ def drawBoard():
     #print(vars(GV.game))
     if GV.game.ready:
         if NotAlreadyReady:
+            if len(GV.game.units[GV.player]) == 0:
+                return
             NotAlreadyReady = False
             updateSelf()
             BF.updateEdges()
             updateSelf()
+            print("We've updated ourself")
         if not GV.game.went[GV.player]:
             allElseWent = True
             for v in GV.game.went:
@@ -1228,6 +1231,8 @@ def drawBoard():
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
         GV.DISPLAYSURF.blit(text, (200,200))
+        #text = font.render("PLAYER %s" % GV.player, 1, (255,0,0))
+        #GV.DISPLAYSURF.blit(text, (200,300))
 
 newResources = {'gold':0,'metal':0,'energy':0}
 newCosts = {'gold':0,'metal':0,'energy':0}
