@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -257,6 +257,21 @@ def randomYellow():
 def randomBlue():
     b = random.randint(180,210)
     return (round(b*random.random()*.2), round(b*(random.random()*.25+.5)),b)
+
+def randomBlueWeighted(x):
+    #b = random.randint(180 - x * 10,210 - x * 10)
+    #b = max(0,200 - x * 15)
+    base = 13
+    sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
+    print("SUBB",sub,x)
+    print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    if x > base:
+        sub = ((base)*(base+1))/2 + x - base
+    sub = int(sub)
+    b = max(0,random.randint(180 - sub,180 - sub))
+    #b = int (((random.randint(180,210) / x**0.5)+random.randint(180,210))/2)
+    #return (int(b*.2), int(b*.625),b)
+    return (round(b*random.random()*.1+.1), round(b*(random.random()*.125+.625)),b)
 
 def randomGrey():
     g = random.randint(50,100)
@@ -786,6 +801,51 @@ def updateSelf():
                 l.append(True)
             GV.explorationGrid.append(l)
     
+    #Creates list to store the depth of water. Higher depth values == deeper water
+    #Depth is calculated by how far water is to land (doesn't measure corners)
+    depthMap = []
+    for v in GV.Grid: #This part sets all land to 0 and water to -1
+        list = []
+        for v2 in v:
+            if v2:
+                list.append(-1)
+            else:
+                list.append(0)
+        depthMap.append(list)
+    
+    xList = (-1,1,0,0)
+    yList = (0,0,-1,1)
+    def lowestNextTo(x,y): #Calculates which adjecent tile has lowest depth value (excludes tiles that are -1)
+        lowest = -1
+        for i in range(len(xList)):
+            if x+xList[i] >= 0 and x+xList[i] < len(depthMap) and y+yList[i] >= 0 and y+yList[i] < len(depthMap[0]):
+                if depthMap[x+xList[i]][y+yList[i]] != -1:
+                    if depthMap[x+xList[i]][y+yList[i]] < lowest:
+                        lowest = depthMap[x+xList[i]][y+yList[i]]
+                if lowest == -1:
+                    lowest = depthMap[x+xList[i]][y+yList[i]]
+        return lowest
+
+    keepGoing = True
+    while keepGoing: #Continually loops through until every water tile is assigned a depth value
+        print(depthMap)
+        keepGoing = False
+        x = 0
+        newDepthMap = copy.deepcopy(depthMap)
+        
+        for list in depthMap:
+            y = 0
+            for n in list:
+                if n == -1:
+                    keepGoing = True
+                    lowest = lowestNextTo(x,y)
+                    if lowest != -1:
+                        newDepthMap[x][y] = lowest + 1
+                y += 1
+            x += 1
+        depthMap = newDepthMap
+    print("The final depthmap",depthMap)
+
     GV.BoardColors = []
     GV.CloudColors = []
     y = 0
@@ -793,7 +853,8 @@ def updateSelf():
         x = 0
         for v2 in v:
             if v2:
-                GV.BoardColors.append(randomBlue())
+                #GV.BoardColors.append(randomBlue())
+                GV.BoardColors.append(randomBlueWeighted(depthMap[y][x]))
             else:
                 #GV.BoardColors.append(randomGreen())
                 if isNextToWater([x,y]):
