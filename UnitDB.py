@@ -107,7 +107,8 @@ UnitDB = {
     },
     'metropolis':{
         'cost': {'gold':200, 'metal':200, 'energy':200},
-        'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        #'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        'possibleBuilds': ['hall of heroes'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 75,
@@ -770,7 +771,8 @@ TechDB = {
     'experimental facility':{
         'cost': 20,
         'time': 1,
-        'ability': [['unlock build', 'agent', 'experimental facility']],
+        #'ability': [['unlock build', 'agent', 'experimental facility']],
+        'ability': [['unlock build', 'metropolis', 'experimental facility']],
         'unlocks': ['sonic cannon','ultrabot','invinsa tank'],
         'quote':"For all those expirments that you're doing",
     },
@@ -1328,6 +1330,147 @@ TechDB = {
         'cost': 80,
         'time': 4,
         'ability': [['typeStat', 'aircraft', 'attack', 0.5]],
+        'unlocks': [],
+    },
+    
+    #Purple
+    'improvements':{
+        'cost': 20,
+        'time': 1,
+        'ability': [],
+        'unlocks': ['the city', 'miscellaneous upgrades'],
+    },
+    'the city':{
+        'cost': 50,
+        'time': 1,
+        'ability': [['unlock build', 'crane', 'metropolis']],
+        'unlocks': ['bionics','city planning','time travel'],
+    },
+    'city planning':{
+        'cost': 5,
+        'time': 4,
+        'ability': [],
+        'unlocks': ['supply lines','urban expansion','civil fortification'],
+    },
+    'supply lines':{
+        'cost': 20,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['recycling','quarries','power lines'],
+    },
+    'recycling':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'metropolis']
+                    ['unlock build', 'metropolis expansion', 'metropolis']],
+        'unlocks': [],
+    },
+    'quarries':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'mine shaft']
+                    ['unlock build', 'metropolis expansion', 'mine shaft']],
+        'unlocks': [],
+    },
+    'power lines':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'power grid']
+                    ['unlock build', 'metropolis expansion', 'power grid']],
+        'unlocks': [],
+    },
+    'urban expansion':{
+        'cost': 20,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['suburbs','expanding city limits'],
+    },
+    'suburbs':{
+        'cost': 25,
+        'time': 2,
+        'ability': [['unlock build', 'metropolis', 'town']
+                    ['unlock build', 'metropolis expansion', 'town']],
+        'unlocks': [],
+    },
+    'expanding city limits':{
+        'cost': 35,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'metropolis expansion']],
+        'unlocks': ['indefinite expansion'],
+    },
+    'metropolis expansion':{
+        'cost': 50,
+        'time': 7,
+        'ability': [['unlock build', 'metropolis expansion', 'metropolis expansion']],
+        'unlocks': [],
+    },
+    'civil fortification':{
+        'cost': 40,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['missle defensive','city improvements'],
+    },
+    'missle defensive':{
+        'cost': 45,
+        'time': 5,
+        'ability': [['unlock build', 'metropolis', 'defense platform']
+                    ['unlock build', 'metropolis expansion', 'defense platform']],
+        'unlocks': [],
+    },
+    'city improvements':{
+        'cost': 50,
+        'time': 2,
+        'ability': [],
+        'unlocks': ['immigration','resistant structures','taller skyscapers'],
+    },
+    'immigration':{
+        'cost': 250,
+        'time': 2,
+        'ability': [['gain ability', 'metropolis', 'buff', ['maxPopulation', 1.5]]],
+        'unlocks': [],
+    },
+    'resistant structures':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['stat', 'metropolis', 'defense', 1]],
+        'unlocks': [],
+    },
+    'taller skyscapers':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['stat', 'metropolis', 'maxHealth', 10],
+                    ['stat', 'metropolis', 'health', 10]],
+        'unlocks': [],
+    },
+    'miscellaneous upgrades':{
+        'cost': 1,
+        'time': 25,
+        'ability': [],
+        'unlocks': ['stronger walls','double time','deflector shields','further dectection'],
+    },
+    'stronger walls':{
+        'cost': 20,
+        'time': 4,
+        'ability': [['stat', 'wall', 'maxHealth', 5],
+                    ['stat', 'wall', 'health', 5]],
+        'unlocks': [],
+    },
+    'double time':{
+        'cost': 10,
+        'time': 10,
+        'ability': [],
+        'unlocks': [],
+    },
+    'deflector shields':{
+        'cost': 30,
+        'time': 7,
+        'ability': [['unlock build', 'crane', 'shield generator']],
+        'unlocks': [],
+    },
+    'further dectection':{
+        'cost': 20,
+        'time': 4,
+        'ability': [['stat', 'radar tower', 'range', 1]],
         'unlocks': [],
     },
 }

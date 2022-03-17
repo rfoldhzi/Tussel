@@ -890,7 +890,7 @@ def GetUnlockedTechs():
         for t2 in TechDB[t]['unlocks']:
             if (not t2 in techs) and (not t2 in GV.game.tech[GV.player]):
                 techs.append(t2)
-    starters = ['bionics', 'time travel','recruitment','armament','aviation']
+    starters = ['improvements','recruitment','armament','aviation']
     for t in starters:
         if (not t in techs) and (not t in GV.game.tech[GV.player]):
             techs.append(t)
