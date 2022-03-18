@@ -175,7 +175,7 @@ class Game:
     def addPlayer(self):
         p = len(self.units)
         self.units[p] = []
-        self.resources[p] = {'gold':20,'metal':0,'energy':0}
+        self.resources[p] = {'gold':2000,'metal':2000,'energy':2000}
         self.went[p] = False
         self.tech[p] = []
         self.progress[p] = {}

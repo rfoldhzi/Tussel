@@ -884,15 +884,19 @@ def changeAnimateSpeed(g1,g2):
                 units+=1
     GV.animateTime = min(20,10+units*2)
 
+starters = ['bionics', 'time travel','recruitment','armament','aviation']
+
 def GetUnlockedTechs():
     techs = []
     for t in GV.game.tech[GV.player]:
         for t2 in TechDB[t]['unlocks']:
-            if (not t2 in techs) and (not t2 in GV.game.tech[GV.player]):
+            if (not t2 in techs):
                 techs.append(t2)
+
     starters = ['improvements','recruitment','armament','aviation']
+
     for t in starters:
-        if (not t in techs) and (not t in GV.game.tech[GV.player]):
+        if (not t in techs):
             techs.append(t)
     toRemove = []
     for t in GV.game.tech[GV.player]:
@@ -905,14 +909,41 @@ def GetUnlockedTechs():
     #TODO: Add starter techs {DONE}
     return techs
 
+
+
 techSize = 60
 
 def techButtonSize(n):
     global techSize
     board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+
+    width_of_techs = [0,0]
+    height_of_techs = [0,0]
+    i = 0
+    for key in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+        if i < len(treeWidth) / 2:
+            width_of_techs[0] += treeWidth[key]
+            height_of_techs[0] = max(height_of_techs[0], treeHeight[key])
+        else:
+            width_of_techs[1] += treeWidth[key]
+            height_of_techs[1] = max(height_of_techs[1], treeHeight[key])
+        i += 1
+    
+    width_of_techs = max(width_of_techs) #Max on width because stacked like hamburger
+    height_of_techs = sum(height_of_techs) #Sum on height for same reason
+
+    print("width_of_techs",width_of_techs)
+    print("height_of_techs",height_of_techs)
+
     width = (GV.block_size+1)*board_size_x
     height = (GV.block_size+1)*board_size_y
+
+    techSize = 60
+    while width_of_techs * (techSize+1) > width or height_of_techs * (mult*techSize+1) > height:
+        techSize-=1
+    return
+
     if techSize < 60:
         if math.floor(width/(41))*math.floor(height/(41)) >= n:
             techSize = 60
@@ -956,6 +987,86 @@ def checkTechAffordable(unit, tech):
         return False
     return True
 
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def getTreeSizes(tree, key, n = 0):
+    global treeSizes, treeOffsets
+    if TechDB[key]["unlocks"] == []:
+        if len(treeSizes[tree]) <= n:
+            while len(treeSizes[tree]) <= n:
+                treeSizes[tree].append([])
+                treeOffsets[tree].append(0)
+        treeSizes[tree][n].append(1)
+        return 1
+    else:
+        total = 0
+        if key in GV.game.tech[GV.player] or key in currentTechMenu:
+            for subTech in TechDB[key]["unlocks"]:
+                if True:#subTech in currentTechMenu:
+                    total += getTreeSizes(tree,subTech, n + 1)
+        if total == 0:
+            if len(treeSizes[tree]) <= n:
+                while len(treeSizes[tree]) <= n:
+                    treeSizes[tree].append([])
+                    treeOffsets[tree].append(0)
+            total = 1
+        #print("treeSizes", treeSizes[tree])
+        #print("key",key,'n',n,'tree',tree)
+        treeSizes[tree][n].append(total)
+        return total
+
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def placeBoxes(tree,key, n = 0):
+    noSubtrees = True
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
+        for subTech in TechDB[key]["unlocks"]:
+            if True:#subTech in currentTechMenu:
+                noSubtrees = False
+                placeBoxes(tree, subTech, n + 1)
+    boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
+    treeOffsets[tree][n] += treeSizes[tree][n][0]
+    if noSubtrees:
+        for i in range(n+1, len(treeSizes[tree])):
+            treeOffsets[tree][i] += treeSizes[tree][n][0]
+    treeSizes[tree][n].pop(0)
+
+mult = 1.5
+
+def drawLinesHelper(key, d,treeXOffset, treeYOffset):
+    print("KeY:",key,"Current D+",d)
+    extraX = -2
+    extraY = -2
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
+        for subTech in TechDB[key]["unlocks"]:
+            #if subTech in currentTechMenu:
+            drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
+        for subTech in TechDB[key]["unlocks"]:
+            if True:#subTech in currentTechMenu:
+                print(key, d[key], d[subTech])
+                x1 = d[key][0][0] + treeXOffset
+                y1 = d[key][0][1] + treeYOffset
+                x2 = d[subTech][0][0] + treeXOffset
+                y2 = d[subTech][0][1] + treeYOffset
+                (x1+0.5)*(techSize+1)+GV.offset_x+1+extraX
+                ColorOfLine = (255,255,255)
+                if not (subTech in GV.game.tech[GV.player] or subTech in currentTechMenu):
+                    ColorOfLine = (100,100,100)
+                GV.pygame.draw.line(GV.DISPLAYSURF, ColorOfLine, 
+                        #((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((y1+0.5)*(int(mult*techSize)+1)+GV.offset_y+1+extraY))),
+                        ((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y1*mult + 0.5)+GV.offset_y+1-mult+extraY))),
+                        ((int((x2+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y2*mult + 0.5)+GV.offset_y+1-mult+extraY))), 3)
+                d[subTech].pop(0)
+
+def drawLines(tree, treeXOffset, treeYOffset):
+    d = {}
+    for key in boxPlacements[tree]:
+        #img = Image.open('techAssets/%s.png' % key[1])
+        #blank.paste(img, (int(key[0][0]*20), int(key[0][1]*30)))
+        #d[key[1]] = key[0]
+        if not (key[1] in d):
+            d[key[1]] = []
+        d[key[1]].append(key[0])
+    drawLinesHelper(tree, d,treeXOffset, treeYOffset)
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -963,9 +1074,14 @@ currentlyResearch = False
 PrevTechHover = False
 CurrentTechHover = False
 knownTechHover = False
+treeSizes = {}
+treeOffsets = {}
+boxPlacements = {}
+treeWidth = {}
+treeHeight = {}
 
 def researchMenu():
-    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover
+    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover,treeSizes,treeOffsets,boxPlacements,treeWidth, treeHeight
     techs = GetUnlockedTechs()
     if techs == currentTechMenu and currentlyResearch and knownTechHover == CurrentTechHover:
         return
@@ -973,6 +1089,29 @@ def researchMenu():
     currentlyResearch = True
     currentTechMenu = techs
     print(currentTechMenu)
+
+    #TODO: Show which are unlocked, and prevent their click
+    #TODO: Potentially Show future unlocks
+
+    treeSizes = {}
+    treeOffsets = {}
+    boxPlacements = {}  
+    treeWidth = {}
+    treeHeight = {}
+    for tech in starters:
+        treeSizes[tech] = [] #initilize each tree
+        treeOffsets[tech] = [] #initilize each tree
+        boxPlacements[tech] = [] #initilize each tree
+        getTreeSizes(tech, tech)
+        treeWidth[tech] = treeSizes[tech][0][0]
+        placeBoxes(tech,tech)
+        treeHeight[tech] = len(treeSizes[tech])
+
+
+    print("aviation",boxPlacements["aviation"])
+    print("hieght and width", treeHeight, treeWidth)
+    print("treeSizes",treeSizes)
+
     size = int(techSize)
     print('tech size', techSize)
     techButtonSize(len(currentTechMenu))
@@ -989,12 +1128,12 @@ def researchMenu():
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
     if w > math.floor((GV.block_size+1)*board_size_x/(techSize+1)):
         w = math.floor((GV.block_size+1)*board_size_y/(techSize+1))
-    extraX = ( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
+    extraX = 0#( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
     #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
     #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
     #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
     #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
-    extraY = ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
+    extraY = 0# ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
     rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
@@ -1003,45 +1142,88 @@ def researchMenu():
     if CurrentTechHover:
         maybeDeny = TechDB[CurrentTechHover].get('deny') or []
     
-    for i, t in enumerate(currentTechMenu):
-        x = i%w
-        y = i//w
-        b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
-        b.active = True
-        currentTechButtons.append(b)
-        if not t in currentTechImages:
-            img = GV.pygame.image.load("techAssets/%s.png" % t)
-            img = GV.pygame.transform.scale(img, (techSize, techSize))
-            currentTechImages[t] = img
-        pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(techSize+1)+GV.offset_y-1+extraY)
-        GV.DISPLAYSURF.blit(currentTechImages[t], pos)
-        if t in maybeDeny:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(128)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        if t == CurrentTechHover:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(25)
-            s.fill((255,255,255))
-            GV.DISPLAYSURF.blit(s, pos)
-        if TechDB[t]['time'] > 1:
-            n = TechDB[t]['time'] 
-            if t in GV.game.progress[GV.player]:
-                n -= GV.game.progress[GV.player][t]
-            if n > 1:
-                T = str(n)
-                Healthfont = GV.pygame.font.SysFont("arial", 15)
-                text = Healthfont.render(T, 1, WHITE)
-                GV.DISPLAYSURF.blit(text, pos)
-        if not checkTechAffordable(selected, t):
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(160)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        #Make images (similar to getImage) {DONE}
-        #Display button with image on top {Done}
-        #add buttons to techbuttons {DONE}
+    treeXOffset = 0
+    treeYOffset = 0
+    
+    print(boxPlacements, "boxPlacements")
+
+    j = 0
+    for key in boxPlacements:
+        if j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5:
+            print("key is this zone",key)
+            treeXOffset = 0
+            k = 0
+            for key2 in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+                if k < len(treeWidth) / 2:
+                    treeYOffset = max(treeYOffset, treeHeight[key2])
+                else:
+                    break
+                k += 1
+            
+        print("We are going at the key: ", key,j)
+        print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
+
+        drawLines(key, treeXOffset, treeYOffset)
+
+        for i, techPlacement in enumerate(boxPlacements[key]):
+        #for i, t in enumerate(currentTechMenu):
+            #x = i%w
+            #y = i//w
+            t = techPlacement[1]
+            x = techPlacement[0][0] + treeXOffset
+            y = techPlacement[0][1] + treeYOffset
+            
+            b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(int(mult*techSize)+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
+            b.active = True
+            currentTechButtons.append(b)
+            if not t in currentTechImages:
+                img = GV.pygame.image.load("techAssets/%s.png" % t)
+                img = GV.pygame.transform.scale(img, (techSize, techSize))
+                currentTechImages[t] = img
+            pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(int(mult*techSize)+1)+GV.offset_y-1+extraY)
+            GV.DISPLAYSURF.blit(currentTechImages[t], pos)
+
+            if t in GV.game.tech[GV.player]:
+                rect = GV.pygame.Rect(pos, (techSize+1, techSize+1))#+GV.offset_x,410+GV.offset_y)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, (220,220,220), rect, 1)
+
+            if t in maybeDeny:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(128)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            if not (t in GV.game.tech[GV.player] or t in currentTechMenu):
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(170)
+                s.fill((20,20,20))
+                GV.DISPLAYSURF.blit(s, pos)
+            if t == CurrentTechHover:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(25)
+                s.fill((255,255,255))
+                GV.DISPLAYSURF.blit(s, pos)
+            if TechDB[t]['time'] > 1:
+                n = TechDB[t]['time'] 
+                if t in GV.game.progress[GV.player]:
+                    n -= GV.game.progress[GV.player][t]
+                if n > 1:
+                    T = str(n)
+                    Healthfont = GV.pygame.font.SysFont("arial", 15)
+                    text = Healthfont.render(T, 1, WHITE)
+                    GV.DISPLAYSURF.blit(text, pos)
+            if not checkTechAffordable(selected, t):
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(160)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            #Make images (similar to getImage) {DONE}
+            #Display button with image on top {Done}
+            #add buttons to techbuttons {DONE}
+        
+        #if not (j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5): 
+        #    print("key in bottom zone", key)
+        treeXOffset += treeWidth[key]
+        j+=1
 
 def drawBoard():
     print('drawing BOARD')
@@ -1315,7 +1497,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     T = TechDB[tech]
     progress = GV.game.progress[GV.player].get(tech) or 0
     text.append('Time: %s/%s' % (progress, T['time']))
-    text.append('Cost: %s' % T['cost'])
+    text.append('Cost: %s energy' % T['cost'])
     text.append('')
     d = {}
     for v in T['ability']:
@@ -1341,7 +1523,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
             #text.append('%s:' % v[1].title())
             #text.append('  +%s %s' % (v[3], v[2]))
         elif v[0] == 'unlock build':
-            text.extend(textToLines('Unlocks %s' % NameTitle(v[2])))
+            text.extend(textToLines('Unlocks %s at %s' % (NameTitle(v[2]), NameTitle(v[1]))))
             """
             if not v[1] in d:
                 d[v[1]] = []
