@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -257,6 +257,21 @@ def randomYellow():
 def randomBlue():
     b = random.randint(180,210)
     return (round(b*random.random()*.2), round(b*(random.random()*.25+.5)),b)
+
+def randomBlueWeighted(x):
+    #b = random.randint(180 - x * 10,210 - x * 10)
+    #b = max(0,200 - x * 15)
+    base = 13
+    sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
+    print("SUBB",sub,x)
+    print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    if x > base:
+        sub = ((base)*(base+1))/2 + x - base
+    sub = int(sub)
+    b = max(0,random.randint(180 - sub,180 - sub))
+    #b = int (((random.randint(180,210) / x**0.5)+random.randint(180,210))/2)
+    #return (int(b*.2), int(b*.625),b)
+    return (round(b*random.random()*.1+.1), round(b*(random.random()*.125+.625)),b)
 
 def randomGrey():
     g = random.randint(50,100)
@@ -652,6 +667,43 @@ def intToList(x, width):
             l2.append(l[(i*width):((i+1)*width)])
     return l2
 
+
+from ctypes import POINTER, WINFUNCTYPE, windll
+from ctypes.wintypes import BOOL, HWND, RECT    
+import ctypes
+
+def getWindowRectangle(): #Use rect.top, rect.left, rect.bottom, rect.right
+        # get our window ID:
+    hwnd = GV.pygame.display.get_wm_info()["window"]
+
+    # Jump through all the ctypes hoops:
+    prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
+    paramflags = (1, "hwnd"), (2, "lprect")
+
+    GetWindowRect = prototype(("GetWindowRect", windll.user32), paramflags)
+
+    # finally get our data!
+    rect = GetWindowRect(hwnd)
+    return rect
+
+def getMonitorSize():
+
+    user32 = ctypes.windll.user32
+    screensize = user32.GetSystemMetrics(78), user32.GetSystemMetrics(79)
+
+    return screensize
+
+from ctypes import windll
+
+def moveWin(x, y):
+    # the handle to the window
+    hwnd = GV.pygame.display.get_wm_info()['window']
+
+    # user32.MoveWindow also recieves a new size for the window
+    w, h = GV.pygame.display.get_surface().get_size()
+
+    windll.user32.MoveWindow(hwnd, x, y, w, h, False)
+
 def updateSelf():
     global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
@@ -674,6 +726,41 @@ def updateSelf():
     WINDOWHEIGHT = 60 + endOfBoard_y
     #WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
     #WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
+
+    monitorSize = getMonitorSize()
+
+    if WINDOWHEIGHT > monitorSize[1] - 70: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[1] - 70 -GV.offset_y-60)/max(GV.board_y_end-GV.board_y_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {} #To reset all unit images
+
+    if WINDOWWIDTH > monitorSize[0]: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[0] - GV.offset_x * 2)/max(GV.board_x_end-GV.board_x_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {}
+
+    #Ensure the window doesn't grow below bottom of screen
+    rect = getWindowRectangle()
+    
+    if rect.top + WINDOWHEIGHT > monitorSize[1] - 70: # - 70  is for taskbar at bottom of screen
+        moveWin(rect.left, monitorSize[1] - WINDOWHEIGHT - 70)
+        rect = getWindowRectangle()
+        if rect.top < 0:
+            moveWin(rect.left, 0)
+    
+    if rect.right > monitorSize[0]: # - 70  is for taskbar at bottom of screen
+        moveWin(monitorSize[0] - WINDOWWIDTH, rect.top)
+        rect = getWindowRectangle()
+        if rect.left < 0:
+            moveWin(0, rect.top)
+
+
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -714,6 +801,51 @@ def updateSelf():
                 l.append(True)
             GV.explorationGrid.append(l)
     
+    #Creates list to store the depth of water. Higher depth values == deeper water
+    #Depth is calculated by how far water is to land (doesn't measure corners)
+    depthMap = []
+    for v in GV.Grid: #This part sets all land to 0 and water to -1
+        list = []
+        for v2 in v:
+            if v2:
+                list.append(-1)
+            else:
+                list.append(0)
+        depthMap.append(list)
+    
+    xList = (-1,1,0,0)
+    yList = (0,0,-1,1)
+    def lowestNextTo(x,y): #Calculates which adjecent tile has lowest depth value (excludes tiles that are -1)
+        lowest = -1
+        for i in range(len(xList)):
+            if x+xList[i] >= 0 and x+xList[i] < len(depthMap) and y+yList[i] >= 0 and y+yList[i] < len(depthMap[0]):
+                if depthMap[x+xList[i]][y+yList[i]] != -1:
+                    if depthMap[x+xList[i]][y+yList[i]] < lowest:
+                        lowest = depthMap[x+xList[i]][y+yList[i]]
+                if lowest == -1:
+                    lowest = depthMap[x+xList[i]][y+yList[i]]
+        return lowest
+
+    keepGoing = True
+    while keepGoing: #Continually loops through until every water tile is assigned a depth value
+        print(depthMap)
+        keepGoing = False
+        x = 0
+        newDepthMap = copy.deepcopy(depthMap)
+        
+        for list in depthMap:
+            y = 0
+            for n in list:
+                if n == -1:
+                    keepGoing = True
+                    lowest = lowestNextTo(x,y)
+                    if lowest != -1:
+                        newDepthMap[x][y] = lowest + 1
+                y += 1
+            x += 1
+        depthMap = newDepthMap
+    print("The final depthmap",depthMap)
+
     GV.BoardColors = []
     GV.CloudColors = []
     y = 0
@@ -721,7 +853,8 @@ def updateSelf():
         x = 0
         for v2 in v:
             if v2:
-                GV.BoardColors.append(randomBlue())
+                #GV.BoardColors.append(randomBlue())
+                GV.BoardColors.append(randomBlueWeighted(depthMap[y][x]))
             else:
                 #GV.BoardColors.append(randomGreen())
                 if isNextToWater([x,y]):
@@ -1232,10 +1365,13 @@ def drawBoard():
     #print(vars(GV.game))
     if GV.game.ready:
         if NotAlreadyReady:
+            if len(GV.game.units[GV.player]) == 0:
+                return
             NotAlreadyReady = False
             updateSelf()
             BF.updateEdges()
             updateSelf()
+            print("We've updated ourself")
         if not GV.game.went[GV.player]:
             allElseWent = True
             for v in GV.game.went:
@@ -1338,6 +1474,8 @@ def drawBoard():
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
         GV.DISPLAYSURF.blit(text, (200,200))
+        #text = font.render("PLAYER %s" % GV.player, 1, (255,0,0))
+        #GV.DISPLAYSURF.blit(text, (200,300))
 
 newResources = {'gold':0,'metal':0,'energy':0}
 newCosts = {'gold':0,'metal':0,'energy':0}
@@ -1424,10 +1562,9 @@ def statInfo(unit):
     currentStatInfo = unit
     if type(unit) == str:
         unit = Unit('',unit)
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     text = [
         unit.name.title(),
         '',
@@ -1455,6 +1592,13 @@ def statInfo(unit):
     for v in UnitDB[unit.name]['cost']:
         text.append('  %s %s'%(cost[v],v))
     #text = Healthfont.render(t, 1, (0,0,0))
+
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     label = []
     for line in text: 
         label.append(font.render(line, True, (0,0,0)))
@@ -1482,10 +1626,9 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     if 'tech'+tech == currentStatInfo:
         return
     currentStatInfo = 'tech'+tech
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+
     text = []
     name = tech.title().split()
     for i, v in enumerate(name):
@@ -1567,6 +1710,13 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     """
     smallFont = GV.pygame.font.SysFont("arial", 10, bold=False, italic=True)
     
+        
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+
     #text = Healthfont.render(t, 1, (0,0,0))
     label = []
     for line in text: 
