@@ -892,6 +892,9 @@ def GetUnlockedTechs():
         for t2 in TechDB[t]['unlocks']:
             if (not t2 in techs):
                 techs.append(t2)
+
+    starters = ['improvements','recruitment','armament','aviation']
+
     for t in starters:
         if (not t in techs):
             techs.append(t)
