@@ -1017,7 +1017,7 @@ def changeAnimateSpeed(g1,g2):
                 units+=1
     GV.animateTime = min(20,10+units*2)
 
-starters = ['bionics', 'time travel','recruitment','armament','aviation']
+starters = ['improvements','recruitment','armament','aviation']
 
 def GetUnlockedTechs():
     techs = []
@@ -1055,7 +1055,8 @@ def techButtonSize(n):
     height_of_techs = [0,0]
     i = 0
     for key in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
-        if i < len(treeWidth) / 2:
+        #if i < len(treeWidth) / 2:
+        if i == 0:
             width_of_techs[0] += treeWidth[key]
             height_of_techs[0] = max(height_of_techs[0], treeHeight[key])
         else:
@@ -1282,12 +1283,14 @@ def researchMenu():
 
     j = 0
     for key in boxPlacements:
-        if j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5:
+        #if j - len(boxPlacements) / 2 == 0 or j - len(boxPlacements) / 2 == 0.5:
+        if j == 1:
             print("key is this zone",key)
             treeXOffset = 0
             k = 0
             for key2 in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
-                if k < len(treeWidth) / 2:
+                #if k < len(treeWidth) / 2:
+                if k == 0:
                     treeYOffset = max(treeYOffset, treeHeight[key2])
                 else:
                     break
