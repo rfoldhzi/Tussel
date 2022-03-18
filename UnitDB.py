@@ -93,7 +93,7 @@ UnitDB = {
         }
     },
     'town':{
-        'cost': {'gold':100, 'metal':100, 'energy':100},
+        'cost': {'gold':150, 'metal':150, 'energy':150},
         'possibleBuilds': ['soldier', 'construction worker','miner', 'electric engineer'],
         'possibleStates': ['resources', 'build','research'],
         'type': 'building',
@@ -106,7 +106,7 @@ UnitDB = {
         }
     },
     'metropolis':{
-        'cost': {'gold':200, 'metal':200, 'energy':200},
+        'cost': {'gold':250, 'metal':250, 'energy':250},
         #'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
         'possibleBuilds': ['hall of heroes'],
         'possibleStates': ['resources', 'build'],
@@ -117,6 +117,20 @@ UnitDB = {
             "gold": 25,
             "metal": 25,
             "energy": 25
+        }
+    },
+    'metropolis expansion':{
+        'cost': {'gold':150, 'metal':150, 'energy':150},
+        #'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        'possibleBuilds': ['hall of heroes'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 30,
+        'population':5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 10,
+            "energy": 10
         }
     },
     'construction worker':{
@@ -761,7 +775,7 @@ UnitDB = {
     'defense platform':{
         'cost': {'gold':50 ,'metal':100, 'energy':100},
         'possibleStates': ['attack','build'],
-        'possibleBuilds': ['missile'],
+        'possibleBuilds': [],
         'type': 'building',
         'attack': 1.5,
         'defense': 3,
@@ -770,7 +784,7 @@ UnitDB = {
         'resourceGen':{"gold": 0}
     },
     'missile':{
-        'cost': {'metal':20, 'energy':5},
+        'cost': {'metal':30, 'energy':5},
         'possibleStates': ['move','attack'],
         'type': 'aircraft',
         'health':3,
@@ -1371,7 +1385,7 @@ TechDB = {
     },
     'city planning':{
         'cost': 5,
-        'time': 4,
+        'time': 2,
         'ability': [],
         'unlocks': ['supply lines','urban expansion','civil fortification'],
     },
@@ -1384,8 +1398,8 @@ TechDB = {
     'recycling':{
         'cost': 50,
         'time': 4,
-        'ability': [['unlock build', 'metropolis', 'metropolis'],
-                    ['unlock build', 'metropolis expansion', 'metropolis']],
+        'ability': [['unlock build', 'metropolis', 'recycler'],
+                    ['unlock build', 'metropolis expansion', 'recycler']],
         'unlocks': [],
     },
     'quarries':{
@@ -1431,13 +1445,19 @@ TechDB = {
         'cost': 40,
         'time': 3,
         'ability': [],
-        'unlocks': ['missile defense','city improvements'],
+        'unlocks': ['defensive measures','city improvements'],
     },
-    'missile defense':{
+    'defensive measures':{
         'cost': 45,
-        'time': 5,
+        'time': 3,
         'ability': [['unlock build', 'metropolis', 'defense platform'],
                     ['unlock build', 'metropolis expansion', 'defense platform']],
+        'unlocks': ['offense platform'],
+    },
+    'offense platform':{
+        'cost': 60,
+        'time': 7,
+        'ability': [['unlock build', 'defense platform', 'missile']],
         'unlocks': [],
     },
     'city improvements':{
@@ -1481,7 +1501,7 @@ TechDB = {
     'double time':{
         'cost': 10,
         'time': 10,
-        'ability': [],
+        'ability': [['gain ability', 'research center', 'fast research', 2]],
         'unlocks': [],
     },
     'deflector shields':{
