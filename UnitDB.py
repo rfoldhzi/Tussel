@@ -131,7 +131,7 @@ UnitDB = {
     },
     'crane':{
         'cost': {'gold':10, 'metal':50, 'energy':10},
-        'possibleBuilds': ['town','factory','tank factory','research center','docks','fort','hospital','metropolis'],
+        'possibleBuilds': ['town','factory','tank factory','research center','docks','fort','hospital'],
         'possibleStates': ['move','resources', 'build'],
         'type': 'vehicle',
         'health':20,
@@ -761,7 +761,7 @@ UnitDB = {
     'defense platform':{
         'cost': {'gold':50 ,'metal':100, 'energy':100},
         'possibleStates': ['attack','build'],
-        'possibleBuilds': ['missle'],
+        'possibleBuilds': ['missile'],
         'type': 'building',
         'attack': 1.5,
         'defense': 3,
@@ -1384,21 +1384,21 @@ TechDB = {
     'recycling':{
         'cost': 50,
         'time': 4,
-        'ability': [['unlock build', 'metropolis', 'metropolis']
+        'ability': [['unlock build', 'metropolis', 'metropolis'],
                     ['unlock build', 'metropolis expansion', 'metropolis']],
         'unlocks': [],
     },
     'quarries':{
         'cost': 50,
         'time': 4,
-        'ability': [['unlock build', 'metropolis', 'mine shaft']
+        'ability': [['unlock build', 'metropolis', 'mine shaft'],
                     ['unlock build', 'metropolis expansion', 'mine shaft']],
         'unlocks': [],
     },
     'power lines':{
         'cost': 50,
         'time': 4,
-        'ability': [['unlock build', 'metropolis', 'power grid']
+        'ability': [['unlock build', 'metropolis', 'power grid'],
                     ['unlock build', 'metropolis expansion', 'power grid']],
         'unlocks': [],
     },
@@ -1411,7 +1411,7 @@ TechDB = {
     'suburbs':{
         'cost': 25,
         'time': 2,
-        'ability': [['unlock build', 'metropolis', 'town']
+        'ability': [['unlock build', 'metropolis', 'town'],
                     ['unlock build', 'metropolis expansion', 'town']],
         'unlocks': [],
     },
@@ -1421,7 +1421,7 @@ TechDB = {
         'ability': [['unlock build', 'metropolis', 'metropolis expansion']],
         'unlocks': ['indefinite expansion'],
     },
-    'metropolis expansion':{
+    'indefinite expansion':{
         'cost': 50,
         'time': 7,
         'ability': [['unlock build', 'metropolis expansion', 'metropolis expansion']],
@@ -1431,12 +1431,12 @@ TechDB = {
         'cost': 40,
         'time': 3,
         'ability': [],
-        'unlocks': ['missle defensive','city improvements'],
+        'unlocks': ['missile defense','city improvements'],
     },
-    'missle defensive':{
+    'missile defense':{
         'cost': 45,
         'time': 5,
-        'ability': [['unlock build', 'metropolis', 'defense platform']
+        'ability': [['unlock build', 'metropolis', 'defense platform'],
                     ['unlock build', 'metropolis expansion', 'defense platform']],
         'unlocks': [],
     },
@@ -1466,8 +1466,8 @@ TechDB = {
         'unlocks': [],
     },
     'miscellaneous upgrades':{
-        'cost': 1,
-        'time': 25,
+        'cost': 25,
+        'time': 1,
         'ability': [],
         'unlocks': ['stronger walls','double time','deflector shields','further dectection'],
     },
