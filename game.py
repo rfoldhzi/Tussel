@@ -471,9 +471,15 @@ class Game:
                             hunterList[target] = u
                         print("HURT",u.name, damageCalc(u, target), target.name)
                         hurtList[target] += damageCalc(u, target)
+                if 'decay' in u.abilities: # "decays" means unit takes damage every round equal to the ability's amount
+                    if not (u in hurtList): 
+                        hurtList[u] = 0
+                    hurtList[u] +=  u.abilities['decay']
         print("HUNTER list", hunterList)
         for v in hunterList:
             print(v.name,':', hunterList[v])
+            if 'kamikaze' in v.abilities: # "kamikaze" means you die when you attack
+                v.health = -10
         #Heal
         for i in self.units:
             for u in self.units[i]:
@@ -652,7 +658,10 @@ class Game:
                         continue
                     if not tech in self.progress[playerNum]:
                         self.progress[playerNum][tech] = 0
-                    self.progress[playerNum][tech] += 1
+                    ResearchRate = 1
+                    if 'fast research' in u.abilities:
+                        ResearchRate = u.abilities['fast research']
+                    self.progress[playerNum][tech] += ResearchRate
                     self.resources[playerNum]["energy"] -= TechDB[tech]['cost']
                     if self.progress[playerNum][tech] >= TechDB[tech]['time']:#When we have researched enough to unlock
                         self.tech[playerNum].append(tech)
