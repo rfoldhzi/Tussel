@@ -758,6 +758,29 @@ UnitDB = {
             "gold": 0
         }
     },
+    'defense platform':{
+        'cost': {'gold':50 ,'metal':100, 'energy':100},
+        'possibleStates': ['attack','build'],
+        'possibleBuilds': ['missle'],
+        'type': 'building',
+        'attack': 1.5,
+        'defense': 3,
+        'range': 2,
+        'health': 20,
+        'resourceGen':{"gold": 0}
+    },
+    'missile':{
+        'cost': {'metal':20, 'energy':5},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':3,
+        'speed':2,
+        'range':1,
+        'attack':3.5,
+        'defense':1,
+        'abilities':{'kamikaze':0,'decay':1},
+        'resourceGen':{"gold": 0}
+    },
 }
 
 TechDB = {
