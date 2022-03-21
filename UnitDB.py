@@ -236,7 +236,7 @@ UnitDB = {
         }
     },
     'turret':{
-        'cost': {'metal':50, 'energy':50},
+        'cost': {'metal':100, 'energy':50},
         'possibleStates': ['attack'],
         'type': 'building',
         'attack': 3,
@@ -254,7 +254,7 @@ UnitDB = {
         }
     },
     'fort':{
-        'cost': {'gold':50 ,'metal':100, 'energy':100},
+        'cost': {'gold':100 ,'metal':250, 'energy':100},
         'possibleStates': ['attack','build'],
         'possibleBuilds': ['soldier', 'jeep','medic'],
         'type': 'building',
@@ -471,7 +471,7 @@ UnitDB = {
         'resourceGen':{"gold": 0}
     },
     'sea plane':{
-        'cost': {'gold':100, 'metal':120, 'energy':20},
+        'cost': {'gold':100, 'metal':50, 'energy':20},
         'possibleStates': ['move','attack'],
         'type': 'aircraft',
         'health':15,
@@ -480,7 +480,7 @@ UnitDB = {
         'defense':1.5,
         'attack':3,
         'resourceGen':{"gold": 0},
-        'abilities':{'onlyHit':['boat']},
+        'abilities':{'onlyHit':['boat','aircraft']},
     },
     'docks':{
         'cost': {'gold':50, 'metal':100},
