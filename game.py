@@ -2,7 +2,8 @@
 from UnitDB import UnitDB
 from UnitDB import TechDB
 import numpy as np
-import random,operator,json,copy
+import random,operator,json,copy,os,sys
+#os.chdir(os.path.dirname(sys.argv[0]))
 import methods, Computer, settings
 from json import JSONEncoder
 
@@ -158,14 +159,20 @@ class Game:
         self.started = False
         self.turn = 0
         self.id = id
-        self.width = settings.width #13
-        self.height = settings.height #13
+
+        self.map = random.choice(os.listdir('maps'))
+        #self.map = "maps/map2.png"
+        
+        self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
         self.mode = settings.mode #'halo'
-        self.ai = settings.ai #1
+        self.ai = methods.getAICountFromMap("maps/%s" % self.map)#settings.ai #1
         self.allai = settings.allai #False
+        self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+        
         if makeAreas:
-            grid = methods.newGrid(self.width,self.height)
-            grid = methods.makeAreas(grid)
+            #grid = methods.newGrid(self.width,self.height)
+            #grid = methods.makeAreas(grid)
+            grid = methods.generateMapFromImage("maps/%s" % self.map)
             self.intGrid = list(np.packbits(np.uint8(grid)))
             for i in range(len(self.intGrid)):
                 self.intGrid[i] = int(self.intGrid[i])
@@ -175,7 +182,7 @@ class Game:
     def addPlayer(self):
         p = len(self.units)
         self.units[p] = []
-        self.resources[p] = {'gold':2000,'metal':2000,'energy':2000}
+        self.resources[p] = {'gold':20,'metal':0,'energy':0}
         self.went[p] = False
         self.tech[p] = []
         self.progress[p] = {}
@@ -186,12 +193,15 @@ class Game:
     def start(self):
         if not self.started:
             self.started = True
+            if len(self.units) < self.targetPlayers:
+                self.ai += self.targetPlayers - len(self.units)
             for i in range(self.ai):
                 self.addPlayer()
                 self.went[len(self.units)-1] = True
             Grid = methods.intToList(self.intGrid, self.width)
             print('units',self.units)
-            startingspots = methods.findStartSpots(Grid, len(self.units))
+            #startingspots = methods.findStartSpots(Grid, len(self.units))
+            startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
             if startingspots == "RETRY":
                 cont = True
                 while cont:
@@ -204,7 +214,18 @@ class Game:
                 self.intGrid = list(np.packbits(np.uint8(grid)))
                 for i in range(len(self.intGrid)):
                     self.intGrid[i] = int(self.intGrid[i])
-            random.shuffle(startingspots)
+
+            realPlayers = len(self.units) - self.ai
+            playerStartingSpots = startingspots[:realPlayers]
+            aiStartingSpots = startingspots[realPlayers:]
+
+            random.shuffle(playerStartingSpots)
+            random.shuffle(aiStartingSpots)
+
+            startingspots = playerStartingSpots + aiStartingSpots
+            #random.shuffle(startingspots)
+            #abc = start
+            
             print(startingspots)
             i = 0
             #starters = ['king slime', 'king blob']
