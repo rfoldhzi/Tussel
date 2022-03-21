@@ -54,7 +54,8 @@ resource_audio = {
 construction = GV.pygame.mixer.Sound("audio/construction.wav")     
 end_of_round_beeps = GV.pygame.mixer.Sound("audio/end_of_round.wav") 
 
-research_selected_audio = GV.pygame.mixer.Sound("audio/lab_selected.wav")   
+research_selected_audio = GV.pygame.mixer.Sound("audio/lab_selected.wav")
+tech_error_audio = GV.pygame.mixer.Sound("audio/error_beep.wav")
 
 imageMani = True
 try:
@@ -1311,6 +1312,7 @@ def researchMenu():
             
             b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(int(mult*techSize)+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
             b.active = True
+            b.techType = "Good"
             currentTechButtons.append(b)
             if not t in currentTechImages:
                 img = GV.pygame.image.load("techAssets/%s.png" % t)
@@ -1319,16 +1321,24 @@ def researchMenu():
             pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(int(mult*techSize)+1)+GV.offset_y-1+extraY)
             GV.DISPLAYSURF.blit(currentTechImages[t], pos)
 
-            if t in GV.game.tech[GV.player]:
+            if t in GV.game.tech[GV.player]: #Already own this tech
+                b.techType = "Owned"
                 rect = GV.pygame.Rect(pos, (techSize+1, techSize+1))#+GV.offset_x,410+GV.offset_y)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, (220,220,220), rect, 1)
+            elif not checkTechAffordable(selected, t): #This tech is too costly, (also can't be costly and owned)
+                b.techType = "Costly"
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(160)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
 
             if t in maybeDeny:
                 s = GV.pygame.Surface((techSize, techSize))
                 s.set_alpha(128)
                 s.fill((0,0,0))
                 GV.DISPLAYSURF.blit(s, pos)
-            if not (t in GV.game.tech[GV.player] or t in currentTechMenu):
+            if not (t in GV.game.tech[GV.player] or t in currentTechMenu): #Either denied by other tech or is preview tech
+                b.techType = "Dark"
                 s = GV.pygame.Surface((techSize, techSize))
                 s.set_alpha(170)
                 s.fill((20,20,20))
@@ -1347,11 +1357,7 @@ def researchMenu():
                     Healthfont = GV.pygame.font.SysFont("arial", 15)
                     text = Healthfont.render(T, 1, WHITE)
                     GV.DISPLAYSURF.blit(text, pos)
-            if not checkTechAffordable(selected, t):
-                s = GV.pygame.Surface((techSize, techSize))
-                s.set_alpha(160)
-                s.fill((0,0,0))
-                GV.DISPLAYSURF.blit(s, pos)
+            
             #Make images (similar to getImage) {DONE}
             #Display button with image on top {Done}
             #add buttons to techbuttons {DONE}
@@ -2042,19 +2048,33 @@ def main(playerCount = None):
 
 
                     print('currentTechButtons',currentTechButtons)
+
+                    CleanUp = True #Only cleanup if player clicked a valid tech or black region
+                    
                     for btn in currentTechButtons:
                         if btn.click(GV.pygame.mouse.get_pos()):
+                            if btn.techType == "Good":
+                                research_selected_audio.play()
+                            else:
+                                tech_error_audio.play()
+                                if btn.techType != "Costly": #If its costly, go through but give error noise
+                                    CleanUp = False
+                                    break
+                            
+                            
                             print('ONE OF THEM WAS CLICKKKEDD!!')
 
-                            research_selected_audio.play()
+                            #research_selected_audio.play()
 
                             selected.stateData = btn.name
                             n.send(convertToStr(selected,'research',selected.stateData))
                             selected.state = 'research'
                             break
-                    BF.clearGrid()
-                    cleanUpAfterSelect()
-                    drawBoard()   
+                        
+                    if CleanUp:
+                        BF.clearGrid()
+                        cleanUpAfterSelect()
+                        drawBoard()   
                 elif selected:
                     for btn in btns:
                         if btns[btn].click(GV.pygame.mouse.get_pos()):#If button clicked, set state of unit
