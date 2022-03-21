@@ -423,7 +423,8 @@ class Game:
                                     print("New production for",unit2,'is',unit2.resourceGen)
                                 
                             else:
-                                    
+                                if not hasattr(unit2, targetStat): #Don't buff if it doesn't have the stat
+                                    continue
                                 multiplier = unit.abilities['buff'][1]
                                 print("This guy's %s was buffed" % targetStat)
                                 #buffedUnitOrignals[unit2] = {"stat":targetStat, "orig": getattr(unit2, targetStat)}
