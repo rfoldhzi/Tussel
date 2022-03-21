@@ -232,7 +232,13 @@ class Game:
             #starters = ['the hunter', 'king blob']
             for p in self.units:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
-                self.units[p].append(Unit(startingspots[p], "town"))
+                if i >= realPlayers: #AIs start with trees
+                    if random.random() < .33:
+                         self.units[p].append(Unit(startingspots[p], "town"))
+                    else:
+                        self.units[p].append(Unit(startingspots[p], "tree"))
+                else:
+                    self.units[p].append(Unit(startingspots[p], "town"))
                 i+=1
 
     #??? Something to do with JSON stuff

@@ -795,6 +795,86 @@ UnitDB = {
         'abilities':{'kamikaze':0,'decay':1},
         'resourceGen':{"gold": 0}
     },
+
+    #Wild Life Faction
+    'tree':{
+        'cost': {'gold':50, 'metal':50, 'energy':50},
+        'possibleBuilds': ['hyena', 'bear','fish'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 40,
+        'population':5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 10,
+            "energy": 5
+        }
+    },
+    'hyena':{
+        'cost': {'metal':10},
+    },
+    'bear':{
+        'cost': {'gold':20},
+        'possibleBuilds': ['cave','tree'],
+        'possibleStates': ['attack','move','resources', 'build'],
+        'health': 15,
+        'attack':3,
+        'population':2,
+        'resourceGen':{
+            "gold": 4,
+            "metal": 8,
+            "energy": 0
+        }
+    },
+    'fish':{
+        'cost': {'energy':10},
+        'possibleBuilds': ['pond'],
+        'possibleStates': ['move','build','resources'],
+        'type': 'boat',
+        'resourceGen':{"energy": 3}
+    },
+    'pond':{
+        'cost': {'gold':20, 'energy':30},
+        'possibleBuilds': ['snake','fish'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 15,
+        'population':3,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 0,
+            "energy": 10
+        }
+    },
+    'cave':{
+        'cost': {'gold':10, 'metal':30},
+        'possibleBuilds': ['hyena', 'bats'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 20,
+        'population':2,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 20,
+            "energy": 0
+        }
+    },
+    'bats':{
+        'cost': {'gold':8},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':7,
+        'speed':2,
+        'defense':1,
+        'resourceGen':{"gold": 0}
+    },
+    'snake':{
+        'cost': {'gold':20,'energy':10},
+        'possibleStates': ['move','attack'],
+        'attack':3.5,
+        'abilities':{'onlyHit':['trooper']},
+        'resourceGen':{"gold": 8}
+    },
 }
 
 TechDB = {
