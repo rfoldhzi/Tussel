@@ -505,6 +505,7 @@ UnitDB = {
         'possibleBuilds': ['soldier','construction worker'],
         'type': 'boat',
         'population':1,
+        'abilities':{'transport':['trooper','bot']},
         'resourceGen':{"gold": 10}
     },
     'aircraft carrier':{

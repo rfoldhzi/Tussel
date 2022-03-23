@@ -320,6 +320,24 @@ def getMoveCircles(unit):#Could be more effiecint
                         if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                             spaces.append([x,y])
     
+    return spaces
+
+def getTransportSpots(unit):
+    if not 'move' in unit.possibleStates:
+        return []
+    sp = unit.speed
+    spaces = []
+    for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
+        for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
+            if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
+                unit2 = GV.game.getAnyUnitFromPos(x,y)#Switch to unit on team
+                if unit2:
+                    print("Found unit in spot",x,y,"unit name", unit.name)
+                    if ("transport" in unit2.abilities):
+                        print("He has transport in abilities")
+                        if unit.type in unit2.abilities['transport']:
+                            print("And its valid")
+                            spaces.append([x,y])
     
     return spaces
 
@@ -628,6 +646,7 @@ GV.highlightSquares = []
 #GV.BoardColors = []
 GV.CloudColors = []
 moveCircles = []
+transportSpots = []
 possibleAttacks = []
 possibleHeals = []
 buildHexes = []
@@ -637,6 +656,7 @@ GV.explorationGrid = []
 GV.animateGrid = []
 
 blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+greenCircle = GV.pygame.image.load("assets/TransportCircle.png")
 OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
 RedX = GV.RedX#GV.pygame.image.load("assets/AttackX.png")
 GreenT = GV.pygame.image.load("assets/HealT.png")
@@ -707,7 +727,7 @@ def moveWin(x, y):
     windll.user32.MoveWindow(hwnd, x, y, w, h, False)
 
 def updateSelf():
-    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
+    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle, greenCircle ,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
     GV.board_x = GV.game.width
     GV.board_y = GV.game.height
@@ -770,11 +790,13 @@ def updateSelf():
     DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
 
     blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+    greenCircle = GV.pygame.image.load("assets/TransportCircle.png")
     OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
     RedX = GV.pygame.image.load("assets/AttackX.png")
     GreenT = GV.pygame.image.load("assets/HealT.png")
     Beaker = GV.pygame.image.load("assets/Beaker.png")
     blueCircle = GV.pygame.transform.scale(blueCircle, (GV.block_size, GV.block_size))
+    greenCircle = GV.pygame.transform.scale(greenCircle, (GV.block_size, GV.block_size))
     OrangeHex = GV.pygame.transform.scale(OrangeHex, (GV.block_size, GV.block_size))
     RedX = GV.pygame.transform.scale(RedX, (GV.block_size, GV.block_size))
     GreenT = GV.pygame.transform.scale(GreenT, (GV.block_size, GV.block_size))
@@ -1459,7 +1481,10 @@ def drawBoard():
             for u in GV.game.units[i]:
                 BF.showUnitNEW(u)
         for pos in moveCircles:
-            BF.drawIcon(blueCircle, pos)
+            if pos in transportSpots:
+                BF.drawIcon(greenCircle, pos)
+            else:
+                BF.drawIcon(blueCircle, pos)
             #GV.DISPLAYSURF.blit(blueCircle,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in buildHexes:
             BF.drawIcon(OrangeHex, pos)
@@ -1762,12 +1787,13 @@ extraButtons = {}
 grid = []
 
 def cleanUpAfterSelect():
-    global moveCircles, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
+    global moveCircles,transportSpots, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
     selected = None
     print(selected)
     stateDataMode = None
     GV.highlightSquares = []
     moveCircles = []
+    transportSpots = []
     buildHexes = []
     possibleAttacks = []
     possibleHeals = []
@@ -1779,7 +1805,7 @@ def cleanUpAfterSelect():
         extraButtons[v].deDraw(GV.DISPLAYSURF)
 
 def main(playerCount = None):
-    global FPSCLOCK, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
+    global FPSCLOCK, moveCircles,transportSpots, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
     #GV.pygame.init()
     FPSCLOCK = GV.pygame.time.Clock()
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -2119,6 +2145,7 @@ def main(playerCount = None):
                                     extraButtons[v].deDraw(GV.DISPLAYSURF)
                                 extraButtons = {}
                                 moveCircles = []
+                                transportSpots = []
                                 possibleAttacks = []
                                 possibleHeals = []
                                 buildHexes = getRangeCircles(selected, built = btn)
@@ -2177,6 +2204,9 @@ def main(playerCount = None):
 
                                 GV.highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
+                                transportSpots = getTransportSpots(selected)
+                                print("Total transport spots 1", transportSpots)
+                                moveCircles += transportSpots
                                 possibleAttacks = getAttacks(selected)
                                 possibleHeals = getHeals(selected)
                                 statInfo(selected)
@@ -2221,6 +2251,9 @@ def main(playerCount = None):
                             print(vars(selected))
                             GV.highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
+                            transportSpots = getTransportSpots(selected)
+                            print("Total transport spots 2", transportSpots)
+                            moveCircles += transportSpots
                             possibleAttacks = getAttacks(selected)
                             possibleHeals = getHeals(selected)
                             statInfo(selected)
