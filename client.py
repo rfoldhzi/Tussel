@@ -630,7 +630,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
             else:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
     if unit1 == unit2:
-        GV.DISPLAYSURF.blit(RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
+        GV.DISPLAYSURF.blit(GV.RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
 
 
 GV.animateTime = 20
@@ -796,13 +796,13 @@ def updateSelf():
     blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
     greenCircle = GV.pygame.image.load("assets/TransportCircle.png")
     OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
-    RedX = GV.pygame.image.load("assets/AttackX.png")
+    GV.RedX = GV.pygame.image.load("assets/AttackX.png")
     GreenT = GV.pygame.image.load("assets/HealT.png")
     Beaker = GV.pygame.image.load("assets/Beaker.png")
     blueCircle = GV.pygame.transform.scale(blueCircle, (GV.block_size, GV.block_size))
     greenCircle = GV.pygame.transform.scale(greenCircle, (GV.block_size, GV.block_size))
     OrangeHex = GV.pygame.transform.scale(OrangeHex, (GV.block_size, GV.block_size))
-    RedX = GV.pygame.transform.scale(RedX, (GV.block_size, GV.block_size))
+    GV.RedX = GV.pygame.transform.scale(GV.RedX, (GV.block_size, GV.block_size))
     GreenT = GV.pygame.transform.scale(GreenT, (GV.block_size, GV.block_size))
     Beaker = GV.pygame.transform.scale(Beaker, (GV.block_size, GV.block_size))
 
@@ -1502,7 +1502,7 @@ def drawBoard():
             BF.drawIcon(OrangeHex, pos)
             #GV.DISPLAYSURF.blit(OrangeHex,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in possibleAttacks:
-            BF.drawIcon(RedX, pos)
+            BF.drawIcon(GV.RedX, pos)
             #GV.DISPLAYSURF.blit(RedX,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in possibleHeals:
             BF.drawIcon(GreenT, pos)
