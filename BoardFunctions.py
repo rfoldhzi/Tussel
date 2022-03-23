@@ -167,6 +167,8 @@ def animateUnit(unit1, unit2,t,specfic_player):
     default = True
     if not unit1:
         parent = GV.game.getUnitFromID(unit2.parent)
+        if hasattr(unit2,"transporter"): #For when a unit is dropped off. (isn't present in unit1 but is present in unit2)
+            parent = GV.game.getUnitFromID(unit2.transporter)
         if parent:
             default = False
             x2,y2 = parent.position

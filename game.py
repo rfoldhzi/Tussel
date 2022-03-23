@@ -618,17 +618,17 @@ class Game:
         #transport states to null when this happens
         for i in self.units:
             for u in self.units[i]:
-                    if u.state == "move":
-                        if checkRange(u, u.stateData) <= u.speed:
-                            transportUnit = self.getUnitFromPos(i,u.stateData[0],u.stateData[1])
-                            if transportUnit:
-                                if "transport" in transportUnit.abilities:
-                                    #We also need extra checks to see if it was valid
-                                    self.units[i].remove(u)
-                                    if hasattr(transportUnit, "carrying"):
-                                        transportUnit.carrying.append(u)
-                                    else:
-                                        transportUnit.carrying = [u]
+                if u.state == "move":
+                    if checkRange(u, u.stateData) <= u.speed:
+                        transportUnit = self.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                        if transportUnit:
+                            if "transport" in transportUnit.abilities:
+                                #We also need extra checks to see if it was valid
+                                self.units[i].remove(u)
+                                if hasattr(transportUnit, "carrying"):
+                                    transportUnit.carrying.append(u)
+                                else:
+                                    transportUnit.carrying = [u]
 
 
         #Drop off transported units
@@ -649,6 +649,7 @@ class Game:
                             transportedUnit.position = u.stateData[0]
                             transportedUnit.state = None
                             transportedUnit.stateData = None
+                            transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
 
                         u.state = None
                         u.stateData = None

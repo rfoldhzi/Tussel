@@ -916,6 +916,8 @@ def animationGrid(g1,g2):
             u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
                 parent = GV.game.getUnitFromID(u2.parent)
+                if hasattr(u2, "transporter"): #For when a transporter drops off a unit
+                    parent = GV.game.getUnitFromID(u2.transporter)
                 if parent:
                     l.append([u2.position, parent.position])
     for v in l:
@@ -1481,6 +1483,12 @@ def drawBoard():
                             BF.drawLine((110, 106, 46),u.position,u.stateData[0])
                         else:
                             BF.drawLine((255,170,0),u.position,u.stateData[0])
+                elif u.state == 'transport':
+                    if len(u.stateData) == 2:
+                        if checkRange(u,u.stateData[0]) > u.range:
+                            BF.drawLine((25, 150, 25),u.position,u.stateData[0])
+                        else:
+                            BF.drawLine((50,255,50),u.position,u.stateData[0])
         for i in GV.game.units:
             for u in GV.game.units[i]:
                 BF.showUnitNEW(u)
@@ -2323,7 +2331,7 @@ def main(playerCount = None):
                                     extraButtons[v] = b
                                     i+=1
                             if 'transport' in selected.possibleStates: #Show things on bottom
-                                if hasattr(selected,"carrying"):
+                                if hasattr(selected,"carrying"): #TODO maybe change out using names for IDs, not sure. Duplicates are a problem
                                     i = 0
                                     posBuilds = selected.carrying
                                     for unit in posBuilds:
