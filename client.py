@@ -96,6 +96,7 @@ GV.StateColors = {
     'build':(100,50,0),
     'heal':(255,255,255),
     'research':(66, 135, 245),
+    'transport':(50,255,50),
     }
 GV.resourceColors = {
     'gold': (255,255,0),
@@ -200,6 +201,9 @@ def convertToStr(u, state, stateData):#n.send([selected,'move',[x,y]])):
     elif state == 'research':
         s+= stateData
     elif state == 'build':
+        s+= '%s:%s:' % tuple(stateData[0])
+        s+= stateData[1]
+    elif state == 'transport':
         s+= '%s:%s:' % tuple(stateData[0])
         s+= stateData[1]
     return s
@@ -1965,6 +1969,15 @@ def main(playerCount = None):
                                 break
                         if unfound:
                             statInfo(selected)
+                    if 'transport' in selected.possibleStates:#If they are able to build
+                        unfound = True
+                        for btn in extraButtons:
+                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                statInfo(btn)
+                                unfound = False
+                                break
+                        if unfound:
+                            statInfo(selected)
                 if stateDataMode == 'research':
                     unfound = True
                     for btn in currentTechButtons:
@@ -2063,6 +2076,16 @@ def main(playerCount = None):
                     cleanUpAfterSelect()
                     #Here is to sumbit to server
                     drawBoard()
+                elif stateDataMode == 'transport':
+                    selected.state = None
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
+                        construction.play()
+                        selected.stateData.insert(0,[x,y])
+                        n.send(convertToStr(selected,'transport',selected.stateData))
+                        selected.state = 'transport'
+                    cleanUpAfterSelect()
+                    #Here is to sumbit to server
+                    drawBoard()
                 elif stateDataMode == 'research':
                     print('RESEARCH CLICK')
                     selected.state = None
@@ -2140,6 +2163,23 @@ def main(playerCount = None):
                             if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
                                 selected.stateData = [btn]
                                 stateDataMode = 'build2'
+                                statInfo(btn)
+                                for v in extraButtons:
+                                    extraButtons[v].deDraw(GV.DISPLAYSURF)
+                                extraButtons = {}
+                                moveCircles = []
+                                transportSpots = []
+                                possibleAttacks = []
+                                possibleHeals = []
+                                buildHexes = getRangeCircles(selected, built = btn)
+                                offclick = False
+                                drawBoard()
+                                break
+                    if 'transport' in selected.possibleStates:#If they are able to build
+                        for btn in extraButtons:
+                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                selected.stateData = [btn]
+                                stateDataMode = 'transport'
                                 statInfo(btn)
                                 for v in extraButtons:
                                     extraButtons[v].deDraw(GV.DISPLAYSURF)
@@ -2282,6 +2322,21 @@ def main(playerCount = None):
                                     GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
                                     extraButtons[v] = b
                                     i+=1
+                            if 'transport' in selected.possibleStates: #Show things on bottom
+                                if hasattr(selected,"carrying"):
+                                    i = 0
+                                    posBuilds = selected.carrying
+                                    for unit in posBuilds:
+                                        unitName = unit['name']
+                                        btnColor = (50,230,50)
+                                        b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
+                                        b.draw(GV.DISPLAYSURF)
+                                        img = BF.getImage(unitName, GV.player, buildUnitImages, 40)
+                                        #img = GV.pygame.image.load("assets/%s.png" % v)
+                                        #img = GV.pygame.transform.scale(img, (40, 40))
+                                        GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
+                                        extraButtons[unitName] = b
+                                        i+=1
                         else:
                             for btn in btns:
                                 btns[btn].deDraw(GV.DISPLAYSURF)

@@ -501,7 +501,7 @@ UnitDB = {
     },
     'transport boat':{
         'cost': {'gold':25, 'metal':25},
-        'possibleStates': ['move','resources','build'],
+        'possibleStates': ['move','resources','transport'],
         'possibleBuilds': ['soldier','construction worker'],
         'type': 'boat',
         'population':1,

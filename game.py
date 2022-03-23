@@ -1,4 +1,5 @@
 #os.chdir(r"/Users/reeganfoldhazi/Documents/PythonStuff")
+from contextlib import nullcontext
 from UnitDB import UnitDB
 from UnitDB import TechDB
 import numpy as np
@@ -182,7 +183,7 @@ class Game:
     def addPlayer(self):
         p = len(self.units)
         self.units[p] = []
-        self.resources[p] = {'gold':20,'metal':0,'energy':0}
+        self.resources[p] = {'gold':2000,'metal':2000,'energy':2000}
         self.went[p] = False
         self.tech[p] = []
         self.progress[p] = {}
@@ -374,6 +375,10 @@ class Game:
             stateData = self.getUnitFromID(split[2])
         elif state == 'build':
             stateData = [[int(split[2]),int(split[3])],split[4]]
+        elif state == 'transport':
+            print("Transport in. DATA:", data,"SPLIT:",split)
+            stateData = [[int(split[2]),int(split[3])],split[4]]
+            print("Final RESULT:",stateData)
         for u in self.units[player]:
             if u == unit:
                 unit.state = state
@@ -608,6 +613,47 @@ class Game:
             if cont:
                 continue
             break
+
+        #Move into Transports #Maybe move this to before move phase and change 
+        #transport states to null when this happens
+        for i in self.units:
+            for u in self.units[i]:
+                    if u.state == "move":
+                        if checkRange(u, u.stateData) <= u.speed:
+                            transportUnit = self.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                            if transportUnit:
+                                if "transport" in transportUnit.abilities:
+                                    #We also need extra checks to see if it was valid
+                                    self.units[i].remove(u)
+                                    if hasattr(transportUnit, "carrying"):
+                                        transportUnit.carrying.append(u)
+                                    else:
+                                        transportUnit.carrying = [u]
+
+
+        #Drop off transported units
+        for i in self.units:
+            for u in self.units[i]:
+                if u.state == "transport":#State data is list [0] is pos, [1] is name
+                    print("stateData",u.stateData)
+                    if not u.stateData[0] in BlockedSpaces:
+                        
+                        transportedUnit = None
+                        for v in u.carrying: #May need to check that unit has carrying attribute
+                            if v.name == u.stateData[1]:
+                                transportedUnit = v
+                        
+                        if transportedUnit:
+                            u.carrying.remove(transportedUnit)
+                            self.units[i].append(transportedUnit)
+                            transportedUnit.position = u.stateData[0]
+                            transportedUnit.state = None
+                            transportedUnit.stateData = None
+
+                        u.state = None
+                        u.stateData = None
+
+
         #Build
         for i in self.units:
             for u in self.units[i]:
