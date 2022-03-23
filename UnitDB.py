@@ -647,8 +647,8 @@ UnitDB = {
         'possibleStates': ['move','attack'],
         'type': 'vehicle',
         'health':30,
-        'attack':6,
-        'defense':2,
+        'attack':2,
+        'defense':6,
         'resourceGen':{"gold": 0}
     },
     'hall of heroes':{
@@ -874,6 +874,105 @@ UnitDB = {
         'attack':3.5,
         'abilities':{'onlyHit':['trooper']},
         'resourceGen':{"gold": 8}
+    },
+    #Bots Faction
+    'bot fortress':{
+        'cost': {'gold':0, 'metal':150, 'energy':150},
+        'possibleBuilds': ['servitor'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 50,
+	'defense': 3,
+        'population':4,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 20,
+            "energy": 20
+        }
+    },
+    'servitor':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot defense platform', 'bot factory', 'bot power core'],
+        'possibleStates': ['move', 'attack', 'build'],
+        'type': 'aircraft',
+        'health': 20,
+	'attack': 2,
+	'defense': 3,
+        'population':4,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 0,
+            "energy": 0
+        }
+    },
+    'bot defense platform':{
+        'cost': {'gold':0, 'metal':100, 'energy':60},
+        'possibleStates': ['attack', 'resources'],
+        'type': 'building',
+        'health': 15,
+	'range': 3,
+	'attack': 3,
+	'defense': 3.5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 0,
+            "energy": 10
+        }
+    },
+    'bot power core':{
+        'cost': {'gold':0, 'metal':60, 'energy':60},
+        'possibleBuilds': ['bot engineer'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 20,
+	'defense': 2,
+        'population':3,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 10,
+            "energy": 50
+        }
+    },
+    'bot engineer':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot', 'bot factory', 'bot power station'],
+        'possibleStates': ['move', 'resources', 'build'],
+        'type': 'unit',
+        'health': 10,
+	'defense': 2,
+        'population':3,
+        'resourceGen':{
+            "gold": 5,
+            "metal": 10,
+            "energy": 0
+        }
+    },
+    'bot power station':{
+        'cost': {'gold':0, 'metal':40, 'energy':60},
+        'possibleStates': ['resources'],
+        'type': 'building',
+        'health': 20,
+	'defense': 2,
+        'resourceGen':{
+            "gold": 5,
+            "metal": 10,
+            "energy": 30
+        }
+    },
+    'bot factory':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot', 'mech', 'bot engineer'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 17,
+	'defense': 2,
+        'population':4,
+        'abilities':{'costly':1.1},
+        'resourceGen':{
+            "gold": 10,
+            "metal": 30,
+            "energy": 5
+        }
     },
 }
 
