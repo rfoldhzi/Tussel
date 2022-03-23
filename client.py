@@ -584,7 +584,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
         return
 
     image = BF.getImage(unit.name, specfic_player)
-    
+
     default = True
     if not unit1:
         parent = GV.game.getUnitFromID(unit2.parent)
@@ -910,6 +910,12 @@ def animationGrid(g1,g2):
                 if u.health != u2.health or u.position != u2.position:
                     l.append([u.position, u2.position])
             else:
+                if u.state == "move": #This is for when a unit boards a transporter
+                    possibleTransport = g2.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                    if possibleTransport:
+                        if g2.checkIfUnitTransported(u, possibleTransport):
+                            l.append([u.position,possibleTransport.position])
+                            continue
                 l.append([u.position])#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
@@ -1020,6 +1026,13 @@ def animateBoard(g1,g2,t):
             if u2:
                 BF.animateUnit(u,u2,t,i) #Unit changed
             else:
+                if u.state == "move": #Transport units are destroyed, but are actually moving. 
+                                      #We make the unit2 equal to transporter to move the unit into it
+                    possibleTransport = g2.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                    if possibleTransport:
+                        if g2.checkIfUnitTransported(u, possibleTransport):
+                            BF.animateUnit(u,possibleTransport,t,i)
+                            continue
                 BF.animateUnit(u,u,t,i)#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:

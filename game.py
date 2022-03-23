@@ -321,6 +321,18 @@ class Game:
                     return u
         return None
     
+    def checkIfUnitTransported(self, transportee, transporter):
+        if hasattr(transporter, "carrying"):
+            for u in transporter.carrying:
+                if type(u) == dict:
+                    if u["UnitID"] == transportee.UnitID:
+                        return True
+                else:
+                    print("option2")
+                    if u.UnitID == transportee["UnitID"]:
+                        return True
+        return False
+
     #Function to give a unit buffs based on a given tech
     def upgradeTech(self, unit, v):
         currentAbility = v[0]
