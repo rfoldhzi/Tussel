@@ -802,7 +802,7 @@ UnitDB = {
         'possibleBuilds': ['hyena', 'bear','fish'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
-        'health': 40,
+        'health': 25,
         'population':5,
         'resourceGen':{
             "gold": 10,
@@ -812,17 +812,18 @@ UnitDB = {
     },
     'hyena':{
         'cost': {'metal':10},
+        'health': 8,
     },
     'bear':{
         'cost': {'gold':20},
         'possibleBuilds': ['cave','tree'],
         'possibleStates': ['attack','move','resources', 'build'],
-        'health': 15,
+        'health': 12,
         'attack':3,
         'population':2,
         'resourceGen':{
             "gold": 4,
-            "metal": 8,
+            "metal": 4,
             "energy": 0
         }
     },
@@ -838,7 +839,6 @@ UnitDB = {
         'possibleBuilds': ['snake','fish'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
-        'health': 15,
         'population':3,
         'resourceGen':{
             "gold": 10,
@@ -851,7 +851,7 @@ UnitDB = {
         'possibleBuilds': ['hyena', 'bats'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
-        'health': 20,
+        'health': 15,
         'population':2,
         'resourceGen':{
             "gold": 0,

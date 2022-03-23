@@ -234,7 +234,9 @@ class Game:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
                 if i >= realPlayers: #AIs start with trees
                     if random.random() < .33:
-                         self.units[p].append(Unit(startingspots[p], "town"))
+                        self.units[p].append(Unit(startingspots[p], "town"))
+                    elif random.random() < .5:
+                        self.units[p].append(Unit(startingspots[p], "bot fortress"))
                     else:
                         self.units[p].append(Unit(startingspots[p], "tree"))
                 else:
