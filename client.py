@@ -2300,6 +2300,22 @@ def main(playerCount = None):
                                         b.name = v
                                         extraButtons.append(b)#extraButtons[v] = b
                                         i+=1
+                                if 'transport' in selected.possibleStates: #Show things on bottom
+                                    if hasattr(selected,"carrying"):
+                                        i = 0
+                                        posBuilds = selected.carrying
+                                        for unit in posBuilds:
+                                            unitName = unit['name']
+                                            btnColor = (50,230,50)
+                                            b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
+                                            b.draw(GV.DISPLAYSURF)
+                                            img = BF.getImage(unitName, GV.player, buildUnitImages, 40)
+                                            #img = GV.pygame.image.load("assets/%s.png" % v)
+                                            #img = GV.pygame.transform.scale(img, (40, 40))
+                                            GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
+                                            b.name = unitName
+                                            extraButtons.append(b)#extraButtons[v] = b
+                                            i+=1
                                      
                             else:
                                 cleanUpAfterSelect()
