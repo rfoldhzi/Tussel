@@ -563,6 +563,13 @@ class Game:
                 if par:
                     if getattr(par,'maxPopulation',False): #Reduces population of parent
                         par.population = max(0,par.population-1)
+            if hasattr(u, "carrying"):
+                for u2 in u.carrying:
+                    if u2.parent:
+                        par = self.getUnitFromID(u2.parent)
+                        if par:
+                            if getattr(par,'maxPopulation',False): #Reduces population of parent
+                                par.population = max(0,par.population-1)
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
@@ -626,8 +633,10 @@ class Game:
                 continue
             break
 
-        #Move into Transports #Maybe move this to before move phase and change 
-        #transport states to null when this happens
+        #Move into Transports
+
+        RemoveList = [] #Reset RemoveList to remove transported units
+
         for i in self.units:
             for u in self.units[i]:
                 if u.state == "move":
@@ -636,12 +645,19 @@ class Game:
                         if transportUnit:
                             if "transport" in transportUnit.abilities:
                                 #We also need extra checks to see if it was valid
-                                self.units[i].remove(u)
+                                if not u.type in transportUnit.abilities["transport"]:
+                                    continue
+                                if transportUnit.population >= transportUnit.maxPopulation:
+                                    continue
+                                RemoveList.append(u)#self.units[i].remove(u)
                                 if hasattr(transportUnit, "carrying"):
                                     transportUnit.carrying.append(u)
                                 else:
                                     transportUnit.carrying = [u]
+                                transportUnit.population += 1
 
+        for u in RemoveList:
+            self.units[self.getPlayerfromUnit(u)].remove(u)
 
         #Drop off transported units
         for i in self.units:
@@ -655,6 +671,16 @@ class Game:
                             if v.name == u.stateData[1]:
                                 transportedUnit = v
                         
+                        if transportedUnit == None: #Just in case unit can't be found
+                            u.state = None
+                            u.stateData = None
+                            continue
+                        
+                        #Make Sure water is valid for unit type
+                        water = Grid[u.stateData[0][1]][u.stateData[0][0]]
+                        if not ((water == (transportedUnit.type == 'boat')) or transportedUnit.type == "aircraft"):
+                            continue
+
                         if transportedUnit:
                             u.carrying.remove(transportedUnit)
                             self.units[i].append(transportedUnit)
@@ -662,7 +688,7 @@ class Game:
                             transportedUnit.state = None
                             transportedUnit.stateData = None
                             transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
-
+                            u.population -= 1
                         u.state = None
                         u.stateData = None
 

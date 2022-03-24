@@ -334,13 +334,13 @@ def getTransportSpots(unit):
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                unit2 = GV.game.getAnyUnitFromPos(x,y)#Switch to unit on team
+                unit2 = GV.game.getUnitFromPos(GV.player,x,y)#Switch to unit on team
                 if unit2:
-                    print("Found unit in spot",x,y,"unit name", unit.name)
                     if ("transport" in unit2.abilities):
-                        print("He has transport in abilities")
                         if unit.type in unit2.abilities['transport']:
-                            print("And its valid")
+                            if unit2.population >= unit2.maxPopulation:
+                                continue
+                            #Valid Transport
                             spaces.append([x,y])
     
     return spaces
