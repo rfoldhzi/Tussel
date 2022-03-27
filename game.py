@@ -1,4 +1,5 @@
 #os.chdir(r"/Users/reeganfoldhazi/Documents/PythonStuff")
+from contextlib import nullcontext
 from UnitDB import UnitDB
 from UnitDB import TechDB
 import numpy as np
@@ -182,7 +183,7 @@ class Game:
     def addPlayer(self):
         p = len(self.units)
         self.units[p] = []
-        self.resources[p] = {'gold':20,'metal':0,'energy':0}
+        self.resources[p] = {'gold':2000,'metal':2000,'energy':2000}
         self.went[p] = False
         self.tech[p] = []
         self.progress[p] = {}
@@ -322,6 +323,18 @@ class Game:
                     return u
         return None
     
+    def checkIfUnitTransported(self, transportee, transporter):
+        if hasattr(transporter, "carrying"):
+            for u in transporter.carrying:
+                if type(u) == dict:
+                    if u["UnitID"] == transportee.UnitID:
+                        return True
+                else:
+                    print("option2")
+                    if u.UnitID == transportee["UnitID"]:
+                        return True
+        return False
+
     #Function to give a unit buffs based on a given tech
     def upgradeTech(self, unit, v):
         currentAbility = v[0]
@@ -376,6 +389,10 @@ class Game:
             stateData = self.getUnitFromID(split[2])
         elif state == 'build':
             stateData = [[int(split[2]),int(split[3])],split[4]]
+        elif state == 'transport':
+            print("Transport in. DATA:", data,"SPLIT:",split)
+            stateData = [[int(split[2]),int(split[3])],split[4]]
+            print("Final RESULT:",stateData)
         for u in self.units[player]:
             if u == unit:
                 unit.state = state
@@ -548,6 +565,13 @@ class Game:
                 if par:
                     if getattr(par,'maxPopulation',False): #Reduces population of parent
                         par.population = max(0,par.population-1)
+            if hasattr(u, "carrying"):
+                for u2 in u.carrying:
+                    if u2.parent:
+                        par = self.getUnitFromID(u2.parent)
+                        if par:
+                            if getattr(par,'maxPopulation',False): #Reduces population of parent
+                                par.population = max(0,par.population-1)
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
@@ -610,6 +634,67 @@ class Game:
             if cont:
                 continue
             break
+
+        #Move into Transports
+
+        RemoveList = [] #Reset RemoveList to remove transported units
+
+        for i in self.units:
+            for u in self.units[i]:
+                if u.state == "move":
+                    if checkRange(u, u.stateData) <= u.speed:
+                        transportUnit = self.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                        if transportUnit:
+                            if "transport" in transportUnit.abilities:
+                                #We also need extra checks to see if it was valid
+                                if not u.type in transportUnit.abilities["transport"]:
+                                    continue
+                                if transportUnit.population >= transportUnit.maxPopulation:
+                                    continue
+                                RemoveList.append(u)#self.units[i].remove(u)
+                                if hasattr(transportUnit, "carrying"):
+                                    transportUnit.carrying.append(u)
+                                else:
+                                    transportUnit.carrying = [u]
+                                transportUnit.population += 1
+
+        for u in RemoveList:
+            self.units[self.getPlayerfromUnit(u)].remove(u)
+
+        #Drop off transported units
+        for i in self.units:
+            for u in self.units[i]:
+                if u.state == "transport":#State data is list [0] is pos, [1] is name
+                    print("stateData",u.stateData)
+                    if not u.stateData[0] in BlockedSpaces:
+                        
+                        transportedUnit = None
+                        for v in u.carrying: #May need to check that unit has carrying attribute
+                            if v.name == u.stateData[1]:
+                                transportedUnit = v
+                        
+                        if transportedUnit == None: #Just in case unit can't be found
+                            u.state = None
+                            u.stateData = None
+                            continue
+                        
+                        #Make Sure water is valid for unit type
+                        water = Grid[u.stateData[0][1]][u.stateData[0][0]]
+                        if not ((water == (transportedUnit.type == 'boat')) or transportedUnit.type == "aircraft"):
+                            continue
+
+                        if transportedUnit:
+                            u.carrying.remove(transportedUnit)
+                            self.units[i].append(transportedUnit)
+                            transportedUnit.position = u.stateData[0]
+                            transportedUnit.state = None
+                            transportedUnit.stateData = None
+                            transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
+                            u.population -= 1
+                        u.state = None
+                        u.stateData = None
+
+
         #Build
         for i in self.units:
             for u in self.units[i]:

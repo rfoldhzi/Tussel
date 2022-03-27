@@ -395,11 +395,13 @@ UnitDB = {
         'abilities':{'onlyHit':['building']},
     },
     'jeep':{
-        'cost': {'gold':10, 'metal':40, 'energy':10},
-        'possibleStates': ['move','attack'],
+        'cost': {'gold':20, 'metal':40, 'energy':20},
+        'possibleStates': ['move','attack','transport'],
         'type': 'vehicle',
         'speed':2,
-        'health':15,
+        'health':12,
+        'population':1,
+        'abilities':{'transport':['trooper']},
         'resourceGen':{"gold": 0}
     },
     'mobile fortress':{
@@ -440,24 +442,26 @@ UnitDB = {
     },
     'helicopter':{
         'cost': {'gold':50, 'metal':50, 'energy':20},
-        'possibleBuilds': ['soldier','construction worker'],
-        'possibleStates': ['move','attack','build'],
+        #'possibleBuilds': ['soldier','construction worker'],
+        'possibleStates': ['move','attack','transport'],
         'type': 'aircraft',
         'speed':2,
         'defense':1,
         'attack':1.5,
         'population':1,
+        'abilities':{'transport':['trooper','bot']},
         'resourceGen':{"gold": 0}
     },
     'chinook':{
         'cost': {'gold':100, 'metal':100, 'energy':20},
-        'possibleBuilds': ['tank','crane','heavy'],
-        'possibleStates': ['move','attack','build'],
+        #'possibleBuilds': ['tank','crane','heavy'],
+        'possibleStates': ['move','attack','transport'],
         'type': 'aircraft',
         'speed':2,
         'defense':1.5,
         'attack':2,
         'population':2,
+        'abilities':{'transport':['trooper','bot','vehicle']},
         'resourceGen':{"gold": 0}
     },
     'bomber':{
@@ -501,10 +505,11 @@ UnitDB = {
     },
     'transport boat':{
         'cost': {'gold':25, 'metal':25},
-        'possibleStates': ['move','resources','build'],
-        'possibleBuilds': ['soldier','construction worker'],
+        'possibleStates': ['move','resources','transport'],
+        #'possibleBuilds': ['soldier','construction worker'],
         'type': 'boat',
-        'population':1,
+        'population':2,
+        'abilities':{'transport':['trooper','bot']},
         'resourceGen':{"gold": 10}
     },
     'aircraft carrier':{
