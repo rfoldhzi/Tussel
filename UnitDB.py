@@ -88,7 +88,7 @@ UnitDB = {
         'population':2,
         'resourceGen':{
             "gold": 5,
-            "metal": 20,
+            "metal": 7,
             "energy": 0
         }
     },
@@ -325,7 +325,7 @@ UnitDB = {
         'defense': 1,
         'resourceGen':{
             "gold": 0,
-            "metal": 25,
+            "metal": 8,
             "energy": 5
         }
     },
@@ -544,7 +544,7 @@ UnitDB = {
         'type': 'boat',
         'attack': 3.5,
         'resourceGen':{"gold": 0},
-        'abilities':{'onlyHit':['boat']},
+        'abilities':{'onlyHit':['boat','building']},
     },
     'floating fortress':{
         'cost': {'gold':75, 'metal':350,'energy':150},
@@ -625,7 +625,7 @@ UnitDB = {
         }
     },
     'sonic cannon':{
-        'cost': {'gold':200, 'metal':500, 'energy':1000},
+        'cost': {'gold':100, 'metal':250, 'energy':500},
         'possibleStates': ['move','attack'],
         'type': 'vehicle',
         'health':5,
@@ -635,7 +635,7 @@ UnitDB = {
         'resourceGen':{"gold": 0}
     },
     'ultrabot':{
-        'cost': {'gold':1000,'metal':200,'energy':500},
+        'cost': {'gold':500,'metal':100,'energy':250},
         'possibleStates': ['move','attack','build'],
         'possibleBuilds': ['bot','minibot'],
         'type': 'vehicle',
@@ -648,7 +648,7 @@ UnitDB = {
         }
     },
     'invinsa tank':{
-        'cost': {'gold':500, 'metal':1000, 'energy':200},
+        'cost': {'gold':250, 'metal':500, 'energy':100},
         'possibleStates': ['move','attack'],
         'type': 'vehicle',
         'health':30,
@@ -901,13 +901,9 @@ UnitDB = {
         'possibleStates': ['move', 'attack', 'build'],
         'type': 'aircraft',
         'health': 20,
-	'attack': 2,
 	'defense': 3,
-        'population':4,
         'resourceGen':{
-            "gold": 0,
-            "metal": 0,
-            "energy": 0
+            "gold": 0
         }
     },
     'bot defense platform':{
@@ -930,7 +926,6 @@ UnitDB = {
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 20,
-	'defense': 2,
         'population':3,
         'resourceGen':{
             "gold": 0,
@@ -942,9 +937,8 @@ UnitDB = {
         'cost': {'gold':0, 'metal':40, 'energy':40},
         'possibleBuilds': ['bot', 'bot factory', 'bot power station'],
         'possibleStates': ['move', 'resources', 'build'],
-        'type': 'unit',
+        'type': 'bot',
         'health': 10,
-	'defense': 2,
         'population':3,
         'resourceGen':{
             "gold": 5,
@@ -957,7 +951,6 @@ UnitDB = {
         'possibleStates': ['resources'],
         'type': 'building',
         'health': 20,
-	'defense': 2,
         'resourceGen':{
             "gold": 5,
             "metal": 10,
@@ -970,7 +963,6 @@ UnitDB = {
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 17,
-	'defense': 2,
         'population':4,
         'abilities':{'costly':1.1},
         'resourceGen':{
