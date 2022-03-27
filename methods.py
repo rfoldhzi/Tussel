@@ -1,4 +1,6 @@
-import random, math
+import random, math,os,sys
+from PIL import Image
+#os.chdir(os.path.dirname(sys.argv[0]))
 
 replaceD = {
 'null':"N",
@@ -322,3 +324,89 @@ def intToList(x, width):
     for i in range(len(l)//width):
             l2.append(l[(i*width):((i+1)*width)])
     return l2
+
+
+def generateMapFromImage(MAP):
+    im = Image.open(MAP)    
+    pix = im.load()
+    width = im.size[0]
+    height = im.size[1]
+    grid = []
+    for x in range(width):
+        l = []
+        for y in range(height):
+            pixel = pix[y,x]
+            if pixel == (0,0,255,255):
+                l.append(True)
+            else:
+                l.append(False)
+        grid.append(l)
+    return grid
+
+def printGrid(grid):
+    for l in grid:
+        t = ''
+        for c in l:
+            if c:
+                t += " "
+            else:
+                t += "X"
+        print(t)
+
+def findStartSpotsFromMap(MAP):
+    im = Image.open(MAP)    
+    pix = im.load()
+    width = im.size[0]
+    height = im.size[1]
+    grid = []
+
+    startSpots = []
+    
+    for x in range(width):
+        for y in range(height):
+            pixel = pix[y,x]
+            if pixel == (255,0,0,255):
+                startSpots.append([y,x])
+    #For Bots
+    for x in range(width):
+        for y in range(height):
+            pixel = pix[y,x]
+            if pixel == (255,255,255,255):
+                startSpots.append([y,x])
+
+    print("START SPOTS", startSpots)
+    return startSpots
+
+def getAICountFromMap(MAP):
+    im = Image.open(MAP)    
+    pix = im.load()
+    width = im.size[0]
+    height = im.size[1]
+
+    AICount = 0
+    for x in range(width):
+        for y in range(height):
+            pixel = pix[y,x]
+            if pixel == (255,255,255,255):
+                AICount += 1
+    return AICount
+
+def getPlayerCountFromMap(MAP):
+    im = Image.open(MAP)    
+    pix = im.load()
+    width = im.size[0]
+    height = im.size[1]
+
+    PlayerCount = 0
+    for x in range(width):
+        for y in range(height):
+            pixel = pix[y,x]
+            if pixel == (255,0,0,255):
+                PlayerCount += 1
+    return PlayerCount
+
+def getWidthAndHeight(MAP):
+    im = Image.open(MAP) 
+    width = im.size[0]
+    height = im.size[1]
+    return width, height

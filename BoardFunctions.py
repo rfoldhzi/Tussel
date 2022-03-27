@@ -72,7 +72,8 @@ def clearGrid():
 
 def drawLine(color,pos1,pos2):
     if pos1[0] < GV.board_x_start or GV.board_x_end <= pos1[0] or pos1[1] < GV.board_y_start or GV.board_y_end <= pos1[1]:
-        if pos2[0] < GV.board_x_start or GV.board_x_end <= pos2[0] or pos2[1] < GV.board_y_start or GV.board_y_end <= pos2[1]:
+        return
+    if pos2[0] < GV.board_x_start or GV.board_x_end <= pos2[0] or pos2[1] < GV.board_y_start or GV.board_y_end <= pos2[1]:
             return
     GV.pygame.draw.line(GV.DISPLAYSURF, color, ((GV.block_size+1)*(pos1[0]-GV.board_x_start)+GV.offset_x+GV.block_size/2,(GV.block_size+1)*(pos1[1]-GV.board_y_start)+GV.offset_y+GV.block_size/2),
                                                ((GV.block_size+1)*(pos2[0]-GV.board_x_start)+GV.offset_x+GV.block_size/2,(GV.block_size+1)*(pos2[1]-GV.board_y_start)+GV.offset_y+GV.block_size/2),10)
@@ -166,9 +167,13 @@ def animateUnit(unit1, unit2,t,specfic_player):
     default = True
     if not unit1:
         parent = GV.game.getUnitFromID(unit2.parent)
+        if hasattr(unit2,"transporter"): #For when a unit is dropped off. (isn't present in unit1 but is present in unit2)
+            parent = GV.game.getUnitFromID(unit2.transporter)
         if parent:
             default = False
             x2,y2 = parent.position
+            if x2 < GV.board_x_start or GV.board_x_end <= x2 or y2 < GV.board_y_start or GV.board_y_end <= y2:
+                return
             start = ((x2 - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y2 - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
             end = ((x - GV.board_x_start)*(GV.block_size+1)+GV.offset_x-1, (y - GV.board_y_start)*(GV.block_size+1)+GV.offset_y-1)
             Pos = CF.intPoint(CF.LerpPoint(start, end, t/GV.animateTime))

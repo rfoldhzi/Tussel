@@ -1,7 +1,6 @@
 UnitDB = {
     'soldier':{
         'cost': {'gold':20},
-        'abilities':{'charge':0},
     },
     'scout':{
         'cost': {'gold':30},
@@ -20,6 +19,8 @@ UnitDB = {
     },
     'defender':{
         'cost': {'gold':20,'metal':10},
+        'possibleBuilds': [],
+        'possibleStates': ['move','attack','build'],
         'health': 15,
         'defense':3,
     },
@@ -92,7 +93,7 @@ UnitDB = {
         }
     },
     'town':{
-        'cost': {'gold':100, 'metal':100, 'energy':100},
+        'cost': {'gold':150, 'metal':150, 'energy':150},
         'possibleBuilds': ['soldier', 'construction worker','miner', 'electric engineer'],
         'possibleStates': ['resources', 'build','research'],
         'type': 'building',
@@ -105,8 +106,9 @@ UnitDB = {
         }
     },
     'metropolis':{
-        'cost': {'gold':200, 'metal':200, 'energy':200},
-        'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        'cost': {'gold':250, 'metal':250, 'energy':250},
+        #'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        'possibleBuilds': ['hall of heroes'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 75,
@@ -115,6 +117,20 @@ UnitDB = {
             "gold": 25,
             "metal": 25,
             "energy": 25
+        }
+    },
+    'metropolis expansion':{
+        'cost': {'gold':150, 'metal':150, 'energy':150},
+        #'possibleBuilds': ['soldier','heavy','construction worker','miner', 'electric engineer','medic', 'agent'],
+        'possibleBuilds': ['hall of heroes'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 30,
+        'population':5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 10,
+            "energy": 10
         }
     },
     'construction worker':{
@@ -129,7 +145,7 @@ UnitDB = {
     },
     'crane':{
         'cost': {'gold':10, 'metal':50, 'energy':10},
-        'possibleBuilds': ['town','factory','tank factory','research center','docks','fort','hospital','metropolis'],
+        'possibleBuilds': ['town','factory','tank factory','research center','docks','fort','hospital'],
         'possibleStates': ['move','resources', 'build'],
         'type': 'vehicle',
         'health':20,
@@ -220,7 +236,7 @@ UnitDB = {
         }
     },
     'turret':{
-        'cost': {'metal':50, 'energy':50},
+        'cost': {'metal':100, 'energy':50},
         'possibleStates': ['attack'],
         'type': 'building',
         'attack': 3,
@@ -238,7 +254,7 @@ UnitDB = {
         }
     },
     'fort':{
-        'cost': {'gold':50 ,'metal':100, 'energy':100},
+        'cost': {'gold':100 ,'metal':250, 'energy':100},
         'possibleStates': ['attack','build'],
         'possibleBuilds': ['soldier', 'jeep','medic'],
         'type': 'building',
@@ -379,11 +395,13 @@ UnitDB = {
         'abilities':{'onlyHit':['building']},
     },
     'jeep':{
-        'cost': {'gold':10, 'metal':40, 'energy':10},
-        'possibleStates': ['move','attack'],
+        'cost': {'gold':20, 'metal':40, 'energy':20},
+        'possibleStates': ['move','attack','transport'],
         'type': 'vehicle',
         'speed':2,
-        'health':15,
+        'health':12,
+        'population':1,
+        'abilities':{'transport':['trooper']},
         'resourceGen':{"gold": 0}
     },
     'mobile fortress':{
@@ -424,24 +442,26 @@ UnitDB = {
     },
     'helicopter':{
         'cost': {'gold':50, 'metal':50, 'energy':20},
-        'possibleBuilds': ['soldier','construction worker'],
-        'possibleStates': ['move','attack','build'],
+        #'possibleBuilds': ['soldier','construction worker'],
+        'possibleStates': ['move','attack','transport'],
         'type': 'aircraft',
         'speed':2,
         'defense':1,
         'attack':1.5,
         'population':1,
+        'abilities':{'transport':['trooper','bot']},
         'resourceGen':{"gold": 0}
     },
     'chinook':{
         'cost': {'gold':100, 'metal':100, 'energy':20},
-        'possibleBuilds': ['tank','crane','heavy'],
-        'possibleStates': ['move','attack','build'],
+        #'possibleBuilds': ['tank','crane','heavy'],
+        'possibleStates': ['move','attack','transport'],
         'type': 'aircraft',
         'speed':2,
         'defense':1.5,
         'attack':2,
         'population':2,
+        'abilities':{'transport':['trooper','bot','vehicle']},
         'resourceGen':{"gold": 0}
     },
     'bomber':{
@@ -453,6 +473,18 @@ UnitDB = {
         'defense':1,
         'attack':3,
         'resourceGen':{"gold": 0}
+    },
+    'sea plane':{
+        'cost': {'gold':100, 'metal':50, 'energy':20},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':15,
+        'speed':2,
+        'range':2,
+        'defense':1.5,
+        'attack':3,
+        'resourceGen':{"gold": 0},
+        'abilities':{'onlyHit':['boat','aircraft']},
     },
     'docks':{
         'cost': {'gold':50, 'metal':100},
@@ -473,10 +505,11 @@ UnitDB = {
     },
     'transport boat':{
         'cost': {'gold':25, 'metal':25},
-        'possibleStates': ['move','resources','build'],
-        'possibleBuilds': ['soldier','construction worker'],
+        'possibleStates': ['move','resources','transport'],
+        #'possibleBuilds': ['soldier','construction worker'],
         'type': 'boat',
-        'population':1,
+        'population':2,
+        'abilities':{'transport':['trooper','bot']},
         'resourceGen':{"gold": 10}
     },
     'aircraft carrier':{
@@ -619,8 +652,8 @@ UnitDB = {
         'possibleStates': ['move','attack'],
         'type': 'vehicle',
         'health':30,
-        'attack':6,
-        'defense':2,
+        'attack':2,
+        'defense':6,
         'resourceGen':{"gold": 0}
     },
     'hall of heroes':{
@@ -649,11 +682,24 @@ UnitDB = {
         'possibleBuilds': ['blob'],
         'possibleStates': ['move','attack','resources', 'build'],
         'health':20,
-        'abilities':{'takeover':'slime'},
         'resourceGen':{
             "gold": 0,
             "metal": 0,
             "energy": 10
+        }
+    },
+    'king of the blob nation of the southeastern blob continent on the blob planet hiding behind jupiter':{
+        'cost': {'energy':153},
+        'possibleBuilds': ['blob', 'king blob'],
+        'possibleStates': ['move','attack','resources', 'build'],
+        'health':10,
+        'attack':0.5,
+        'defense':3.5,
+        'range':2,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 0,
+            "energy": 20
         }
     },
     'king slime':{
@@ -661,11 +707,19 @@ UnitDB = {
         'possibleBuilds': ['slime'],
         'possibleStates': ['move','attack','resources', 'build'],
         'health':20,
+        'abilities':{'takeover':'slime'},
         'resourceGen':{
             "gold": 0,
             "metal": 0,
             "energy": 10
         }
+    },
+    'ninja':{
+        'cost': {'gold':200,'metal':10},
+        'possibleStates': ['move','attack'],
+        'attack':3.5,
+        'defense':2,
+        'speed':2,
     },
     'king':{
         'cost': {'gold':200},
@@ -723,6 +777,208 @@ UnitDB = {
             "gold": 0
         }
     },
+    'defense platform':{
+        'cost': {'gold':50 ,'metal':100, 'energy':100},
+        'possibleStates': ['attack','build'],
+        'possibleBuilds': [],
+        'type': 'building',
+        'attack': 1.5,
+        'defense': 3,
+        'range': 2,
+        'health': 20,
+        'resourceGen':{"gold": 0}
+    },
+    'missile':{
+        'cost': {'metal':30, 'energy':5},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':3,
+        'speed':2,
+        'range':1,
+        'attack':3.5,
+        'defense':1,
+        'abilities':{'kamikaze':0,'decay':1},
+        'resourceGen':{"gold": 0}
+    },
+
+    #Wild Life Faction
+    'tree':{
+        'cost': {'gold':50, 'metal':50, 'energy':50},
+        'possibleBuilds': ['hyena', 'bear','fish'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 25,
+        'population':5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 10,
+            "energy": 5
+        }
+    },
+    'hyena':{
+        'cost': {'metal':10},
+        'health': 8,
+    },
+    'bear':{
+        'cost': {'gold':20},
+        'possibleBuilds': ['cave','tree'],
+        'possibleStates': ['attack','move','resources', 'build'],
+        'health': 12,
+        'attack':3,
+        'population':2,
+        'resourceGen':{
+            "gold": 4,
+            "metal": 4,
+            "energy": 0
+        }
+    },
+    'fish':{
+        'cost': {'energy':10},
+        'possibleBuilds': ['pond'],
+        'possibleStates': ['move','build','resources'],
+        'type': 'boat',
+        'resourceGen':{"energy": 3}
+    },
+    'pond':{
+        'cost': {'gold':20, 'energy':30},
+        'possibleBuilds': ['snake','fish'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'population':3,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 0,
+            "energy": 10
+        }
+    },
+    'cave':{
+        'cost': {'gold':10, 'metal':30},
+        'possibleBuilds': ['hyena', 'bats'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 15,
+        'population':2,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 20,
+            "energy": 0
+        }
+    },
+    'bats':{
+        'cost': {'gold':8},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':7,
+        'speed':2,
+        'defense':1,
+        'resourceGen':{"gold": 0}
+    },
+    'snake':{
+        'cost': {'gold':20,'energy':10},
+        'possibleStates': ['move','attack'],
+        'attack':3.5,
+        'abilities':{'onlyHit':['trooper']},
+        'resourceGen':{"gold": 8}
+    },
+    #Bots Faction
+    'bot fortress':{
+        'cost': {'gold':0, 'metal':150, 'energy':150},
+        'possibleBuilds': ['servitor'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 50,
+	'defense': 3,
+        'population':4,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 20,
+            "energy": 20
+        }
+    },
+    'servitor':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot defense platform', 'bot factory', 'bot power core'],
+        'possibleStates': ['move', 'attack', 'build'],
+        'type': 'aircraft',
+        'health': 20,
+	'attack': 2,
+	'defense': 3,
+        'population':4,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 0,
+            "energy": 0
+        }
+    },
+    'bot defense platform':{
+        'cost': {'gold':0, 'metal':100, 'energy':60},
+        'possibleStates': ['attack', 'resources'],
+        'type': 'building',
+        'health': 15,
+	'range': 3,
+	'attack': 3,
+	'defense': 3.5,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 0,
+            "energy": 10
+        }
+    },
+    'bot power core':{
+        'cost': {'gold':0, 'metal':60, 'energy':60},
+        'possibleBuilds': ['bot engineer'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 20,
+	'defense': 2,
+        'population':3,
+        'resourceGen':{
+            "gold": 0,
+            "metal": 10,
+            "energy": 50
+        }
+    },
+    'bot engineer':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot', 'bot factory', 'bot power station'],
+        'possibleStates': ['move', 'resources', 'build'],
+        'type': 'unit',
+        'health': 10,
+	'defense': 2,
+        'population':3,
+        'resourceGen':{
+            "gold": 5,
+            "metal": 10,
+            "energy": 0
+        }
+    },
+    'bot power station':{
+        'cost': {'gold':0, 'metal':40, 'energy':60},
+        'possibleStates': ['resources'],
+        'type': 'building',
+        'health': 20,
+	'defense': 2,
+        'resourceGen':{
+            "gold": 5,
+            "metal": 10,
+            "energy": 30
+        }
+    },
+    'bot factory':{
+        'cost': {'gold':0, 'metal':40, 'energy':40},
+        'possibleBuilds': ['bot', 'mech', 'bot engineer'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 17,
+	'defense': 2,
+        'population':4,
+        'abilities':{'costly':1.1},
+        'resourceGen':{
+            "gold": 10,
+            "metal": 30,
+            "energy": 5
+        }
+    },
 }
 
 TechDB = {
@@ -736,7 +992,8 @@ TechDB = {
     'experimental facility':{
         'cost': 20,
         'time': 1,
-        'ability': [['unlock build', 'agent', 'experimental facility']],
+        #'ability': [['unlock build', 'agent', 'experimental facility']],
+        'ability': [['unlock build', 'metropolis', 'experimental facility']],
         'unlocks': ['sonic cannon','ultrabot','invinsa tank'],
         'quote':"For all those expirments that you're doing",
     },
@@ -920,7 +1177,7 @@ TechDB = {
         'time': 3,
         'ability': [['stat', 'slime', 'maxHealth', 2],
                     ['stat', 'slime', 'health', 2]],
-        'unlocks': [],
+        'unlocks': ['usurper'],
         'deny': ['negotiations'],
         'quote':"VERY slimy bois",
     },
@@ -1015,13 +1272,31 @@ TechDB = {
         'cost': 20,
         'time': 2,
         'ability': [['stat', 'barracks', 'maxPopulation', 1]],
-        'unlocks': ['tougher'],
+        'unlocks': ['tougher','defenders'],
+    },
+    'defenders':{
+        'cost': 20,
+        'time': 1,
+        'ability': [['unlock build', 'barracks', 'defender']],
+        'unlocks': ['blockade'],
+    },
+    'blockade':{
+        'cost': 10,
+        'time': 3,
+        'ability': [['unlock build', 'defender', 'wall']],
+        'unlocks': [],
     },
     'tougher':{
         'cost': 20,
         'time': 4,
         'ability': [['typeStat', 'trooper', 'defense', 0.5]],
         'unlocks': ['commanding presence'],
+    },
+    'anti air':{
+        'cost': 20,
+        'time': 3,
+        'ability': [['unlock build', 'barracks', 'rocket']],
+        'unlocks': [],
     },
     'commanding presence':{
         'cost': 50,
@@ -1045,15 +1320,34 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['charge'],
+        'unlocks': ['charge', 'brute force', 'ranged support'],
         'deny': ['defensive tactics'],
+    },
+    'brute force':{
+        'cost': 30,
+        'time': 1,
+        'ability': [['unlock build', 'barracks', 'brute']],
+        'unlocks': [],
+    },
+    'ranged support':{
+        'cost': 30,
+        'time': 3,
+        'ability': [['unlock build', 'barracks', 'sniper']],
+        'unlocks': [],
     },
     'charge':{
         'cost': 50,
-        'time': 4,
+        'time': 6,
         'ability': [['typeAbility', 'trooper', 'charge', 0]],
+        'unlocks': ['stronger soldiers'],
+    },
+    'stronger soldiers':{
+        'cost': 50,
+        'time': 8,
+        'ability': [['typeStat', 'trooper', 'attack', 0.5]],
         'unlocks': [],
     },
+    
     
     #Yellow
     'armament':{
@@ -1176,38 +1470,38 @@ TechDB = {
     },
     #Orange
     'aviation':{
-        'cost': 20,
-        'time': 1,
+        'cost': 40,
+        'time': 2,
         'ability': [],
         'unlocks': ['airport'],
     },
     'airport':{
-        'cost': 20,
-        'time': 1,
+        'cost': 40,
+        'time': 2,
         'ability': [['unlock build', 'crane', 'airport']],
         'unlocks': ['helicopter','water launch','rapid launch','super sonic speed'],
     },
     'helicopter':{
-        'cost': 20,
-        'time': 1,
+        'cost': 40,
+        'time': 2,
         'ability': [['unlock build', 'airport', 'helicopter']],
         'unlocks': ['heavy lifting'],
     },
     'heavy lifting':{
-        'cost': 20,
-        'time': 1,
+        'cost': 30,
+        'time': 3,
         'ability': [['stat', 'helicopter', 'maxPopulation', 1]],
         'unlocks': ['chinook'],
     },
     'chinook':{
-        'cost': 20,
-        'time': 2,
+        'cost': 100,
+        'time': 5,
         'ability': [['unlock build', 'airport', 'chinook']],
         'unlocks': [],
     },
     'water launch':{
-        'cost': 20,
-        'time': 2,
+        'cost': 80,
+        'time': 5,
         'ability': [['unlock build', 'docks', 'aircraft carrier']],
         'unlocks': ['sea plane'],
     },
@@ -1224,26 +1518,26 @@ TechDB = {
         'unlocks': [],
     },
     'rapid launch':{
-        'cost': 20,
-        'time': 2,
+        'cost': 40,
+        'time': 4,
         'ability': [['stat', 'airport', 'range', 1]],
         'unlocks': ['air traffic control'],
     },
     'air traffic control':{
-        'cost': 50,
+        'cost': 120,
         'time': 2,
         'ability': [['stat', 'airport', 'maxPopulation', 1]],
         'unlocks': ['bombers'],
     },
     'bombers':{
         'cost': 20,
-        'time': 2,
+        'time': 4,
         'ability': [['unlock build', 'airport', 'bomber']],
         'unlocks': [],
     },
     'super sonic speed':{
-        'cost': 20,
-        'time': 2,
+        'cost': 100,
+        'time': 5,
         'ability': [['stat', 'plane', 'speed', 1]],
         'unlocks': ['better armor'],
     },
@@ -1257,6 +1551,153 @@ TechDB = {
         'cost': 80,
         'time': 4,
         'ability': [['typeStat', 'aircraft', 'attack', 0.5]],
+        'unlocks': [],
+    },
+    
+    #Purple
+    'improvements':{
+        'cost': 20,
+        'time': 1,
+        'ability': [],
+        'unlocks': ['the city', 'miscellaneous upgrades'],
+    },
+    'the city':{
+        'cost': 50,
+        'time': 1,
+        'ability': [['unlock build', 'crane', 'metropolis']],
+        'unlocks': ['bionics','city planning','time travel'],
+    },
+    'city planning':{
+        'cost': 5,
+        'time': 2,
+        'ability': [],
+        'unlocks': ['supply lines','urban expansion','civil fortification'],
+    },
+    'supply lines':{
+        'cost': 20,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['recycling','quarries','power lines'],
+    },
+    'recycling':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'recycler'],
+                    ['unlock build', 'metropolis expansion', 'recycler']],
+        'unlocks': [],
+    },
+    'quarries':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'mine shaft'],
+                    ['unlock build', 'metropolis expansion', 'mine shaft']],
+        'unlocks': [],
+    },
+    'power lines':{
+        'cost': 50,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'power grid'],
+                    ['unlock build', 'metropolis expansion', 'power grid']],
+        'unlocks': [],
+    },
+    'urban expansion':{
+        'cost': 20,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['suburbs','expanding city limits'],
+    },
+    'suburbs':{
+        'cost': 25,
+        'time': 2,
+        'ability': [['unlock build', 'metropolis', 'town'],
+                    ['unlock build', 'metropolis expansion', 'town']],
+        'unlocks': [],
+    },
+    'expanding city limits':{
+        'cost': 35,
+        'time': 4,
+        'ability': [['unlock build', 'metropolis', 'metropolis expansion']],
+        'unlocks': ['indefinite expansion'],
+    },
+    'indefinite expansion':{
+        'cost': 50,
+        'time': 7,
+        'ability': [['unlock build', 'metropolis expansion', 'metropolis expansion']],
+        'unlocks': [],
+    },
+    'civil fortification':{
+        'cost': 40,
+        'time': 3,
+        'ability': [],
+        'unlocks': ['defensive measures','city improvements'],
+    },
+    'defensive measures':{
+        'cost': 45,
+        'time': 3,
+        'ability': [['unlock build', 'metropolis', 'defense platform'],
+                    ['unlock build', 'metropolis expansion', 'defense platform']],
+        'unlocks': ['offense platform'],
+    },
+    'offense platform':{
+        'cost': 60,
+        'time': 7,
+        'ability': [['unlock build', 'defense platform', 'missile']],
+        'unlocks': [],
+    },
+    'city improvements':{
+        'cost': 50,
+        'time': 2,
+        'ability': [],
+        'unlocks': ['immigration','resistant structures','taller skyscapers'],
+    },
+    'immigration':{
+        'cost': 250,
+        'time': 2,
+        'ability': [['gain ability', 'metropolis', 'buff', ['maxPopulation', 1.5]]],
+        'unlocks': [],
+    },
+    'resistant structures':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['stat', 'metropolis', 'defense', 1]],
+        'unlocks': [],
+    },
+    'taller skyscapers':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['stat', 'metropolis', 'maxHealth', 10],
+                    ['stat', 'metropolis', 'health', 10]],
+        'unlocks': [],
+    },
+    'miscellaneous upgrades':{
+        'cost': 25,
+        'time': 1,
+        'ability': [],
+        'unlocks': ['stronger walls','double time','deflector shields','further dectection'],
+    },
+    'stronger walls':{
+        'cost': 20,
+        'time': 4,
+        'ability': [['stat', 'wall', 'maxHealth', 5],
+                    ['stat', 'wall', 'health', 5]],
+        'unlocks': [],
+    },
+    'double time':{
+        'cost': 10,
+        'time': 10,
+        'ability': [['gain ability', 'research center', 'fast research', 2]],
+        'unlocks': [],
+    },
+    'deflector shields':{
+        'cost': 30,
+        'time': 7,
+        'ability': [['unlock build', 'crane', 'shield generator']],
+        'unlocks': [],
+    },
+    'further dectection':{
+        'cost': 20,
+        'time': 4,
+        'ability': [['stat', 'radar tower', 'range', 1]],
         'unlocks': [],
     },
 }

@@ -128,10 +128,10 @@ while True:
         if playerCount == 1:
             games[gameId].ready = True
     elif idCount % playerCount != 0:
-        p+=1
+        p = (idCount % playerCount) - 1
     else:
         p = playerCount-1
         games[gameId].ready = True
 
-
+    print("Assigning to player %s on game %s" % (p, gameId))
     start_new_thread(threaded_client, (conn, p, gameId))

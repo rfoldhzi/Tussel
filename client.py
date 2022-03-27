@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -54,7 +54,8 @@ resource_audio = {
 construction = GV.pygame.mixer.Sound("audio/construction.wav")     
 end_of_round_beeps = GV.pygame.mixer.Sound("audio/end_of_round.wav") 
 
-research_selected_audio = GV.pygame.mixer.Sound("audio/lab_selected.wav")   
+research_selected_audio = GV.pygame.mixer.Sound("audio/lab_selected.wav")
+tech_error_audio = GV.pygame.mixer.Sound("audio/error_beep.wav")
 
 imageMani = True
 try:
@@ -95,6 +96,7 @@ GV.StateColors = {
     'build':(100,50,0),
     'heal':(255,255,255),
     'research':(66, 135, 245),
+    'transport':(50,255,50),
     }
 GV.resourceColors = {
     'gold': (255,255,0),
@@ -201,6 +203,9 @@ def convertToStr(u, state, stateData):#n.send([selected,'move',[x,y]])):
     elif state == 'build':
         s+= '%s:%s:' % tuple(stateData[0])
         s+= stateData[1]
+    elif state == 'transport':
+        s+= '%s:%s:' % tuple(stateData[0])
+        s+= stateData[1]
     return s
 
 def PlaySoundByUnit(selected, sound_type):
@@ -258,6 +263,21 @@ def randomBlue():
     b = random.randint(180,210)
     return (round(b*random.random()*.2), round(b*(random.random()*.25+.5)),b)
 
+def randomBlueWeighted(x):
+    #b = random.randint(180 - x * 10,210 - x * 10)
+    #b = max(0,200 - x * 15)
+    base = 13
+    sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
+    print("SUBB",sub,x)
+    print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    if x > base:
+        sub = ((base)*(base+1))/2 + x - base
+    sub = int(sub)
+    b = max(0,random.randint(180 - sub,180 - sub))
+    #b = int (((random.randint(180,210) / x**0.5)+random.randint(180,210))/2)
+    #return (int(b*.2), int(b*.625),b)
+    return (round(b*random.random()*.1+.1), round(b*(random.random()*.125+.625)),b)
+
 def randomGrey():
     g = random.randint(50,100)
     return (g, g, g)
@@ -304,6 +324,24 @@ def getMoveCircles(unit):#Could be more effiecint
                         if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                             spaces.append([x,y])
     
+    return spaces
+
+def getTransportSpots(unit):
+    if not 'move' in unit.possibleStates:
+        return []
+    sp = unit.speed
+    spaces = []
+    for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
+        for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
+            if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
+                unit2 = GV.game.getUnitFromPos(GV.player,x,y)#Switch to unit on team
+                if unit2:
+                    if ("transport" in unit2.abilities):
+                        if unit.type in unit2.abilities['transport']:
+                            if unit2.population >= unit2.maxPopulation:
+                                continue
+                            #Valid Transport
+                            spaces.append([x,y])
     
     return spaces
 
@@ -531,7 +569,8 @@ darkunitImages = {}
 GV.playerUnitImages = {}
 buildUnitImages = {}
 
-AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),(161, 224, 255) ]
+AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),
+            (161, 224, 255),(94, 115, 68),(102, 57, 57),(74, 120, 64),(140, 136, 55),(30, 92, 77) ]
 
 
 def animateUnit(unit1, unit2,t,specfic_player):
@@ -545,7 +584,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
         return
 
     image = BF.getImage(unit.name, specfic_player)
-    
+
     default = True
     if not unit1:
         parent = GV.game.getUnitFromID(unit2.parent)
@@ -591,7 +630,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
             else:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.StateColors[unit.state], rect)
     if unit1 == unit2:
-        GV.DISPLAYSURF.blit(RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
+        GV.DISPLAYSURF.blit(GV.RedX,(x*(GV.block_size+1)+GV.offset_x-1, y*(GV.block_size+1)+GV.offset_y-1))
 
 
 GV.animateTime = 20
@@ -611,6 +650,7 @@ GV.highlightSquares = []
 #GV.BoardColors = []
 GV.CloudColors = []
 moveCircles = []
+transportSpots = []
 possibleAttacks = []
 possibleHeals = []
 buildHexes = []
@@ -620,6 +660,7 @@ GV.explorationGrid = []
 GV.animateGrid = []
 
 blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+greenCircle = GV.pygame.image.load("assets/TransportCircle.png")
 OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
 RedX = GV.RedX#GV.pygame.image.load("assets/AttackX.png")
 GreenT = GV.pygame.image.load("assets/HealT.png")
@@ -652,8 +693,45 @@ def intToList(x, width):
             l2.append(l[(i*width):((i+1)*width)])
     return l2
 
+
+from ctypes import POINTER, WINFUNCTYPE, windll
+from ctypes.wintypes import BOOL, HWND, RECT    
+import ctypes
+
+def getWindowRectangle(): #Use rect.top, rect.left, rect.bottom, rect.right
+        # get our window ID:
+    hwnd = GV.pygame.display.get_wm_info()["window"]
+
+    # Jump through all the ctypes hoops:
+    prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
+    paramflags = (1, "hwnd"), (2, "lprect")
+
+    GetWindowRect = prototype(("GetWindowRect", windll.user32), paramflags)
+
+    # finally get our data!
+    rect = GetWindowRect(hwnd)
+    return rect
+
+def getMonitorSize():
+
+    user32 = ctypes.windll.user32
+    screensize = user32.GetSystemMetrics(78), user32.GetSystemMetrics(79)
+
+    return screensize
+
+from ctypes import windll
+
+def moveWin(x, y):
+    # the handle to the window
+    hwnd = GV.pygame.display.get_wm_info()['window']
+
+    # user32.MoveWindow also recieves a new size for the window
+    w, h = GV.pygame.display.get_surface().get_size()
+
+    windll.user32.MoveWindow(hwnd, x, y, w, h, False)
+
 def updateSelf():
-    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
+    global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle, greenCircle ,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
     print('blocksize',GV.block_size)
     GV.board_x = GV.game.width
     GV.board_y = GV.game.height
@@ -674,6 +752,41 @@ def updateSelf():
     WINDOWHEIGHT = 60 + endOfBoard_y
     #WINDOWWIDTH = GV.offset_x*2+(GV.block_size+1)*(GV.board_x_end-GV.board_x_start)#640
     #WINDOWHEIGHT = GV.offset_y+60+(GV.block_size+1)*(GV.board_y_end-GV.board_y_start)
+
+    monitorSize = getMonitorSize()
+
+    if WINDOWHEIGHT > monitorSize[1] - 70: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[1] - 70 -GV.offset_y-60)/max(GV.board_y_end-GV.board_y_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {} #To reset all unit images
+
+    if WINDOWWIDTH > monitorSize[0]: #If board grows larger than screen, shrink block size so it fits again
+        GV.block_size = int((monitorSize[0] - GV.offset_x * 2)/max(GV.board_x_end-GV.board_x_start, minBoardSize)) - 1
+        endOfBoard_x = (GV.block_size+1)*(max(GV.board_x_end-GV.board_x_start, minBoardSize))+GV.offset_x#525
+        endOfBoard_y = (GV.block_size+1)*(max(GV.board_y_end-GV.board_y_start, minBoardSize))+GV.offset_y#420
+        WINDOWWIDTH = GV.offset_x + endOfBoard_x
+        WINDOWHEIGHT = 60 + endOfBoard_y
+        GV.playerUnitImages = {}
+
+    #Ensure the window doesn't grow below bottom of screen
+    rect = getWindowRectangle()
+    
+    if rect.top + WINDOWHEIGHT > monitorSize[1] - 70: # - 70  is for taskbar at bottom of screen
+        moveWin(rect.left, monitorSize[1] - WINDOWHEIGHT - 70)
+        rect = getWindowRectangle()
+        if rect.top < 0:
+            moveWin(rect.left, 0)
+    
+    if rect.right > monitorSize[0]: # - 70  is for taskbar at bottom of screen
+        moveWin(monitorSize[0] - WINDOWWIDTH, rect.top)
+        rect = getWindowRectangle()
+        if rect.left < 0:
+            moveWin(0, rect.top)
+
+
     print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -681,13 +794,15 @@ def updateSelf():
     DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
 
     blueCircle = GV.pygame.image.load("assets/MoveCircle.png")
+    greenCircle = GV.pygame.image.load("assets/TransportCircle.png")
     OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
-    RedX = GV.pygame.image.load("assets/AttackX.png")
+    GV.RedX = GV.pygame.image.load("assets/AttackX.png")
     GreenT = GV.pygame.image.load("assets/HealT.png")
     Beaker = GV.pygame.image.load("assets/Beaker.png")
     blueCircle = GV.pygame.transform.scale(blueCircle, (GV.block_size, GV.block_size))
+    greenCircle = GV.pygame.transform.scale(greenCircle, (GV.block_size, GV.block_size))
     OrangeHex = GV.pygame.transform.scale(OrangeHex, (GV.block_size, GV.block_size))
-    RedX = GV.pygame.transform.scale(RedX, (GV.block_size, GV.block_size))
+    GV.RedX = GV.pygame.transform.scale(GV.RedX, (GV.block_size, GV.block_size))
     GreenT = GV.pygame.transform.scale(GreenT, (GV.block_size, GV.block_size))
     Beaker = GV.pygame.transform.scale(Beaker, (GV.block_size, GV.block_size))
 
@@ -714,6 +829,51 @@ def updateSelf():
                 l.append(True)
             GV.explorationGrid.append(l)
     
+    #Creates list to store the depth of water. Higher depth values == deeper water
+    #Depth is calculated by how far water is to land (doesn't measure corners)
+    depthMap = []
+    for v in GV.Grid: #This part sets all land to 0 and water to -1
+        list = []
+        for v2 in v:
+            if v2:
+                list.append(-1)
+            else:
+                list.append(0)
+        depthMap.append(list)
+    
+    xList = (-1,1,0,0)
+    yList = (0,0,-1,1)
+    def lowestNextTo(x,y): #Calculates which adjecent tile has lowest depth value (excludes tiles that are -1)
+        lowest = -1
+        for i in range(len(xList)):
+            if x+xList[i] >= 0 and x+xList[i] < len(depthMap) and y+yList[i] >= 0 and y+yList[i] < len(depthMap[0]):
+                if depthMap[x+xList[i]][y+yList[i]] != -1:
+                    if depthMap[x+xList[i]][y+yList[i]] < lowest:
+                        lowest = depthMap[x+xList[i]][y+yList[i]]
+                if lowest == -1:
+                    lowest = depthMap[x+xList[i]][y+yList[i]]
+        return lowest
+
+    keepGoing = True
+    while keepGoing: #Continually loops through until every water tile is assigned a depth value
+        print(depthMap)
+        keepGoing = False
+        x = 0
+        newDepthMap = copy.deepcopy(depthMap)
+        
+        for list in depthMap:
+            y = 0
+            for n in list:
+                if n == -1:
+                    keepGoing = True
+                    lowest = lowestNextTo(x,y)
+                    if lowest != -1:
+                        newDepthMap[x][y] = lowest + 1
+                y += 1
+            x += 1
+        depthMap = newDepthMap
+    print("The final depthmap",depthMap)
+
     GV.BoardColors = []
     GV.CloudColors = []
     y = 0
@@ -721,7 +881,8 @@ def updateSelf():
         x = 0
         for v2 in v:
             if v2:
-                GV.BoardColors.append(randomBlue())
+                #GV.BoardColors.append(randomBlue())
+                GV.BoardColors.append(randomBlueWeighted(depthMap[y][x]))
             else:
                 #GV.BoardColors.append(randomGreen())
                 if isNextToWater([x,y]):
@@ -749,12 +910,20 @@ def animationGrid(g1,g2):
                 if u.health != u2.health or u.position != u2.position:
                     l.append([u.position, u2.position])
             else:
+                if u.state == "move": #This is for when a unit boards a transporter
+                    possibleTransport = g2.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                    if possibleTransport:
+                        if g2.checkIfUnitTransported(u, possibleTransport):
+                            l.append([u.position,possibleTransport.position])
+                            continue
                 l.append([u.position])#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
             u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
                 parent = GV.game.getUnitFromID(u2.parent)
+                if hasattr(u2, "transporter"): #For when a transporter drops off a unit
+                    parent = GV.game.getUnitFromID(u2.transporter)
                 if parent:
                     l.append([u2.position, parent.position])
     for v in l:
@@ -857,6 +1026,13 @@ def animateBoard(g1,g2,t):
             if u2:
                 BF.animateUnit(u,u2,t,i) #Unit changed
             else:
+                if u.state == "move": #Transport units are destroyed, but are actually moving. 
+                                      #We make the unit2 equal to transporter to move the unit into it
+                    possibleTransport = g2.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                    if possibleTransport:
+                        if g2.checkIfUnitTransported(u, possibleTransport):
+                            BF.animateUnit(u,possibleTransport,t,i)
+                            continue
                 BF.animateUnit(u,u,t,i)#Unit destroyed
     for i in g2.units:
         for u2 in g2.units[i]:
@@ -884,15 +1060,19 @@ def changeAnimateSpeed(g1,g2):
                 units+=1
     GV.animateTime = min(20,10+units*2)
 
+starters = ['improvements','recruitment','armament','aviation']
+
 def GetUnlockedTechs():
     techs = []
     for t in GV.game.tech[GV.player]:
         for t2 in TechDB[t]['unlocks']:
-            if (not t2 in techs) and (not t2 in GV.game.tech[GV.player]):
+            if (not t2 in techs):
                 techs.append(t2)
-    starters = ['bionics', 'time travel','recruitment','armament','aviation']
+
+    starters = ['improvements','recruitment','armament','aviation']
+
     for t in starters:
-        if (not t in techs) and (not t in GV.game.tech[GV.player]):
+        if (not t in techs):
             techs.append(t)
     toRemove = []
     for t in GV.game.tech[GV.player]:
@@ -905,14 +1085,42 @@ def GetUnlockedTechs():
     #TODO: Add starter techs {DONE}
     return techs
 
+
+
 techSize = 60
 
 def techButtonSize(n):
     global techSize
     board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
+
+    width_of_techs = [0,0]
+    height_of_techs = [0,0]
+    i = 0
+    for key in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+        #if i < len(treeWidth) / 2:
+        if i == 0:
+            width_of_techs[0] += treeWidth[key]
+            height_of_techs[0] = max(height_of_techs[0], treeHeight[key])
+        else:
+            width_of_techs[1] += treeWidth[key]
+            height_of_techs[1] = max(height_of_techs[1], treeHeight[key])
+        i += 1
+    
+    width_of_techs = max(width_of_techs) #Max on width because stacked like hamburger
+    height_of_techs = sum(height_of_techs) #Sum on height for same reason
+
+    print("width_of_techs",width_of_techs)
+    print("height_of_techs",height_of_techs)
+
     width = (GV.block_size+1)*board_size_x
     height = (GV.block_size+1)*board_size_y
+
+    techSize = 60
+    while width_of_techs * (techSize+1) > width or height_of_techs * (mult*techSize+1) > height:
+        techSize-=1
+    return
+
     if techSize < 60:
         if math.floor(width/(41))*math.floor(height/(41)) >= n:
             techSize = 60
@@ -956,6 +1164,86 @@ def checkTechAffordable(unit, tech):
         return False
     return True
 
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def getTreeSizes(tree, key, n = 0):
+    global treeSizes, treeOffsets
+    if TechDB[key]["unlocks"] == []:
+        if len(treeSizes[tree]) <= n:
+            while len(treeSizes[tree]) <= n:
+                treeSizes[tree].append([])
+                treeOffsets[tree].append(0)
+        treeSizes[tree][n].append(1)
+        return 1
+    else:
+        total = 0
+        if key in GV.game.tech[GV.player] or key in currentTechMenu:
+            for subTech in TechDB[key]["unlocks"]:
+                if True:#subTech in currentTechMenu:
+                    total += getTreeSizes(tree,subTech, n + 1)
+        if total == 0:
+            if len(treeSizes[tree]) <= n:
+                while len(treeSizes[tree]) <= n:
+                    treeSizes[tree].append([])
+                    treeOffsets[tree].append(0)
+            total = 1
+        #print("treeSizes", treeSizes[tree])
+        #print("key",key,'n',n,'tree',tree)
+        treeSizes[tree][n].append(total)
+        return total
+
+#Tree is the tech that starts the tree, key is current tech, and n is layer of tree
+def placeBoxes(tree,key, n = 0):
+    noSubtrees = True
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
+        for subTech in TechDB[key]["unlocks"]:
+            if True:#subTech in currentTechMenu:
+                noSubtrees = False
+                placeBoxes(tree, subTech, n + 1)
+    boxPlacements[tree].append(((treeOffsets[tree][n] + treeSizes[tree][n][0]/2.0 - 0.5, n), key))
+    treeOffsets[tree][n] += treeSizes[tree][n][0]
+    if noSubtrees:
+        for i in range(n+1, len(treeSizes[tree])):
+            treeOffsets[tree][i] += treeSizes[tree][n][0]
+    treeSizes[tree][n].pop(0)
+
+mult = 1.5
+
+def drawLinesHelper(key, d,treeXOffset, treeYOffset):
+    print("KeY:",key,"Current D+",d)
+    extraX = -2
+    extraY = -2
+    if key in GV.game.tech[GV.player] or key in currentTechMenu:
+        for subTech in TechDB[key]["unlocks"]:
+            #if subTech in currentTechMenu:
+            drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
+        for subTech in TechDB[key]["unlocks"]:
+            if True:#subTech in currentTechMenu:
+                print(key, d[key], d[subTech])
+                x1 = d[key][0][0] + treeXOffset
+                y1 = d[key][0][1] + treeYOffset
+                x2 = d[subTech][0][0] + treeXOffset
+                y2 = d[subTech][0][1] + treeYOffset
+                (x1+0.5)*(techSize+1)+GV.offset_x+1+extraX
+                ColorOfLine = (255,255,255)
+                if not (subTech in GV.game.tech[GV.player] or subTech in currentTechMenu):
+                    ColorOfLine = (100,100,100)
+                GV.pygame.draw.line(GV.DISPLAYSURF, ColorOfLine, 
+                        #((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((y1+0.5)*(int(mult*techSize)+1)+GV.offset_y+1+extraY))),
+                        ((int((x1+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y1*mult + 0.5)+GV.offset_y+1-mult+extraY))),
+                        ((int((x2+0.5)*(techSize+1)+GV.offset_x+1+extraX), int((techSize+1)*(y2*mult + 0.5)+GV.offset_y+1-mult+extraY))), 3)
+                d[subTech].pop(0)
+
+def drawLines(tree, treeXOffset, treeYOffset):
+    d = {}
+    for key in boxPlacements[tree]:
+        #img = Image.open('techAssets/%s.png' % key[1])
+        #blank.paste(img, (int(key[0][0]*20), int(key[0][1]*30)))
+        #d[key[1]] = key[0]
+        if not (key[1] in d):
+            d[key[1]] = []
+        d[key[1]].append(key[0])
+    drawLinesHelper(tree, d,treeXOffset, treeYOffset)
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -963,9 +1251,14 @@ currentlyResearch = False
 PrevTechHover = False
 CurrentTechHover = False
 knownTechHover = False
+treeSizes = {}
+treeOffsets = {}
+boxPlacements = {}
+treeWidth = {}
+treeHeight = {}
 
 def researchMenu():
-    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover
+    global currentTechMenu,currentTechImages,currentTechButtons,currentlyResearch,knownTechHover,treeSizes,treeOffsets,boxPlacements,treeWidth, treeHeight
     techs = GetUnlockedTechs()
     if techs == currentTechMenu and currentlyResearch and knownTechHover == CurrentTechHover:
         return
@@ -973,6 +1266,29 @@ def researchMenu():
     currentlyResearch = True
     currentTechMenu = techs
     print(currentTechMenu)
+
+    #TODO: Show which are unlocked, and prevent their click
+    #TODO: Potentially Show future unlocks
+
+    treeSizes = {}
+    treeOffsets = {}
+    boxPlacements = {}  
+    treeWidth = {}
+    treeHeight = {}
+    for tech in starters:
+        treeSizes[tech] = [] #initilize each tree
+        treeOffsets[tech] = [] #initilize each tree
+        boxPlacements[tech] = [] #initilize each tree
+        getTreeSizes(tech, tech)
+        treeWidth[tech] = treeSizes[tech][0][0]
+        placeBoxes(tech,tech)
+        treeHeight[tech] = len(treeSizes[tech])
+
+
+    print("aviation",boxPlacements["aviation"])
+    print("hieght and width", treeHeight, treeWidth)
+    print("treeSizes",treeSizes)
+
     size = int(techSize)
     print('tech size', techSize)
     techButtonSize(len(currentTechMenu))
@@ -989,12 +1305,12 @@ def researchMenu():
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
     if w > math.floor((GV.block_size+1)*board_size_x/(techSize+1)):
         w = math.floor((GV.block_size+1)*board_size_y/(techSize+1))
-    extraX = ( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
+    extraX = 0#( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
     #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
     #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
     #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
     #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
-    extraY = ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
+    extraY = 0# ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
     print('extraY',extraY)
     rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
@@ -1003,45 +1319,95 @@ def researchMenu():
     if CurrentTechHover:
         maybeDeny = TechDB[CurrentTechHover].get('deny') or []
     
-    for i, t in enumerate(currentTechMenu):
-        x = i%w
-        y = i//w
-        b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(techSize+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
-        b.active = True
-        currentTechButtons.append(b)
-        if not t in currentTechImages:
-            img = GV.pygame.image.load("techAssets/%s.png" % t)
-            img = GV.pygame.transform.scale(img, (techSize, techSize))
-            currentTechImages[t] = img
-        pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(techSize+1)+GV.offset_y-1+extraY)
-        GV.DISPLAYSURF.blit(currentTechImages[t], pos)
-        if t in maybeDeny:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(128)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        if t == CurrentTechHover:
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(25)
-            s.fill((255,255,255))
-            GV.DISPLAYSURF.blit(s, pos)
-        if TechDB[t]['time'] > 1:
-            n = TechDB[t]['time'] 
-            if t in GV.game.progress[GV.player]:
-                n -= GV.game.progress[GV.player][t]
-            if n > 1:
-                T = str(n)
-                Healthfont = GV.pygame.font.SysFont("arial", 15)
-                text = Healthfont.render(T, 1, WHITE)
-                GV.DISPLAYSURF.blit(text, pos)
-        if not checkTechAffordable(selected, t):
-            s = GV.pygame.Surface((techSize, techSize))
-            s.set_alpha(160)
-            s.fill((0,0,0))
-            GV.DISPLAYSURF.blit(s, pos)
-        #Make images (similar to getImage) {DONE}
-        #Display button with image on top {Done}
-        #add buttons to techbuttons {DONE}
+    treeXOffset = 0
+    treeYOffset = 0
+    
+    print(boxPlacements, "boxPlacements")
+
+    j = 0
+    for key in boxPlacements:
+        #if j - len(boxPlacements) / 2 == 0 or j - len(boxPlacements) / 2 == 0.5:
+        if j == 1:
+            print("key is this zone",key)
+            treeXOffset = 0
+            k = 0
+            for key2 in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
+                #if k < len(treeWidth) / 2:
+                if k == 0:
+                    treeYOffset = max(treeYOffset, treeHeight[key2])
+                else:
+                    break
+                k += 1
+            
+        print("We are going at the key: ", key,j)
+        print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
+
+        drawLines(key, treeXOffset, treeYOffset)
+
+        for i, techPlacement in enumerate(boxPlacements[key]):
+        #for i, t in enumerate(currentTechMenu):
+            #x = i%w
+            #y = i//w
+            t = techPlacement[1]
+            x = techPlacement[0][0] + treeXOffset
+            y = techPlacement[0][1] + treeYOffset
+            
+            b = Button("", x*(techSize+1)+GV.offset_x+1+extraX, y*(int(mult*techSize)+1)+GV.offset_y+1+extraY, BLACK,BLACK,18,(techSize,techSize),t)
+            b.active = True
+            b.techType = "Good"
+            currentTechButtons.append(b)
+            if not t in currentTechImages:
+                img = GV.pygame.image.load("techAssets/%s.png" % t)
+                img = GV.pygame.transform.scale(img, (techSize, techSize))
+                currentTechImages[t] = img
+            pos = (x*(techSize+1)+GV.offset_x-1+extraX, y*(int(mult*techSize)+1)+GV.offset_y-1+extraY)
+            GV.DISPLAYSURF.blit(currentTechImages[t], pos)
+
+            if t in GV.game.tech[GV.player]: #Already own this tech
+                b.techType = "Owned"
+                rect = GV.pygame.Rect(pos, (techSize+1, techSize+1))#+GV.offset_x,410+GV.offset_y)
+                GV.pygame.draw.rect(GV.DISPLAYSURF, (220,220,220), rect, 1)
+            elif not checkTechAffordable(selected, t): #This tech is too costly, (also can't be costly and owned)
+                b.techType = "Costly"
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(160)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+
+            if t in maybeDeny:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(128)
+                s.fill((0,0,0))
+                GV.DISPLAYSURF.blit(s, pos)
+            if not (t in GV.game.tech[GV.player] or t in currentTechMenu): #Either denied by other tech or is preview tech
+                b.techType = "Dark"
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(170)
+                s.fill((20,20,20))
+                GV.DISPLAYSURF.blit(s, pos)
+            if t == CurrentTechHover:
+                s = GV.pygame.Surface((techSize, techSize))
+                s.set_alpha(25)
+                s.fill((255,255,255))
+                GV.DISPLAYSURF.blit(s, pos)
+            if TechDB[t]['time'] > 1:
+                n = TechDB[t]['time'] 
+                if t in GV.game.progress[GV.player]:
+                    n -= GV.game.progress[GV.player][t]
+                if n > 1:
+                    T = str(n)
+                    Healthfont = GV.pygame.font.SysFont("arial", 15)
+                    text = Healthfont.render(T, 1, WHITE)
+                    GV.DISPLAYSURF.blit(text, pos)
+            
+            #Make images (similar to getImage) {DONE}
+            #Display button with image on top {Done}
+            #add buttons to techbuttons {DONE}
+        
+        #if not (j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5): 
+        #    print("key in bottom zone", key)
+        treeXOffset += treeWidth[key]
+        j+=1
 
 def drawBoard():
     print('drawing BOARD')
@@ -1050,10 +1416,13 @@ def drawBoard():
     #print(vars(GV.game))
     if GV.game.ready:
         if NotAlreadyReady:
+            if len(GV.game.units[GV.player]) == 0:
+                return
             NotAlreadyReady = False
             updateSelf()
             BF.updateEdges()
             updateSelf()
+            print("We've updated ourself")
         if not GV.game.went[GV.player]:
             allElseWent = True
             for v in GV.game.went:
@@ -1127,17 +1496,26 @@ def drawBoard():
                             BF.drawLine((110, 106, 46),u.position,u.stateData[0])
                         else:
                             BF.drawLine((255,170,0),u.position,u.stateData[0])
+                elif u.state == 'transport':
+                    if len(u.stateData) == 2:
+                        if checkRange(u,u.stateData[0]) > u.range:
+                            BF.drawLine((25, 150, 25),u.position,u.stateData[0])
+                        else:
+                            BF.drawLine((50,255,50),u.position,u.stateData[0])
         for i in GV.game.units:
             for u in GV.game.units[i]:
                 BF.showUnitNEW(u)
         for pos in moveCircles:
-            BF.drawIcon(blueCircle, pos)
+            if pos in transportSpots:
+                BF.drawIcon(greenCircle, pos)
+            else:
+                BF.drawIcon(blueCircle, pos)
             #GV.DISPLAYSURF.blit(blueCircle,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in buildHexes:
             BF.drawIcon(OrangeHex, pos)
             #GV.DISPLAYSURF.blit(OrangeHex,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in possibleAttacks:
-            BF.drawIcon(RedX, pos)
+            BF.drawIcon(GV.RedX, pos)
             #GV.DISPLAYSURF.blit(RedX,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         for pos in possibleHeals:
             BF.drawIcon(GreenT, pos)
@@ -1156,6 +1534,8 @@ def drawBoard():
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
         GV.DISPLAYSURF.blit(text, (200,200))
+        #text = font.render("PLAYER %s" % GV.player, 1, (255,0,0))
+        #GV.DISPLAYSURF.blit(text, (200,300))
 
 newResources = {'gold':0,'metal':0,'energy':0}
 newCosts = {'gold':0,'metal':0,'energy':0}
@@ -1242,10 +1622,9 @@ def statInfo(unit):
     currentStatInfo = unit
     if type(unit) == str:
         unit = Unit('',unit)
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     text = [
         unit.name.title(),
         '',
@@ -1273,6 +1652,13 @@ def statInfo(unit):
     for v in UnitDB[unit.name]['cost']:
         text.append('  %s %s'%(cost[v],v))
     #text = Healthfont.render(t, 1, (0,0,0))
+
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+    
     label = []
     for line in text: 
         label.append(font.render(line, True, (0,0,0)))
@@ -1300,10 +1686,9 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     if 'tech'+tech == currentStatInfo:
         return
     currentStatInfo = 'tech'+tech
-    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,410)#+GV.offset_x,410+GV.offset_y)
+    rect = GV.pygame.Rect(endOfBoard_x+5, 5, 180,endOfBoard_y)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-    fontsize = 15
-    font = GV.pygame.font.SysFont("arial", fontsize)
+
     text = []
     name = tech.title().split()
     for i, v in enumerate(name):
@@ -1315,7 +1700,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     T = TechDB[tech]
     progress = GV.game.progress[GV.player].get(tech) or 0
     text.append('Time: %s/%s' % (progress, T['time']))
-    text.append('Cost: %s' % T['cost'])
+    text.append('Cost: %s energy' % T['cost'])
     text.append('')
     d = {}
     for v in T['ability']:
@@ -1341,7 +1726,7 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
             #text.append('%s:' % v[1].title())
             #text.append('  +%s %s' % (v[3], v[2]))
         elif v[0] == 'unlock build':
-            text.extend(textToLines('Unlocks %s' % NameTitle(v[2])))
+            text.extend(textToLines('Unlocks %s at %s' % (NameTitle(v[2]), NameTitle(v[1]))))
             """
             if not v[1] in d:
                 d[v[1]] = []
@@ -1385,6 +1770,13 @@ def statInfoTech(tech):#a LOT needs to be done here (remake everything)
     """
     smallFont = GV.pygame.font.SysFont("arial", 10, bold=False, italic=True)
     
+        
+    fontsize = 15
+    if len(text) * (fontsize + 2) + 5 > endOfBoard_y:
+        fontsize = int((endOfBoard_y - 5)/len(text) - 2)
+
+    font = GV.pygame.font.SysFont("arial", fontsize)
+
     #text = Healthfont.render(t, 1, (0,0,0))
     label = []
     for line in text: 
@@ -1416,16 +1808,17 @@ resourceBtns = {
 
 selected = None
 stateDataMode = None
-extraButtons = {}
+extraButtons = []
 grid = []
 
 def cleanUpAfterSelect():
-    global moveCircles, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
+    global moveCircles,transportSpots, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
     selected = None
     print(selected)
     stateDataMode = None
     GV.highlightSquares = []
     moveCircles = []
+    transportSpots = []
     buildHexes = []
     possibleAttacks = []
     possibleHeals = []
@@ -1433,11 +1826,11 @@ def cleanUpAfterSelect():
     GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
     for btn in btns:
         btns[btn].deDraw(GV.DISPLAYSURF)
-    for v in extraButtons:
-        extraButtons[v].deDraw(GV.DISPLAYSURF)
+    for btn in extraButtons:
+        btn.deDraw(GV.DISPLAYSURF)
 
 def main(playerCount = None):
-    global FPSCLOCK, moveCircles, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
+    global FPSCLOCK, moveCircles,transportSpots, selected, stateDataMode, extraButtons, buildHexes,possibleAttacks,possibleHeals,counter,grid, buildUnitImages,PrevTechHover,CurrentTechHover
     #GV.pygame.init()
     FPSCLOCK = GV.pygame.time.Clock()
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
@@ -1591,8 +1984,17 @@ def main(playerCount = None):
                     if 'build' in selected.possibleStates:#If they are able to build
                         unfound = True
                         for btn in extraButtons:
-                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
-                                statInfo(btn)
+                            if btn.click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                statInfo(btn.name)
+                                unfound = False
+                                break
+                        if unfound:
+                            statInfo(selected)
+                    if 'transport' in selected.possibleStates:#If they are able to build
+                        unfound = True
+                        for btn in extraButtons:
+                            if btn.click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                statInfo(btn.name)
                                 unfound = False
                                 break
                         if unfound:
@@ -1667,23 +2069,23 @@ def main(playerCount = None):
                 elif stateDataMode == 'build':
                     offclick = True
                     for btn in extraButtons:
-                        if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
-                            selected.stateData = [btn]
+                        if btn.click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                            selected.stateData = [btn.name]
                             stateDataMode = 'build2'
-                            statInfo(btn)
-                            for v in extraButtons:
-                                extraButtons[v].deDraw(GV.DISPLAYSURF)
-                            extraButtons = {}
-                            buildHexes = getRangeCircles(selected, built = btn)
+                            statInfo(btn.name)
+                            for btn2 in extraButtons:
+                                btn2.deDraw(GV.DISPLAYSURF)
+                            extraButtons = []
+                            buildHexes = getRangeCircles(selected, built = btn.name)
                             drawBoard()
                             offclick = False
                             break
                     if offclick:
                         selected.state = None
                         cleanUpAfterSelect()
-                        for v in extraButtons:
-                            extraButtons[v].deDraw(GV.DISPLAYSURF)
-                        extraButtons = {}
+                        for btn in extraButtons:
+                           btn.deDraw(GV.DISPLAYSURF)
+                        extraButtons = []
                         drawBoard()
                 elif stateDataMode == 'build2':
                     selected.state = None
@@ -1692,6 +2094,16 @@ def main(playerCount = None):
                         selected.stateData.insert(0,[x,y])
                         n.send(convertToStr(selected,'build',selected.stateData))
                         selected.state = 'build'
+                    cleanUpAfterSelect()
+                    #Here is to sumbit to server
+                    drawBoard()
+                elif stateDataMode == 'transport':
+                    selected.state = None
+                    if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
+                        construction.play()
+                        selected.stateData.insert(0,[x,y])
+                        n.send(convertToStr(selected,'transport',selected.stateData))
+                        selected.state = 'transport'
                     cleanUpAfterSelect()
                     #Here is to sumbit to server
                     drawBoard()
@@ -1707,19 +2119,33 @@ def main(playerCount = None):
 
 
                     print('currentTechButtons',currentTechButtons)
+
+                    CleanUp = True #Only cleanup if player clicked a valid tech or black region
+                    
                     for btn in currentTechButtons:
                         if btn.click(GV.pygame.mouse.get_pos()):
+                            if btn.techType == "Good":
+                                research_selected_audio.play()
+                            else:
+                                tech_error_audio.play()
+                                if btn.techType != "Costly": #If its costly, go through but give error noise
+                                    CleanUp = False
+                                    break
+                            
+                            
                             print('ONE OF THEM WAS CLICKKKEDD!!')
 
-                            research_selected_audio.play()
+                            #research_selected_audio.play()
 
                             selected.stateData = btn.name
                             n.send(convertToStr(selected,'research',selected.stateData))
                             selected.state = 'research'
                             break
-                    BF.clearGrid()
-                    cleanUpAfterSelect()
-                    drawBoard()   
+                        
+                    if CleanUp:
+                        BF.clearGrid()
+                        cleanUpAfterSelect()
+                        drawBoard()   
                 elif selected:
                     for btn in btns:
                         if btns[btn].click(GV.pygame.mouse.get_pos()):#If button clicked, set state of unit
@@ -1750,22 +2176,41 @@ def main(playerCount = None):
                                     #img = GV.pygame.image.load("assets/%s.png" % v)
                                     #img = GV.pygame.transform.scale(img, (40, 40))
                                     GV.DISPLAYSURF.blit(img,(GV.offset_x+(GV.block_size+1)*i, endOfBoard_y+10))
-                                    extraButtons[v] = b
+                                    b.name = v
+                                    extraButtons.append(b)#extraButtons[v] = b
                                     i+=1
                             drawBoard()
                     if 'build' in selected.possibleStates:#If they are able to build
                         for btn in extraButtons:
-                            if extraButtons[btn].click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
-                                selected.stateData = [btn]
+                            if btn.click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                selected.stateData = [btn.name]
                                 stateDataMode = 'build2'
-                                statInfo(btn)
-                                for v in extraButtons:
-                                    extraButtons[v].deDraw(GV.DISPLAYSURF)
-                                extraButtons = {}
+                                statInfo(btn.name)
+                                for btn2 in extraButtons:
+                                    btn2.deDraw(GV.DISPLAYSURF)
+                                extraButtons = []
                                 moveCircles = []
+                                transportSpots = []
                                 possibleAttacks = []
                                 possibleHeals = []
-                                buildHexes = getRangeCircles(selected, built = btn)
+                                buildHexes = getRangeCircles(selected, built = btn.name)
+                                offclick = False
+                                drawBoard()
+                                break
+                    if 'transport' in selected.possibleStates:#If they are able to build
+                        for btn in extraButtons:
+                            if btn.click(GV.pygame.mouse.get_pos()):#If one of the unit options is clicked
+                                selected.stateData = [btn.name]
+                                stateDataMode = 'transport'
+                                statInfo(btn.name)
+                                for btn2 in extraButtons:
+                                    btn2.deDraw(GV.DISPLAYSURF)
+                                extraButtons = []
+                                moveCircles = []
+                                transportSpots = []
+                                possibleAttacks = []
+                                possibleHeals = []
+                                buildHexes = getRangeCircles(selected, built = btn.name)
                                 offclick = False
                                 drawBoard()
                                 break
@@ -1821,6 +2266,9 @@ def main(playerCount = None):
 
                                 GV.highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
+                                transportSpots = getTransportSpots(selected)
+                                print("Total transport spots 1", transportSpots)
+                                moveCircles += transportSpots
                                 possibleAttacks = getAttacks(selected)
                                 possibleHeals = getHeals(selected)
                                 statInfo(selected)
@@ -1829,8 +2277,8 @@ def main(playerCount = None):
                                         btns[btn].draw(GV.DISPLAYSURF)
                                     else:
                                         btns[btn].deDraw(GV.DISPLAYSURF)
-                                for v in extraButtons:
-                                    extraButtons[v].deDraw(GV.DISPLAYSURF)
+                                for btn in extraButtons:
+                                    btn.deDraw(GV.DISPLAYSURF)
                                 if 'build' in selected.possibleStates: #Show unit builds on bottom
                                     i = 0
                                     posBuilds = getattr(selected,'possiblebuilds',0) or UnitDB[selected.name].get('possibleBuilds') or []
@@ -1849,8 +2297,25 @@ def main(playerCount = None):
                                         #img = GV.pygame.image.load("assets/%s.png" % v)
                                         #img = GV.pygame.transform.scale(img, (40, 40))
                                         GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))
-                                        extraButtons[v] = b
+                                        b.name = v
+                                        extraButtons.append(b)#extraButtons[v] = b
                                         i+=1
+                                if 'transport' in selected.possibleStates: #Show things on bottom
+                                    if hasattr(selected,"carrying"):
+                                        i = 0
+                                        posBuilds = selected.carrying
+                                        for unit in posBuilds:
+                                            unitName = unit['name']
+                                            btnColor = (50,230,50)
+                                            b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
+                                            b.draw(GV.DISPLAYSURF)
+                                            img = BF.getImage(unitName, GV.player, buildUnitImages, 40)
+                                            #img = GV.pygame.image.load("assets/%s.png" % v)
+                                            #img = GV.pygame.transform.scale(img, (40, 40))
+                                            GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
+                                            b.name = unitName
+                                            extraButtons.append(b)#extraButtons[v] = b
+                                            i+=1
                                      
                             else:
                                 cleanUpAfterSelect()
@@ -1865,6 +2330,9 @@ def main(playerCount = None):
                             print(vars(selected))
                             GV.highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
+                            transportSpots = getTransportSpots(selected)
+                            print("Total transport spots 2", transportSpots)
+                            moveCircles += transportSpots
                             possibleAttacks = getAttacks(selected)
                             possibleHeals = getHeals(selected)
                             statInfo(selected)
@@ -1891,8 +2359,25 @@ def main(playerCount = None):
                                     #img = GV.pygame.image.load("assets/%s.png" % v)
                                     #img = GV.pygame.transform.scale(img, (40, 40))
                                     GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
-                                    extraButtons[v] = b
+                                    b.name = v
+                                    extraButtons.append(b)#extraButtons[v] = b
                                     i+=1
+                            if 'transport' in selected.possibleStates: #Show things on bottom
+                                if hasattr(selected,"carrying"):
+                                    i = 0
+                                    posBuilds = selected.carrying
+                                    for unit in posBuilds:
+                                        unitName = unit['name']
+                                        btnColor = (50,230,50)
+                                        b = Button("", GV.offset_x+(40+1)*i, endOfBoard_y+10, btnColor,BLACK,18,(40,40))
+                                        b.draw(GV.DISPLAYSURF)
+                                        img = BF.getImage(unitName, GV.player, buildUnitImages, 40)
+                                        #img = GV.pygame.image.load("assets/%s.png" % v)
+                                        #img = GV.pygame.transform.scale(img, (40, 40))
+                                        GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*i, endOfBoard_y+10))#(115+41*i, 430)
+                                        b.name = unitName
+                                        extraButtons.append(b)#extraButtons[v] = b
+                                        i+=1
                         else:
                             for btn in btns:
                                 btns[btn].deDraw(GV.DISPLAYSURF)

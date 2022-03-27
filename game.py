@@ -1,8 +1,10 @@
 #os.chdir(r"/Users/reeganfoldhazi/Documents/PythonStuff")
+from contextlib import nullcontext
 from UnitDB import UnitDB
 from UnitDB import TechDB
 import numpy as np
-import random,operator,json,copy
+import random,operator,json,copy,os,sys
+#os.chdir(os.path.dirname(sys.argv[0]))
 import methods, Computer, settings
 from json import JSONEncoder
 
@@ -158,14 +160,20 @@ class Game:
         self.started = False
         self.turn = 0
         self.id = id
-        self.width = settings.width #13
-        self.height = settings.height #13
+
+        self.map = random.choice(os.listdir('maps'))
+        #self.map = "maps/map2.png"
+        
+        self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
         self.mode = settings.mode #'halo'
-        self.ai = settings.ai #1
+        self.ai = methods.getAICountFromMap("maps/%s" % self.map)#settings.ai #1
         self.allai = settings.allai #False
+        self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+        
         if makeAreas:
-            grid = methods.newGrid(self.width,self.height)
-            grid = methods.makeAreas(grid)
+            #grid = methods.newGrid(self.width,self.height)
+            #grid = methods.makeAreas(grid)
+            grid = methods.generateMapFromImage("maps/%s" % self.map)
             self.intGrid = list(np.packbits(np.uint8(grid)))
             for i in range(len(self.intGrid)):
                 self.intGrid[i] = int(self.intGrid[i])
@@ -186,12 +194,15 @@ class Game:
     def start(self):
         if not self.started:
             self.started = True
+            if len(self.units) < self.targetPlayers:
+                self.ai += self.targetPlayers - len(self.units)
             for i in range(self.ai):
                 self.addPlayer()
                 self.went[len(self.units)-1] = True
             Grid = methods.intToList(self.intGrid, self.width)
             print('units',self.units)
-            startingspots = methods.findStartSpots(Grid, len(self.units))
+            #startingspots = methods.findStartSpots(Grid, len(self.units))
+            startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
             if startingspots == "RETRY":
                 cont = True
                 while cont:
@@ -204,14 +215,33 @@ class Game:
                 self.intGrid = list(np.packbits(np.uint8(grid)))
                 for i in range(len(self.intGrid)):
                     self.intGrid[i] = int(self.intGrid[i])
-            random.shuffle(startingspots)
+
+            realPlayers = len(self.units) - self.ai
+            playerStartingSpots = startingspots[:realPlayers]
+            aiStartingSpots = startingspots[realPlayers:]
+
+            random.shuffle(playerStartingSpots)
+            random.shuffle(aiStartingSpots)
+
+            startingspots = playerStartingSpots + aiStartingSpots
+            #random.shuffle(startingspots)
+            #abc = start
+            
             print(startingspots)
             i = 0
             #starters = ['king slime', 'king blob']
             #starters = ['the hunter', 'king blob']
             for p in self.units:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
-                self.units[p].append(Unit(startingspots[p], "town"))
+                if i >= realPlayers: #AIs start with trees
+                    if random.random() < .33:
+                        self.units[p].append(Unit(startingspots[p], "town"))
+                    elif random.random() < .5:
+                        self.units[p].append(Unit(startingspots[p], "bot fortress"))
+                    else:
+                        self.units[p].append(Unit(startingspots[p], "tree"))
+                else:
+                    self.units[p].append(Unit(startingspots[p], "town"))
                 i+=1
 
     #??? Something to do with JSON stuff
@@ -293,6 +323,18 @@ class Game:
                     return u
         return None
     
+    def checkIfUnitTransported(self, transportee, transporter):
+        if hasattr(transporter, "carrying"):
+            for u in transporter.carrying:
+                if type(u) == dict:
+                    if u["UnitID"] == transportee.UnitID:
+                        return True
+                else:
+                    print("option2")
+                    if u.UnitID == transportee["UnitID"]:
+                        return True
+        return False
+
     #Function to give a unit buffs based on a given tech
     def upgradeTech(self, unit, v):
         currentAbility = v[0]
@@ -347,6 +389,10 @@ class Game:
             stateData = self.getUnitFromID(split[2])
         elif state == 'build':
             stateData = [[int(split[2]),int(split[3])],split[4]]
+        elif state == 'transport':
+            print("Transport in. DATA:", data,"SPLIT:",split)
+            stateData = [[int(split[2]),int(split[3])],split[4]]
+            print("Final RESULT:",stateData)
         for u in self.units[player]:
             if u == unit:
                 unit.state = state
@@ -423,7 +469,8 @@ class Game:
                                     print("New production for",unit2,'is',unit2.resourceGen)
                                 
                             else:
-                                    
+                                if not hasattr(unit2, targetStat): #Don't buff if it doesn't have the stat
+                                    continue
                                 multiplier = unit.abilities['buff'][1]
                                 print("This guy's %s was buffed" % targetStat)
                                 #buffedUnitOrignals[unit2] = {"stat":targetStat, "orig": getattr(unit2, targetStat)}
@@ -471,9 +518,15 @@ class Game:
                             hunterList[target] = u
                         print("HURT",u.name, damageCalc(u, target), target.name)
                         hurtList[target] += damageCalc(u, target)
+                if 'decay' in u.abilities: # "decays" means unit takes damage every round equal to the ability's amount
+                    if not (u in hurtList): 
+                        hurtList[u] = 0
+                    hurtList[u] +=  u.abilities['decay']
         print("HUNTER list", hunterList)
         for v in hunterList:
             print(v.name,':', hunterList[v])
+            if 'kamikaze' in v.abilities: # "kamikaze" means you die when you attack
+                v.health = -10
         #Heal
         for i in self.units:
             for u in self.units[i]:
@@ -512,6 +565,13 @@ class Game:
                 if par:
                     if getattr(par,'maxPopulation',False): #Reduces population of parent
                         par.population = max(0,par.population-1)
+            if hasattr(u, "carrying"):
+                for u2 in u.carrying:
+                    if u2.parent:
+                        par = self.getUnitFromID(u2.parent)
+                        if par:
+                            if getattr(par,'maxPopulation',False): #Reduces population of parent
+                                par.population = max(0,par.population-1)
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
@@ -574,6 +634,67 @@ class Game:
             if cont:
                 continue
             break
+
+        #Move into Transports
+
+        RemoveList = [] #Reset RemoveList to remove transported units
+
+        for i in self.units:
+            for u in self.units[i]:
+                if u.state == "move":
+                    if checkRange(u, u.stateData) <= u.speed:
+                        transportUnit = self.getUnitFromPos(i,u.stateData[0],u.stateData[1])
+                        if transportUnit:
+                            if "transport" in transportUnit.abilities:
+                                #We also need extra checks to see if it was valid
+                                if not u.type in transportUnit.abilities["transport"]:
+                                    continue
+                                if transportUnit.population >= transportUnit.maxPopulation:
+                                    continue
+                                RemoveList.append(u)#self.units[i].remove(u)
+                                if hasattr(transportUnit, "carrying"):
+                                    transportUnit.carrying.append(u)
+                                else:
+                                    transportUnit.carrying = [u]
+                                transportUnit.population += 1
+
+        for u in RemoveList:
+            self.units[self.getPlayerfromUnit(u)].remove(u)
+
+        #Drop off transported units
+        for i in self.units:
+            for u in self.units[i]:
+                if u.state == "transport":#State data is list [0] is pos, [1] is name
+                    print("stateData",u.stateData)
+                    if not u.stateData[0] in BlockedSpaces:
+                        
+                        transportedUnit = None
+                        for v in u.carrying: #May need to check that unit has carrying attribute
+                            if v.name == u.stateData[1]:
+                                transportedUnit = v
+                        
+                        if transportedUnit == None: #Just in case unit can't be found
+                            u.state = None
+                            u.stateData = None
+                            continue
+                        
+                        #Make Sure water is valid for unit type
+                        water = Grid[u.stateData[0][1]][u.stateData[0][0]]
+                        if not ((water == (transportedUnit.type == 'boat')) or transportedUnit.type == "aircraft"):
+                            continue
+
+                        if transportedUnit:
+                            u.carrying.remove(transportedUnit)
+                            self.units[i].append(transportedUnit)
+                            transportedUnit.position = u.stateData[0]
+                            transportedUnit.state = None
+                            transportedUnit.stateData = None
+                            transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
+                            u.population -= 1
+                        u.state = None
+                        u.stateData = None
+
+
         #Build
         for i in self.units:
             for u in self.units[i]:
@@ -652,7 +773,10 @@ class Game:
                         continue
                     if not tech in self.progress[playerNum]:
                         self.progress[playerNum][tech] = 0
-                    self.progress[playerNum][tech] += 1
+                    ResearchRate = 1
+                    if 'fast research' in u.abilities:
+                        ResearchRate = u.abilities['fast research']
+                    self.progress[playerNum][tech] += ResearchRate
                     self.resources[playerNum]["energy"] -= TechDB[tech]['cost']
                     if self.progress[playerNum][tech] >= TechDB[tech]['time']:#When we have researched enough to unlock
                         self.tech[playerNum].append(tech)
