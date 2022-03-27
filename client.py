@@ -268,15 +268,16 @@ def randomBlueWeighted(x):
     #b = max(0,200 - x * 15)
     base = 13
     sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
-    print("SUBB",sub,x)
-    print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    #print("SUBB",sub,x)
+    #print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
     if x > base:
         sub = ((base)*(base+1))/2 + x - base
     sub = int(sub)
-    b = max(0,random.randint(180 - sub,180 - sub))
+    g = max(0,random.randint(180 - sub,180 - sub))
+    b = max(0,random.randint(180 - int(sub/2),180 - int(sub/2)))
     #b = int (((random.randint(180,210) / x**0.5)+random.randint(180,210))/2)
     #return (int(b*.2), int(b*.625),b)
-    return (round(b*random.random()*.1+.1), round(b*(random.random()*.125+.625)),b)
+    return (round(b*random.random()*.1+.1), round(g*(random.random()*.125+.625)),b)
 
 def randomGrey():
     g = random.randint(50,100)

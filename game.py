@@ -161,19 +161,39 @@ class Game:
         self.turn = 0
         self.id = id
 
-        self.map = random.choice(os.listdir('maps'))
+        grid = None
+        
+        possibleMaps = os.listdir('maps')
+        
+        if settings.Map == "generated":
+            self.map = "generated"
+            self.width,self.height = settings.width, settings.height
+            self.ai = settings.ai
+            self.targetPlayers = 0
+            grid = methods.newGrid(self.width,self.height)
+            grid = methods.makeAreas(grid)
+        elif "%s.png" % settings.Map in possibleMaps:
+            self.map = "%s.png" % settings.Map
+            self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
+            self.ai = methods.getAICountFromMap("maps/%s" % self.map)
+            self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+            grid = methods.generateMapFromImage("maps/%s" % self.map)
+        else:
+            self.map = random.choice(possibleMaps)
+            self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
+            self.ai = methods.getAICountFromMap("maps/%s" % self.map)
+            self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+            grid = methods.generateMapFromImage("maps/%s" % self.map)
+        
         #self.map = "maps/map2.png"
         
-        self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
+        
         self.mode = settings.mode #'halo'
-        self.ai = methods.getAICountFromMap("maps/%s" % self.map)#settings.ai #1
+        
         self.allai = settings.allai #False
-        self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+        
         
         if makeAreas:
-            #grid = methods.newGrid(self.width,self.height)
-            #grid = methods.makeAreas(grid)
-            grid = methods.generateMapFromImage("maps/%s" % self.map)
             self.intGrid = list(np.packbits(np.uint8(grid)))
             for i in range(len(self.intGrid)):
                 self.intGrid[i] = int(self.intGrid[i])
@@ -201,8 +221,13 @@ class Game:
                 self.went[len(self.units)-1] = True
             Grid = methods.intToList(self.intGrid, self.width)
             print('units',self.units)
-            #startingspots = methods.findStartSpots(Grid, len(self.units))
-            startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
+
+            if self.map == "generated":
+                startingspots = methods.findStartSpots(Grid, len(self.units))
+            else:
+                startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
+            
+            
             if startingspots == "RETRY":
                 cont = True
                 while cont:
