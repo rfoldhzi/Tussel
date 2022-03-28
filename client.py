@@ -1552,9 +1552,12 @@ def resources():
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
     newResources = res
-    rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    #rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    rect = GV.pygame.Rect(2,WINDOWHEIGHT-67, 80,65)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
+    text = Healthfont.render(str(GV.game.scores[GV.player]), 1, (255,255,255))
+    GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-65))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['gold']), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['metal']), res['metal']), 1, (255,255,255))
@@ -1876,6 +1879,7 @@ def main(playerCount = None):
     GV.JustResize = 0
     animateCounter = GV.animateTime*-2
     GV.newGame = None
+    images = []
     
     while run: # main GV.game loop
         #mouseClicked = False
@@ -1932,6 +1936,19 @@ def main(playerCount = None):
                 drawBoard()
             animateBoard(GV.game, GV.newGame, counter-animateCounter)
             if counter-animateCounter == GV.animateTime:
+                im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                pix = im.load()
+                i = 0
+                for c in GV.BoardColors:
+                    x = i % GV.board_x
+                    y = i // GV.board_x
+                    pix[x,y] = c
+                    i += 1
+                for player in GV.game.units:
+                    for u in GV.game.units[player]:
+                        pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                images.append(im)
                 pass#GV.DISPLAYSURF.fill(GV.BGCOLOR) #Used to clear the board after animating, but blinks when doing so
         elif counter%10 == 0:
             #print("MORE ", vars(GV.game))
@@ -1968,6 +1985,22 @@ def main(playerCount = None):
                     GV.JustResize = counter
                     updateSelf()
                     #GV.pygame.mixer.music.unpause()
+                elif event.key == 111: # 'o' Key   
+                    images[0].save("the_map.gif", save_all=True, append_images=images[1:], optimize=False, duration=500, loop=0) 
+                elif event.key == 112: # 'p' Key    
+                    im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                    pix = im.load()
+                    i = 0
+                    for c in GV.BoardColors:
+                        x = i % GV.board_x
+                        y = i // GV.board_x
+                        pix[x,y] = c
+                        i += 1
+                    for player in GV.game.units:
+                        for u in GV.game.units[player]:
+                            pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                    im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                    im.show()
             elif event.type == VIDEORESIZE and counter - GV.JustResize > 20:
                 GV.JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
