@@ -109,7 +109,7 @@ def CheckIfGoodToBuild(self, playerNum, u, Grid, pos = False):
 UnitID = 0 #Static varible to give a unit a unique ID
 
 class Unit:
-    def __init__(self, pos = [0,0], name = 'soldier', parent= None):
+    def __init__(self, pos = [0,0], name = 'soldier', parent= None, score = -1):
         global UnitID
         self.name = name
         self.parent = parent
@@ -125,6 +125,13 @@ class Unit:
         self.maxHealth = UnitDB[name].get('health') or 10
         self.health = int(self.maxHealth)
         self.UnitID = str(UnitID)
+        if score == -1:
+            self.score = 0
+            costs = UnitDB[name].get('cost') or {}
+            for key in costs:
+                self.score += costs[key]
+        else:
+            self.score = score
         UnitID += 1
         self.resourceGen = UnitDB[name].get('resourceGen') or {
             "gold": 4,
@@ -155,6 +162,7 @@ class Game:
         self.resources = {} #Store players' resource counts
         self.went = {}
         self.tech = {}
+        self.scores = {}
         self.progress = {}
         self.ready = False
         self.started = False
@@ -186,6 +194,7 @@ class Game:
         self.resources[p] = {'gold':20,'metal':0,'energy':0}
         self.went[p] = False
         self.tech[p] = []
+        self.scores[p] = 0
         self.progress[p] = {}
         #b = Unit(startingspots[p], 'town')
         #self.units[p].append(b)
@@ -560,6 +569,7 @@ class Game:
         
         for u in RemoveList:#more destroy
             print(u, u.name, 'is destroyed')
+            player = self.getPlayerfromUnit(u)
             if u.parent:
                 par = self.getUnitFromID(u.parent)
                 if par:
@@ -572,9 +582,14 @@ class Game:
                         if par:
                             if getattr(par,'maxPopulation',False): #Reduces population of parent
                                 par.population = max(0,par.population-1)
+                    self.scores[player] -= int(u2.cost/2)
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
+                hunterPlayer = self.getPlayerfromUnit(hunter)
+                self.scores[player] += int(u.score/2)
+                
+
                 #"takeover" means a unit is built in dead unit's space
                 if 'takeover' in hunter.abilities:
                     if checkRange(hunter,u) <= 1:
@@ -590,8 +605,9 @@ class Game:
                 #self.units[hunterList[u]].append(Unit(u.position,u.name))
                 #print("WHY DON'T I have RESOURCES", u.name, hunterList[u])
                 #self.resources[hunterList[u]]['gold'] += 500
-                
-            self.units[self.getPlayerfromUnit(u)].remove(u)
+            
+            self.scores[player] -= int(u.score/2)
+            self.units[player].remove(u)
         for i in self.units:#Turn off attack of dead targets
             for u in self.units[i]:
                 if u.state == "attack":
@@ -736,13 +752,18 @@ class Game:
                                 for v in cost:
                                     cost[v] = int(cost[v]*(UnitDB[u.stateData[1]]['abilities']['costly']**count)//5*5)
 
-                            newUnit = Unit(u.stateData[0],u.stateData[1],u.UnitID)
-                            self.upgradeUnit(newUnit, i)
-                            self.units[i].append(newUnit)
 
+                            score = 0
                             for v in cost:#player loses resources
                                 self.resources[i][v] -= cost[v]
+                                score += cost[v] #Awards points for each cost when building
                             BlockedSpaces.append(u.stateData[0])
+
+                            self.scores[i] += score
+
+                            newUnit = Unit(u.stateData[0],u.stateData[1],u.UnitID, score)
+                            self.upgradeUnit(newUnit, i)
+                            self.units[i].append(newUnit)
 
                             #"multibuild" tries to build multiple units at once
                             if 'multibuild' in u.abilities:
