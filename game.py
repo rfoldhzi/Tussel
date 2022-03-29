@@ -582,12 +582,12 @@ class Game:
                         if par:
                             if getattr(par,'maxPopulation',False): #Reduces population of parent
                                 par.population = max(0,par.population-1)
-                    self.scores[player] -= int(u2.cost/2)
+                    u.score += u2.score # Add transportee's score to transporter when transporter is removed
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
                 hunterPlayer = self.getPlayerfromUnit(hunter)
-                self.scores[player] += int(u.score/2)
+                self.scores[hunterPlayer] += int(u.score/2)
                 
 
                 #"takeover" means a unit is built in dead unit's space
