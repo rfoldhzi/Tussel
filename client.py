@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy, traceback
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -929,7 +929,7 @@ def animationGrid(g1,g2):
                     l.append([u2.position, parent.position])
     for v in l:
         if len(v) == 1:
-            GV.animateGrid[v[0][1]][v[0][0]] = False
+            GV.animateGrid[v[0][0]][v[0][1]] = False
         else:
             a = min(v[0][0], v[1][0])
             b = max(v[0][0], v[1][0])
@@ -937,7 +937,8 @@ def animationGrid(g1,g2):
             d = max(v[0][1], v[1][1])
             for y in range(c,d+1):
                 for x in range(a,b+1):
-                    GV.animateGrid[y][x] = False
+                    print(y,x)
+                    GV.animateGrid[x][y] = False
 
 NotAlreadyReady = True
 
@@ -1918,6 +1919,7 @@ def main(playerCount = None):
                 pass#print(r)
         except Exception as e:
             run = False
+            traceback.print_tb(e.__traceback__)
             print("Couldn't get GV.game",e)
             break
         

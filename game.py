@@ -185,17 +185,8 @@ class Game:
         self.started = False
         self.turn = 0
         self.id = id
-
-        grid = None
-        
-        
-        
-        #self.map = "maps/map2.png"
-        
-        
-        self.mode = settings.mode #'halo'
-        
-        self.allai = settings.allai #False
+        self.mode = settings.mode
+        self.allai = settings.allai
         
     
     #adds a new player and all revelant lists to the game object
