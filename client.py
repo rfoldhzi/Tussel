@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy
+import  sys, random,math,pathlib,os,pickle,copy,subprocess,signal,time, copy, traceback
 os.chdir(os.path.dirname(sys.argv[0]))
 from pathlib import Path
 from pygame.locals import *
@@ -268,15 +268,16 @@ def randomBlueWeighted(x):
     #b = max(0,200 - x * 15)
     base = 13
     sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
-    print("SUBB",sub,x)
-    print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    #print("SUBB",sub,x)
+    #print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
     if x > base:
         sub = ((base)*(base+1))/2 + x - base
     sub = int(sub)
-    b = max(0,random.randint(180 - sub,180 - sub))
+    g = max(0,random.randint(180 - sub,180 - sub))
+    b = max(0,random.randint(180 - int(sub/2),180 - int(sub/2)))
     #b = int (((random.randint(180,210) / x**0.5)+random.randint(180,210))/2)
     #return (int(b*.2), int(b*.625),b)
-    return (round(b*random.random()*.1+.1), round(b*(random.random()*.125+.625)),b)
+    return (round(b*random.random()*.1+.1), round(g*(random.random()*.125+.625)),b)
 
 def randomGrey():
     g = random.randint(50,100)
@@ -928,7 +929,7 @@ def animationGrid(g1,g2):
                     l.append([u2.position, parent.position])
     for v in l:
         if len(v) == 1:
-            GV.animateGrid[v[0][1]][v[0][0]] = False
+            GV.animateGrid[v[0][0]][v[0][1]] = False
         else:
             a = min(v[0][0], v[1][0])
             b = max(v[0][0], v[1][0])
@@ -936,7 +937,8 @@ def animationGrid(g1,g2):
             d = max(v[0][1], v[1][1])
             for y in range(c,d+1):
                 for x in range(a,b+1):
-                    GV.animateGrid[y][x] = False
+                    print(y,x)
+                    GV.animateGrid[x][y] = False
 
 NotAlreadyReady = True
 
@@ -1917,6 +1919,7 @@ def main(playerCount = None):
                 pass#print(r)
         except Exception as e:
             run = False
+            traceback.print_tb(e.__traceback__)
             print("Couldn't get GV.game",e)
             break
         

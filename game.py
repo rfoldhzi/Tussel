@@ -106,6 +106,31 @@ def CheckIfGoodToBuild(self, playerNum, u, Grid, pos = False):
     print("Nothing wrong!")
     return True
 
+def chooseMap(players): #Looks randomly for a map with the correct number of players, and sorts them
+                        #into a dict if it can't find one, then picks a map with more player slots
+                        #If all else fails, crash (should probably do something else)
+    possibleMaps = os.listdir('maps')
+    mapByPlayers = {}
+    notDone = True
+    while notDone and len(possibleMaps) > 0:
+        print("possiblilities",possibleMaps)
+        print("mapByPlayers",mapByPlayers)
+        map = random.choice(possibleMaps)
+        playerCount = methods.getPlayerCountFromMap("maps/%s" % map)
+        if playerCount == players:
+            return map
+        if not (playerCount in mapByPlayers):
+            mapByPlayers[playerCount] = []
+        possibleMaps.remove(map)
+        mapByPlayers[playerCount].append(map)
+
+    for i in range(12): #Arbititary limit on how many player slots to look for
+        if i + players in mapByPlayers:
+            return random.choice(mapByPlayers[i + players])
+
+    print("Too many players")
+    return 0/0
+
 UnitID = 0 #Static varible to give a unit a unique ID
 
 class Unit:
@@ -160,24 +185,9 @@ class Game:
         self.started = False
         self.turn = 0
         self.id = id
-
-        self.map = random.choice(os.listdir('maps'))
-        #self.map = "maps/map2.png"
+        self.mode = settings.mode
+        self.allai = settings.allai
         
-        self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
-        self.mode = settings.mode #'halo'
-        self.ai = methods.getAICountFromMap("maps/%s" % self.map)#settings.ai #1
-        self.allai = settings.allai #False
-        self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
-        
-        if makeAreas:
-            #grid = methods.newGrid(self.width,self.height)
-            #grid = methods.makeAreas(grid)
-            grid = methods.generateMapFromImage("maps/%s" % self.map)
-            self.intGrid = list(np.packbits(np.uint8(grid)))
-            for i in range(len(self.intGrid)):
-                self.intGrid[i] = int(self.intGrid[i])
-            print(type(self.intGrid), type(self.intGrid[0]))
     
     #adds a new player and all revelant lists to the game object
     def addPlayer(self):
@@ -193,6 +203,34 @@ class Game:
     #Starts the game and finds starting spots for each of the player's towns
     def start(self):
         if not self.started:
+
+            possibleMaps = os.listdir('maps')
+        
+            if settings.Map == "generated":
+                self.map = "generated"
+                self.width,self.height = settings.width, settings.height
+                self.ai = settings.ai
+                self.targetPlayers = 0
+                grid = methods.newGrid(self.width,self.height)
+                grid = methods.makeAreas(grid)
+            elif "%s.png" % settings.Map in possibleMaps:
+                self.map = "%s.png" % settings.Map
+                self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
+                self.ai = methods.getAICountFromMap("maps/%s" % self.map)
+                self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+                grid = methods.generateMapFromImage("maps/%s" % self.map)
+            else:
+                self.map = chooseMap(len(self.units))
+                self.width,self.height = methods.getWidthAndHeight("maps/%s" % self.map)
+                self.ai = methods.getAICountFromMap("maps/%s" % self.map)
+                self.targetPlayers = methods.getPlayerCountFromMap("maps/%s" % self.map)
+                grid = methods.generateMapFromImage("maps/%s" % self.map)
+            
+            self.intGrid = list(np.packbits(np.uint8(grid)))
+            for i in range(len(self.intGrid)):
+                self.intGrid[i] = int(self.intGrid[i])
+            print(type(self.intGrid), type(self.intGrid[0]))
+
             self.started = True
             if len(self.units) < self.targetPlayers:
                 self.ai += self.targetPlayers - len(self.units)
@@ -201,8 +239,13 @@ class Game:
                 self.went[len(self.units)-1] = True
             Grid = methods.intToList(self.intGrid, self.width)
             print('units',self.units)
-            #startingspots = methods.findStartSpots(Grid, len(self.units))
-            startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
+
+            if self.map == "generated":
+                startingspots = methods.findStartSpots(Grid, len(self.units))
+            else:
+                startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
+            
+            
             if startingspots == "RETRY":
                 cont = True
                 while cont:
