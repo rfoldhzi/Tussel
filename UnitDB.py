@@ -971,6 +971,174 @@ UnitDB = {
             "energy": 5
         }
     },
+    #Plant Faction
+    'plant base':{
+        'cost': {'energy':120},
+        'possibleBuilds': ['walking roots'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 8,
+        'population':3,
+        'abilities':{'deathSpawn':'mad plant base'},
+        'resourceGen':{
+            "energy": 10
+        }
+    },
+    'mad plant base':{
+        'cost': {'gold':0},
+        'possibleBuilds': ['seed'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 16,
+        'range': 4,
+        'population':8,
+        'abilities':{'multibuild':2},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'seed':{
+        'cost': {'energy':0},
+        'possibleBuilds': ['plant base'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 2,
+        'abilities':{'deathSpawn':'mad seed'},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'mad seed':{
+        'cost': {'energy':0},
+        'possibleBuilds': ['plant base'],
+        'possibleStates': ['move','build'],
+        'type': 'building',
+        'health': 2,
+        'speed': 2,
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'walking roots':{
+        'cost': {'gold':0},
+        'possibleBuilds': ['flower', 'plant house'],
+        'possibleStates': ['move', 'resources', 'build'],
+        'health': 5,
+        'range': 2,
+        'population':3,
+        'abilities':{'deathSpawn':'mad walking roots'},
+        'resourceGen':{
+            "gold": 20,
+            "metal": 20,
+            "energy": 0
+        }
+    },
+    'mad walking roots':{
+        'cost': {'gold':0},
+        'possibleStates': ['move', 'attack'],
+        'population':3,
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+    'flower':{
+        'cost': {'gold':10},
+        'possibleStates': ['resources'],
+        'type': 'building',
+        'health': 4,
+        'abilities':{'deathSpawn':'mad flower'},
+        'resourceGen':{
+            "metal": 1
+        }
+    },
+    'mad flower':{
+        'cost': {'gold':0},
+        'possibleStates': ['attack'],
+        'type': 'building',
+    },
+    'plant house':{
+        'cost': {'metal':20},
+        'possibleBuilds': ['phydent', 'jellyfish'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 6,
+        'population':3,
+        'abilities':{'deathSpawn':'mad plant house'},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'mad plant house':{
+        'cost': {'metal':0},
+        'possibleBuilds': ['spider'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 8,
+        'population':2,
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'phydent':{
+        'cost': {'metal':30},
+        'possibleStates': ['move'],
+        'type': 'monster',
+        'health': 6,
+        'abilities':{'deathSpawn':'mad phydent'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad phydent':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'type': 'monster',
+        'health': 18,
+        'attack': 3,
+        'defense': 3,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'jellyfish':{
+        'cost': {'gold':30},
+        'possibleStates': ['move'],
+        'type': 'boat',
+        'health': 6,
+        'abilities':{'deathSpawn':'mad jellyfish'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad jellyfish':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'type': 'boat',
+        'health': 12,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'spider':{
+        'cost': {'energy':5},
+        'possibleStates': ['move'],
+        'health': 3,
+        'abilities':{'deathSpawn':'mad spider'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad spider':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'health': 7,
+        'attack': 3.5,
+        'defense': 1,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    
 }
 
 TechDB = {
