@@ -110,6 +110,8 @@ def chooseMap(players): #Looks randomly for a map with the correct number of pla
                         #into a dict if it can't find one, then picks a map with more player slots
                         #If all else fails, crash (should probably do something else)
     possibleMaps = os.listdir('maps')
+    if players == 1: # 1 player can be on any map
+        return random.choice(possibleMaps)
     mapByPlayers = {}
     notDone = True
     while notDone and len(possibleMaps) > 0:
@@ -277,9 +279,12 @@ class Game:
             for p in self.units:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
                 if i >= realPlayers: #AIs start with trees
-                    if random.random() < .33:
+                    rand = random.random()
+                    if random.random() < 0.33:
                         self.units[p].append(Unit(startingspots[p], "town"))
-                    elif random.random() < .5:
+                    elif random.random() < 0.5:
+                        self.units[p].append(Unit(startingspots[p], "plant base"))
+                    elif random.random() < 0.75:
                         self.units[p].append(Unit(startingspots[p], "bot fortress"))
                     else:
                         self.units[p].append(Unit(startingspots[p], "tree"))
@@ -615,6 +620,12 @@ class Game:
                         if par:
                             if getattr(par,'maxPopulation',False): #Reduces population of parent
                                 par.population = max(0,par.population-1)
+            
+            if 'deathSpawn' in u.abilities:
+                newUnit = Unit(u.position,u.abilities['deathSpawn'],u.UnitID)
+                self.upgradeUnit(newUnit, i)
+                self.units[self.getPlayerfromUnit(u)].append(newUnit)
+            
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)

@@ -973,7 +973,7 @@ UnitDB = {
     },
     #Plant Faction
     'plant base':{
-        'cost': {'energy':120},
+        'cost': {'energy':200},
         'possibleBuilds': ['walking roots'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
@@ -992,7 +992,7 @@ UnitDB = {
         'health': 16,
         'range': 4,
         'population':8,
-        'abilities':{'multibuild':2},
+        'abilities':{'multibuild':1},
         'resourceGen':{
             "energy": 0
         }
@@ -1003,7 +1003,9 @@ UnitDB = {
         'possibleStates': ['build'],
         'type': 'building',
         'health': 2,
-        'abilities':{'deathSpawn':'mad seed'},
+        'population': 1,
+        'abilities':{'deathSpawn':'mad seed',
+                     'decay':1},
         'resourceGen':{
             "energy": 0
         }
@@ -1015,17 +1017,18 @@ UnitDB = {
         'type': 'building',
         'health': 2,
         'speed': 2,
+        'abilities':{'decay':1},
         'resourceGen':{
             "energy": 0
         }
     },
     'walking roots':{
-        'cost': {'gold':0},
+        'cost': {'energy':10},
         'possibleBuilds': ['flower', 'plant house'],
         'possibleStates': ['move', 'resources', 'build'],
         'health': 5,
         'range': 2,
-        'population':3,
+        'population':2,
         'abilities':{'deathSpawn':'mad walking roots'},
         'resourceGen':{
             "gold": 20,
@@ -1042,7 +1045,7 @@ UnitDB = {
         }
     },
     'flower':{
-        'cost': {'gold':10},
+        'cost': {'gold':15},
         'possibleStates': ['resources'],
         'type': 'building',
         'health': 4,
@@ -1057,12 +1060,12 @@ UnitDB = {
         'type': 'building',
     },
     'plant house':{
-        'cost': {'metal':20},
+        'cost': {'metal':30},
         'possibleBuilds': ['phydent', 'jellyfish'],
         'possibleStates': ['build'],
         'type': 'building',
         'health': 6,
-        'population':3,
+        'population':2,
         'abilities':{'deathSpawn':'mad plant house'},
         'resourceGen':{
             "energy": 0
@@ -1080,7 +1083,7 @@ UnitDB = {
         }
     },
     'phydent':{
-        'cost': {'metal':30},
+        'cost': {'metal':70},
         'possibleStates': ['move'],
         'type': 'monster',
         'health': 6,
@@ -1120,7 +1123,7 @@ UnitDB = {
         }
     },
     'spider':{
-        'cost': {'energy':5},
+        'cost': {'metal':40,'energy':10},
         'possibleStates': ['move'],
         'health': 3,
         'abilities':{'deathSpawn':'mad spider'},
