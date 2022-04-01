@@ -10,7 +10,8 @@ from UnitDB import UnitDB
 g = None
 Grid = []
 
-buildBlackList = ["docks", "wall", 'rocket','radar tower']
+buildBlackList = ["wall", 'rocket','radar tower','medic']
+shoreBuildList = ["docks"]
 
 def optimizeResources(game, player):
     l = {}
@@ -60,7 +61,7 @@ def randomizeResources(game, player):
         u.state = "resources"
         u.stateData = random.choice(options)
 
-def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiecint
+def getRangeCircles(unit, anyBlock = False, built = False, shore = False):#Could be more effiecint
     sp = unit.range
     spaces = []
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
@@ -71,7 +72,14 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
                     if built:
                         t = UnitDB[built].get('type') or 0
                         if (water == (t == 'boat')) or t == "aircraft":
-                            spaces.append([x,y])
+                            if shore:
+                                for x2 in range(max(x-1,0),min(x+2,g.width)):
+                                    for y2 in range(max(y-1,0),min(y+2,g.height)):
+                                        if Grid[y2][x2]:
+                                            spaces.append([x,y])
+                                            break
+                            else:
+                                spaces.append([x,y])
                     else:
                         if anyBlock or (not water):
                             spaces.append([x,y])
@@ -165,7 +173,7 @@ def betterBuild(game, player):
                         good= False
                 if not good:
                     continue
-                buildHexes = getRangeCircles(u, built = built)
+                buildHexes = getRangeCircles(u, built = built, shore = built in shoreBuildList)
                 requirement = 1
                 t = UnitDB[built].get('type') or 0
                 if t == 'building':
@@ -178,7 +186,7 @@ def betterBuild(game, player):
                 built = random.choice(options)
                 if len(game.units[player]) == 1 and "construction worker" in UnitDB[u.name]['possibleBuilds']:
                     built = "construction worker"
-                buildHexes = getRangeCircles(u, built = built)
+                buildHexes = getRangeCircles(u, built = built, shore = built in shoreBuildList)
                 pos = random.choice(buildHexes)
                 u.stateData = [pos,built]
                 usedSpaces.append(pos)
@@ -199,11 +207,17 @@ def getMoveCircles(unit,usedSpaces = [], openSpaces = []):#Could be more effieci
                 for y in range(pos[1]-1, pos[1]+2):
                     if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<g.height and x<g.width:#If within board:
                         p = [x,y]
-                        if g.getAnyUnitFromPos(x,y) == None or (p in openSpaces):
+                        u2 = g.getAnyUnitFromPos(x,y)
+                        if u2 == None or (p in openSpaces):
                             water = Grid[y][x]
                             if (water == (unit.type == 'boat')) or unit.type == "aircraft":
                                 if not p in usedSpaces:
                                     newSpaces.append(p)
+                        if u2 and "transport" in u2.abilities:
+                            if unit.type in u2.abilities["transport"]:
+                                newSpaces.append(p)
+                                newSpaces.append(p)
+
         spaces += newSpaces
     spaces.pop(0)
     return spaces
@@ -225,6 +239,15 @@ def betterRandomMove(game, player,spaces):
                 u.state = "move"
                 u.stateData = random.choice(moveCircles)
                 print(player, 'moving to ', u.stateData)
+        if hasattr(u, "carrying"):
+            if len(u.carrying) > 0 and random.random() < 1:
+                u2 = random.choice(u.carrying)
+                buildHexes = getRangeCircles(u, built = u2.name)
+                if len(buildHexes) > 0:
+                    pos = random.choice(buildHexes)
+                    u.stateData = [pos,u2.name]
+                    u.state = "transport"
+
 
 def CurrentAI(game, player):
     betterActions(game, player)
