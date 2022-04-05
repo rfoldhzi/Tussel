@@ -35,7 +35,7 @@ UnitDB = {
     'rocket':{
         'cost': {'gold':60,'metal':40},
         'possibleStates': ['move','attack'],
-        'attack':3,
+        'attack':3.5,
         'range':2,
         'resourceGen':{"gold": 0},
         'abilities':{'onlyHit':['vehicle','aircraft']},
@@ -242,6 +242,16 @@ UnitDB = {
         'attack': 3,
         'range': 2,
         'health': 15,
+    },
+
+    'anti-air turret':{
+        'cost': {'metal':120, 'energy':60},
+        'possibleStates': ['attack'],
+        'type': 'building',
+        'attack': 4,
+        'range': 2,
+        'health': 15,
+	'abilities':{'onlyHit':['aircraft']},
     },
     'radar tower':{
         'cost': {'gold':10,'metal':30, 'energy':10},
@@ -497,6 +507,18 @@ UnitDB = {
             "gold": 10,
         }
     },
+    'ship yard':{
+        'cost': {'gold':150, 'metal':250},
+        'possibleBuilds': ['battleship', 'frigate', 'destroyer'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+	'population': 1,
+        'health': 20,
+        'defense':2.5,
+        'resourceGen':{
+            "metal": 10,
+        }
+    },
     'boat':{
         'cost': {'gold':20, 'metal':25},
         'possibleStates': ['move','attack'],
@@ -582,7 +604,7 @@ UnitDB = {
         'resourceGen':{"gold": 0}
     },
     'frigate':{
-        'cost': {'gold':75, 'metal':75,'energy':50},
+        'cost': {'gold':75, 'metal':100,'energy':50},
         'possibleStates': ['move','attack'],
         'type': 'boat',
 	'health': 20,
@@ -611,6 +633,16 @@ UnitDB = {
 	'range': 1,
         'attack': 4,
 	'defence': 3.5,
+        'resourceGen':{"gold": 0},
+    },
+    'cruiser':{
+        'cost': {'gold':200, 'metal':300,'energy':150},
+        'possibleStates': ['move','attack'],
+        'type': 'boat',
+	'health': 35,
+	'range': 2,
+        'attack': 4,
+	'defence': 4,
         'resourceGen':{"gold": 0},
     },
     'speed boat':{
@@ -1025,7 +1057,7 @@ UnitDB = {
     },
     'bot factory':{
         'cost': {'gold':0, 'metal':40, 'energy':40},
-        'possibleBuilds': ['bot', 'mech', 'bot engineer'],
+        'possibleBuilds': ['bot', 'mech', 'bot engineer', 'bot destroyer'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 17,
@@ -1035,6 +1067,17 @@ UnitDB = {
             "gold": 10,
             "metal": 30,
             "energy": 5
+        }
+    },
+    'bot destroyer':{
+        'cost': {'gold':0, 'metal':200, 'energy':200},
+        'possibleStates': ['move', 'attack'],
+        'type': 'aircraft',
+        'health': 25,
+	'attack': 3.5,
+	'defense': 3.5,
+        'resourceGen':{
+            "gold": 0
         }
     },
     #Plant Faction
@@ -1494,7 +1537,7 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['more','defensive recruitment'],
+        'unlocks': ['more','defensive recruitment', 'rockets'],
         'deny': ['offensive tactics'],
     },
     'more':{
@@ -1521,7 +1564,7 @@ TechDB = {
         'ability': [['typeStat', 'trooper', 'defense', 0.5]],
         'unlocks': ['commanding presence'],
     },
-    'anti air':{
+    'rockets':{
         'cost': 20,
         'time': 3,
         'ability': [['unlock build', 'barracks', 'rocket']],
@@ -1780,8 +1823,22 @@ TechDB = {
         'cost': 80,
         'time': 4,
         'ability': [['unlock build', 'docks', 'battleship']],
-        'unlocks': [],
+        'unlocks': ['ship yards'],
 	'quote': "Here come the big guns",
+    },
+    'ship yards':{
+        'cost': 100,
+        'time': 6,
+        'ability': [['unlock build', 'crane', 'ship yard']],
+        'unlocks': ['cruisers'],
+	'quote': "something something death star something something",
+    },
+    'cruisers':{
+        'cost': 120,
+        'time': 7,
+        'ability': [['unlock build', 'ship yard', 'cruiser']],
+        'unlocks': [],
+	'quote': "Cruising for a bruising",
     },
     'frigates':{
         'cost': 80,
@@ -1804,12 +1861,12 @@ TechDB = {
         'unlocks': ['mobile missile launch'],
 	'quote': "Heavy duty naval destroyers, not so good on the shore though",
     },
-    'mobiles missile launch':{
+    'mobile missile launch':{
         'cost': 80,
         'time': 6,
         'ability': [['unlock build', 'destroyer', 'missile']],
         'unlocks': [],
-	'quote': "Verticle launch platforms engage, nuke your enemies",
+	'quote': "Verticle launch platforms engage",
     },
 
 
@@ -2018,7 +2075,7 @@ TechDB = {
         'cost': 25,
         'time': 1,
         'ability': [],
-        'unlocks': ['stronger walls','double time','deflector shields','further dectection'],
+        'unlocks': ['stronger walls','double time','deflector shields','further dectection', 'anti-air],
     },
     'stronger walls':{
         'cost': 20,
@@ -2043,6 +2100,12 @@ TechDB = {
         'cost': 20,
         'time': 4,
         'ability': [['stat', 'radar tower', 'range', 1]],
+        'unlocks': [],
+    },
+    'anti-air':{
+        'cost': 30,
+        'time': 3,
+        'ability': [['unlock build', 'crane', 'anit-air turret']],
         'unlocks': [],
     },
 }
