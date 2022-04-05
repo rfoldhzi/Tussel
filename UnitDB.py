@@ -590,7 +590,7 @@ UnitDB = {
         'resourceGen':{
             "metal": 2
         }
-    }
+    },
     'sea mine':{
         'cost': {'metal':30, 'energy':5},
         'possibleStates': ['attack'],
@@ -2075,7 +2075,7 @@ TechDB = {
         'cost': 25,
         'time': 1,
         'ability': [],
-        'unlocks': ['stronger walls','double time','deflector shields','further dectection', 'anti-air],
+        'unlocks': ['stronger walls','double time','deflector shields','further dectection', 'anti-air'],
     },
     'stronger walls':{
         'cost': 20,
