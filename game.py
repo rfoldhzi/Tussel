@@ -567,6 +567,26 @@ class Game:
                 elif u.health > u.maxHealth:
                     u.health = u.maxHealth
         
+        for u in RemoveList: # Hunter Events (happens before destroy in case hunter is removed)
+            if u in hunterList: #For abilities that the hunters may have.
+                hunter = hunterList[u]
+                print('there is a hunter', hunter.name, hunter)
+                hunterPlayer = self.getPlayerfromUnit(hunter)
+                self.scores[hunterPlayer] += int(u.score/2)
+                
+                #"takeover" means a unit is built in dead unit's space
+                if 'takeover' in hunter.abilities:
+                    if checkRange(hunter,u) <= 1:
+                        hunter.state = 'build'
+                        hunter.stateData = [u.position,hunter.abilities['takeover']]
+                #"charge" means hunter moves into dead unit's space
+                elif 'charge' in hunter.abilities: 
+                    print('CHAAAARGEE')
+                    if checkRange(hunter,u) <= 1:
+                        print('It should work')
+                        hunter.state = 'move'
+                        hunter.stateData = u.position
+
         for u in RemoveList:#more destroy
             print(u, u.name, 'is destroyed')
             player = self.getPlayerfromUnit(u)
@@ -583,31 +603,9 @@ class Game:
                             if getattr(par,'maxPopulation',False): #Reduces population of parent
                                 par.population = max(0,par.population-1)
                     u.score += u2.score # Add transportee's score to transporter when transporter is removed
-            if u in hunterList: #For abilities that the hunters may have.
-                hunter = hunterList[u]
-                print('there is a hunter', hunter.name, hunter)
-                hunterPlayer = self.getPlayerfromUnit(hunter)
-                self.scores[hunterPlayer] += int(u.score/2)
-                
-
-                #"takeover" means a unit is built in dead unit's space
-                if 'takeover' in hunter.abilities:
-                    if checkRange(hunter,u) <= 1:
-                        hunter.state = 'build'
-                        hunter.stateData = [u.position,hunter.abilities['takeover']]
-                #"charge" means hunter moves into dead unit's space
-                elif 'charge' in hunter.abilities: 
-                    print('CHAAAARGEE')
-                    if checkRange(hunter,u) <= 1:
-                        print('It should work')
-                        hunter.state = 'move'
-                        hunter.stateData = u.position
-                #self.units[hunterList[u]].append(Unit(u.position,u.name))
-                #print("WHY DON'T I have RESOURCES", u.name, hunterList[u])
-                #self.resources[hunterList[u]]['gold'] += 500
-            
             self.scores[player] -= int(u.score/2)
             self.units[player].remove(u)
+        
         for i in self.units:#Turn off attack of dead targets
             for u in self.units[i]:
                 if u.state == "attack":
