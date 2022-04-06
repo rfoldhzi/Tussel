@@ -1461,12 +1461,14 @@ def drawBoard():
         #print("WENT", GV.game.went)
         #print(vars(GV.game))
 
+        #Render Turn Counter
         rect = GV.pygame.Rect(endOfBoard_x + 80,endOfBoard_y - 5,50,16)
         GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
         font = GV.pygame.font.SysFont("arial", 14)
         text = font.render(str(GV.game.turn), 1, (0,0,0))
         GV.DISPLAYSURF.blit(text, (endOfBoard_x + 80,endOfBoard_y - 5))
 
+        #Show Player colors in bottom right corner
         for i in GV.game.went:
             rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4), endOfBoard_y+12 + 10 * (i//4),8,8)
             GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
@@ -1474,6 +1476,36 @@ def drawBoard():
             if not GV.game.went[i]:
                 rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4) + 1, endOfBoard_y+12 + 10 * (i//4) + 1,6,6)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
+        
+        #RIGHT HERE
+        print("Rendering scores")
+        rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5,50,48)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, (70,70,70), rect)
+
+        sortedScores=dict(sorted(GV.game.scores.items(),key= lambda x:x[1],reverse = True))
+        playersByScore = list(sortedScores)
+        print("sortedScores",sortedScores)
+        print("playersByScore",playersByScore)
+
+        if GV.player in playersByScore[:3]:
+            playersByScore = playersByScore[:3]
+        else:
+            playersByScore = playersByScore[:2]
+            playersByScore.append(GV.player)
+        
+        i = 0
+        for p in playersByScore:
+            displayText = str(sortedScores[p])
+            color = GV.playerColors[p]
+            rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5 + 16 * i,8*len(displayText) + 4,16)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
+            text = font.render(displayText, 1, (WHITE))
+            if (0.2126*color[0] + 0.7152*color[1] + 0.0722*color[2]) >= 100:
+                text = font.render(displayText, 1, (BLACK))
+            GV.DISPLAYSURF.blit(text, (endOfBoard_x - 50,endOfBoard_y + 5 + 16 * i))
+            i += 1
+
+        
         #print('selected',selected)
         #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
@@ -1584,12 +1616,12 @@ def resources():
             if u.stateData and type(u.stateData) == str and u.stateData in res:
                 res[u.stateData] += u.resourceGen[u.stateData]
     newResources = res
-    #rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
-    rect = GV.pygame.Rect(2,WINDOWHEIGHT-67, 80,65)#428
+    rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    #rect = GV.pygame.Rect(2,WINDOWHEIGHT-67, 80,65)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
-    text = Healthfont.render(str(GV.game.scores[GV.player]), 1, (255,255,255))
-    GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-65))#430
+    #text = Healthfont.render(str(GV.game.scores[GV.player]), 1, (255,255,255))
+    #GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-65))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['gold']), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['metal']), res['metal']), 1, (255,255,255))
