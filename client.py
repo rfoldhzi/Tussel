@@ -1460,11 +1460,19 @@ def drawBoard():
         #print('We are here we are here we are here')
         #print("WENT", GV.game.went)
         #print(vars(GV.game))
+
+        rect = GV.pygame.Rect(endOfBoard_x + 80,endOfBoard_y - 5,50,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
+        font = GV.pygame.font.SysFont("arial", 14)
+        text = font.render(str(GV.game.turn), 1, (0,0,0))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x + 80,endOfBoard_y - 5))
+
         for i in GV.game.went:
             rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4), endOfBoard_y+12 + 10 * (i//4),8,8)
-            if GV.game.went[i]:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
-            else:
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
+            
+            if not GV.game.went[i]:
+                rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4) + 1, endOfBoard_y+12 + 10 * (i//4) + 1,6,6)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
         #print('selected',selected)
         #print('stateDataMode',stateDataMode)
