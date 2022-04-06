@@ -1461,7 +1461,7 @@ def drawBoard():
         #print("WENT", GV.game.went)
         #print(vars(GV.game))
         for i in GV.game.went:
-            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
+            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4), endOfBoard_y+12 + 10 * (i//4),8,8)
             if GV.game.went[i]:
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
             else:

@@ -164,6 +164,7 @@ class Game:
         self.tech = {}
         self.scores = {}
         self.progress = {}
+        self.botmode = []
         self.ready = False
         self.started = False
         self.turn = 0
@@ -281,6 +282,10 @@ class Game:
         #SON = json.loads(ZIP)
         return str.encode(ZIP)
     
+    def turnToBot(self,player):
+        self.botmode.append(player)
+        self.went[player] = True
+
     #Finds the unit that a player owns at a specified position
     def getUnitFromPos(self,player,x,y):
         post = [x,y]
@@ -498,6 +503,9 @@ class Game:
         for v in AI:
             Computer.CurrentAI(self,v)
             self.went[v] = True
+        for player in self.botmode:
+            Computer.CurrentAI(self,player)
+            self.went[player] = True
         setDefaultState(self)
         
         #Gain resources
