@@ -309,20 +309,38 @@ def getMoveCircles(unit):#Could be more effiecint
                 for x in range(pos[0]-1, pos[0]+2):
                     for y in range(pos[1]-1, pos[1]+2):
                         if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                            if GV.game.getAnyUnitFromPos(x,y) == None:
-                                water = GV.Grid[y][x]
-                                if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                                    newSpaces.append([x,y])
+                            blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                            if blocking_unit != None:
+                                if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                                    if blocking_unit.state == "move":
+                                        if blocking_unit.stateData == pos:
+                                            continue
+                                    else:
+                                        continue
+                                else:
+                                    continue
+                            water = GV.Grid[y][x]
+                            if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                                newSpaces.append([x,y])
             spaces += newSpaces
         spaces.pop(0)
     else:
         for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
                 if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                    if GV.game.getAnyUnitFromPos(x,y) == None:
-                        water = GV.Grid[y][x]
-                        if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                            spaces.append([x,y])
+                    blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                    if blocking_unit != None:
+                        if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                            if blocking_unit.state == "move":
+                                if blocking_unit.stateData == pos:
+                                    continue
+                            else:
+                                continue
+                        else:
+                            continue
+                    water = GV.Grid[y][x]
+                    if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                        spaces.append([x,y])
     
     return spaces
 
@@ -351,7 +369,13 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
+                unit2 = None
+                if not anyBlock:
+                    unit2 = GV.game.getAnyUnitFromPos(x,y)
+                    if unit2 and unit2.state == "move":
+                        if GV.game.checkFriendly(unit, unit2):
+                            unit2 = None
+                if anyBlock or unit2 == None:
                     water = GV.Grid[y][x]
                     if built:
                         t = UnitDB[built].get('type') or 0
