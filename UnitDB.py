@@ -56,6 +56,21 @@ UnitDB = {
         'possibleStates': ['move','attack'],
         'abilities':{'buff':['attack', 1.5]},
     },
+    'commander':{
+        'cost': {'gold':300},
+        'possibleStates': ['move','attack'],
+        'abilities':{'buff':['defense', 1.5]},
+    },
+    'scientist':{
+        'cost': {'gold':70,'energy':70},
+        'possibleStates': ['move','resources','research'],
+        'type': 'trooper',
+        'health': 5,
+	'defense': 1
+        'resourceGen':{
+            "energy": 5
+        }
+    },
     'bot':{
         'cost': {'metal':25,'energy':5},
         'type': 'bot',
@@ -404,6 +419,28 @@ UnitDB = {
         'resourceGen':{"gold": 0},
         'abilities':{'onlyHit':['building']},
     },
+    'infantry support tank':{
+        'cost': {'gold':100, 'metal':80, 'energy':40},
+        'possibleStates': ['move','attack'],
+        'type': 'vehicle',
+        'health':20,
+        'attack':3.5,
+        'range':1,
+        'defense':3,
+        'resourceGen':{"gold": 0},
+        'abilities':{'onlyHit':['tropper', 'bot']},
+    },
+    'tank destroyer':{
+        'cost': {'gold':100, 'metal':180, 'energy':20},
+        'possibleStates': ['move','attack'],
+        'type': 'vehicle',
+        'health':25,
+        'attack':3.5,
+        'range':3,
+        'defense':3,
+        'resourceGen':{"gold": 0},
+        'abilities':{'onlyHit':['vehicle']},
+    },
     'jeep':{
         'cost': {'gold':20, 'metal':40, 'energy':20},
         'possibleStates': ['move','attack','transport'],
@@ -411,6 +448,18 @@ UnitDB = {
         'speed':2,
         'health':12,
         'population':1,
+        'abilities':{'transport':['trooper']},
+        'resourceGen':{"gold": 0}
+    },
+    'humvee':{
+        'cost': {'gold':40, 'metal':80, 'energy':20},
+        'possibleStates': ['move','attack','transport'],
+        'type': 'vehicle',
+        'speed':2,
+        'health':17,
+	'attack': 3,
+	'defense': 3,
+        'population':2,
         'abilities':{'transport':['trooper']},
         'resourceGen':{"gold": 0}
     },
@@ -423,8 +472,8 @@ UnitDB = {
         'defense': 3,
         'population':3,
         'resourceGen':{
-            "gold": 20,
-            "metal": 40,
+            "gold": 10,
+            "metal": 20,
             "energy": 0
         }
     },
@@ -474,6 +523,17 @@ UnitDB = {
         'abilities':{'transport':['trooper','bot','vehicle']},
         'resourceGen':{"gold": 0}
     },
+    'attack helicopter':{
+        'cost': {'gold':120, 'metal':120, 'energy':20},
+        'possibleStates': ['move','attack','transport'],
+        'type': 'aircraft',
+        'speed':2,
+        'defense':2,
+        'attack':3.5,
+        'population':1,
+        'abilities':{'transport':['trooper','bot']},
+        'resourceGen':{"gold": 0}
+    },
     'bomber':{
         'cost': {'gold':100, 'metal':150, 'energy':50},
         'possibleStates': ['move','attack'],
@@ -496,6 +556,18 @@ UnitDB = {
         'resourceGen':{"gold": 0},
         'abilities':{'onlyHit':['boat','aircraft']},
     },
+    'interceptor':{
+        'cost': {'gold':80, 'metal':50, 'energy':50},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':9,
+        'speed':3,
+        'range':2,
+        'defense':1.5,
+        'attack':3.5,
+        'resourceGen':{"gold": 0},
+        'abilities':{'onlyHit':['aircraft']},
+    },
     'docks':{
         'cost': {'gold':50, 'metal':100},
         'possibleBuilds': ['boat', 'transport boat'],
@@ -517,6 +589,20 @@ UnitDB = {
         'defense':2.5,
         'resourceGen':{
             "metal": 10,
+        }
+    },
+    'naval defense platform':{
+        'cost': {'gold':150 ,'metal':200, 'energy':50},
+        'possibleStates': ['attack','build'],
+        'possibleBuilds': ['mine layer, speed boat'],
+        'type': 'building',
+        'attack': 3.5,
+        'defense': 3,
+        'range': 2,
+        'health': 25,
+        'abilities':{'onlyHit':['boat','aircraft']},
+        'resourceGen':{
+            "metal": 8,
         }
     },
     'boat':{
@@ -600,7 +686,7 @@ UnitDB = {
         'range':1,
         'attack':3.5,
         'defense':1,
-        'abilities':{'kamikaze':0},
+        'abilities':{'kamikaze':0, 'onlyHit':['boat']},
         'resourceGen':{"gold": 0}
     },
     'frigate':{
@@ -1537,19 +1623,25 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['more','defensive recruitment', 'rockets'],
+        'unlocks': ['tougher', 'defenders'],
         'deny': ['offensive tactics'],
     },
     'more':{
         'cost': 20,
         'time': 2,
         'ability': [['stat', 'barracks', 'maxPopulation', 1]],
-        'unlocks': ['tougher','defenders'],
+        'unlocks': [],
     },
     'defenders':{
         'cost': 20,
         'time': 1,
         'ability': [['unlock build', 'barracks', 'defender']],
+        'unlocks': ['riot shields', 'rockets'],
+    },
+    'riot shields':{
+        'cost': 40,
+        'time': 2,
+        'ability': [['stat', 'defender', 'defense', 0.5]],
         'unlocks': ['blockade'],
     },
     'blockade':{
@@ -1562,25 +1654,31 @@ TechDB = {
         'cost': 20,
         'time': 4,
         'ability': [['typeStat', 'trooper', 'defense', 0.5]],
-        'unlocks': ['commanding presence'],
+        'unlocks': ['more', 'defensive recruitment'],
     },
     'rockets':{
         'cost': 20,
         'time': 3,
         'ability': [['unlock build', 'barracks', 'rocket']],
-        'unlocks': [],
+        'unlocks': ['target lock', 'commanding presence'],
+    },
+    'target lock':{
+        'cost': 40,
+        'time': 2,
+        'ability': [['stat', 'rocket', 'attack', 0.5]],
+        'unlocks': ['blockade'],
     },
     'commanding presence':{
         'cost': 50,
         'time': 5,
-        'ability': [['unlock build', 'barracks', 'general']],
+        'ability': [['unlock build', 'barracks', 'commander']],
         'unlocks': [],
     },
     'defensive recruitment':{
         'cost': 20,
         'time': 2,
         'ability': [['stat', 'recruited soldier', 'defense', 0.5]],
-        'unlocks': ['reserves'],
+        'unlocks': [],
     },
     'reserves':{
         'cost': 20,
@@ -1592,31 +1690,61 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['charge', 'brute force', 'ranged support'],
+        'unlocks': ['stronger soldiers', 'brute force'],
         'deny': ['defensive tactics'],
     },
     'brute force':{
         'cost': 30,
         'time': 1,
         'ability': [['unlock build', 'barracks', 'brute']],
-        'unlocks': [],
+        'unlocks': ['ranged support', 'blinding rage'],
     },
     'ranged support':{
         'cost': 30,
         'time': 3,
         'ability': [['unlock build', 'barracks', 'sniper']],
-        'unlocks': [],
+        'unlocks': ['head hunter', 'offensive coridnation'],
     },
     'charge':{
         'cost': 50,
         'time': 6,
         'ability': [['typeAbility', 'trooper', 'charge', 0]],
-        'unlocks': ['stronger soldiers'],
+        'unlocks': [],
     },
     'stronger soldiers':{
         'cost': 50,
         'time': 8,
         'ability': [['typeStat', 'trooper', 'attack', 0.5]],
+        'unlocks': ['charge', 'offensive recruitment'],
+    },
+    'offensive recruitment':{
+        'cost': 20,
+        'time': 2,
+        'ability': [['stat', 'recruited soldier', 'attack', 0.5]],
+        'unlocks': [],
+    },
+    'blinding rage':{
+        'cost': 40,
+        'time': 2,
+        'ability': [['stat', 'brute', 'attack', 0.5]],
+        'unlocks': ['raw strength'],
+    },
+    'raw strength':{
+        'cost': 60,
+        'time': 2,
+        'ability': [['stat', 'brute', 'health', 5]],
+        'unlocks': [],
+    },
+    'head hunter':{
+        'cost': 60,
+        'time': 3,
+        'ability': [['stat', 'sniper', 'attck', 0.5]],
+        'unlocks': [],
+    },
+    'offensive coridnation':{
+        'cost': 50,
+        'time': 5,
+        'ability': [['unlock build', 'barracks', 'general']],
         'unlocks': [],
     },
     
