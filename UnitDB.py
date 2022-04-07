@@ -1845,7 +1845,7 @@ TechDB = {
         'cost': 20,
         'time': 1,
         'ability': [],
-        'unlocks': ['floating fortress','backup navy', 'thicker hulls', 'mine layers'],
+        'unlocks': ['backup navy', 'thicker hulls', 'mine layers', 'frigates'],
 	'deny': ['taking their shores'],
 	'quote': "Don't want no tragedy of the commons",
     },
@@ -1853,7 +1853,7 @@ TechDB = {
         'cost': 20,
         'time': 2,
         'ability': [['unlock build', 'docks', 'floating fortress']],
-        'unlocks': ['greater yield'],
+        'unlocks': ['greater yield', 'point defense systems'],
 	'quote': "It's like a whole moving dock.",
     },
     'greater yield':{
@@ -1888,14 +1888,14 @@ TechDB = {
         'cost': 20,
         'time': 2,
         'ability': [['unlock build', 'docks', 'seige boat']],
-        'unlocks': [],
+        'unlocks': ['heavy deployment'],
 	'quote': "D-day intensifies",
     },
     'thicker hulls':{
         'cost': 40,
         'time': 3,
         'ability': [['typeStat', 'boat', 'defense', 0.5]],
-        'unlocks': ['point defense systems', 'heavy duty defence'],
+        'unlocks': ['heavy duty defence'],
 	'quote': "Barely afloat but hard to kill",
     },
     'heavy duty shells':{
@@ -1937,7 +1937,7 @@ TechDB = {
         'cost': 40,
         'time': 3,
         'ability': [['stat', 'boat', 'defence', 0.5]],
-        'unlocks': ['warships', 'frigates'],
+        'unlocks': ['floating fortress'],
 	'quote': "Impossible to kill",
     },
     'heavy duty offence':{
