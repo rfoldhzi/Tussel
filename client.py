@@ -1268,6 +1268,44 @@ def drawLines(tree, treeXOffset, treeYOffset):
         d[key[1]].append(key[0])
     drawLinesHelper(tree, d,treeXOffset, treeYOffset)
 
+def ScoreBoard():
+    font = GV.pygame.font.SysFont("arial", 14)
+
+    sortedScores=dict(sorted(GV.game.scores.items(),key= lambda x:x[1],reverse = True))
+    playersByScore = list(sortedScores)
+
+    startingY = endOfBoard_y + 5
+
+    rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5,50,48)
+
+    pressed = GV.pygame.key.get_pressed()
+    if pressed[GV.pygame.K_TAB]:
+        startingY = endOfBoard_y + 5 - 16 * (max(3,len(playersByScore)-3))
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY,50, 16 * (max(3,len(playersByScore))))
+    else:
+        rect2 = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y,50, 53)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect2)
+
+        if GV.player in playersByScore[:3]:
+            playersByScore = playersByScore[:3]
+        else:
+            playersByScore = playersByScore[:2]
+            playersByScore.append(GV.player)
+    
+    GV.pygame.draw.rect(GV.DISPLAYSURF, (70,70,70), rect)
+    
+    i = 0
+    for p in playersByScore:
+        displayText = str(sortedScores[p])
+        color = GV.playerColors[p]
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY + 16 * i,8*len(displayText) + 4,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
+        text = font.render(displayText, 1, (WHITE))
+        if (0.2126*color[0] + 0.7152*color[1] + 0.0722*color[2]) >= 100:
+            text = font.render(displayText, 1, (BLACK))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x - 50,startingY + 16 * i))
+        i += 1
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -1477,33 +1515,7 @@ def drawBoard():
                 rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4) + 1, endOfBoard_y+12 + 10 * (i//4) + 1,6,6)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
         
-        #RIGHT HERE
-        print("Rendering scores")
-        rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5,50,48)
-        GV.pygame.draw.rect(GV.DISPLAYSURF, (70,70,70), rect)
-
-        sortedScores=dict(sorted(GV.game.scores.items(),key= lambda x:x[1],reverse = True))
-        playersByScore = list(sortedScores)
-        print("sortedScores",sortedScores)
-        print("playersByScore",playersByScore)
-
-        if GV.player in playersByScore[:3]:
-            playersByScore = playersByScore[:3]
-        else:
-            playersByScore = playersByScore[:2]
-            playersByScore.append(GV.player)
         
-        i = 0
-        for p in playersByScore:
-            displayText = str(sortedScores[p])
-            color = GV.playerColors[p]
-            rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5 + 16 * i,8*len(displayText) + 4,16)
-            GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
-            text = font.render(displayText, 1, (WHITE))
-            if (0.2126*color[0] + 0.7152*color[1] + 0.0722*color[2]) >= 100:
-                text = font.render(displayText, 1, (BLACK))
-            GV.DISPLAYSURF.blit(text, (endOfBoard_x - 50,endOfBoard_y + 5 + 16 * i))
-            i += 1
 
         
         #print('selected',selected)
@@ -1594,6 +1606,8 @@ def drawBoard():
                 #GV.DISPLAYSURF.blit(Beaker,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         BF.updateCloudCover()
         BF.drawClouds()
+
+        ScoreBoard()
     else:
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
