@@ -88,7 +88,7 @@ def drawGrid():
 def drawAnimateGrid():
     for y in range(GV.board_y_start, GV.board_y_end):
         for x in range(GV.board_x_start, GV.board_x_end):
-            if GV.animateGrid[y][x]:
+            if GV.animateGrid[x][y]:
                 pass
             else:
                 color = GV.BoardColors[(y*GV.board_x) + x]
@@ -154,7 +154,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
     x = unit.position[0]
     y = unit.position[1]
     image = None
-    if GV.animateGrid[y][x]:
+    if GV.animateGrid[x][y]:
         return
 
     if x < GV.board_x_start or GV.board_x_end <= x or y < GV.board_y_start or GV.board_y_end <= y:

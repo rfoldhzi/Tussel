@@ -1,4 +1,5 @@
 import random, math,os,sys
+from tkinter.tix import Y_REGION
 from PIL import Image
 #os.chdir(os.path.dirname(sys.argv[0]))
 
@@ -332,10 +333,10 @@ def generateMapFromImage(MAP):
     width = im.size[0]
     height = im.size[1]
     grid = []
-    for x in range(width):
+    for y in range(height):
         l = []
-        for y in range(height):
-            pixel = pix[y,x]
+        for x in range(width):
+            pixel = pix[x,y]
             if pixel == (0,0,255,255):
                 l.append(True)
             else:
@@ -364,15 +365,15 @@ def findStartSpotsFromMap(MAP):
     
     for x in range(width):
         for y in range(height):
-            pixel = pix[y,x]
+            pixel = pix[x,y]
             if pixel == (255,0,0,255):
-                startSpots.append([y,x])
+                startSpots.append([x,y])
     #For Bots
     for x in range(width):
         for y in range(height):
-            pixel = pix[y,x]
+            pixel = pix[x,y]
             if pixel == (255,255,255,255):
-                startSpots.append([y,x])
+                startSpots.append([x,y])
 
     print("START SPOTS", startSpots)
     return startSpots
@@ -386,7 +387,7 @@ def getAICountFromMap(MAP):
     AICount = 0
     for x in range(width):
         for y in range(height):
-            pixel = pix[y,x]
+            pixel = pix[x,y]
             if pixel == (255,255,255,255):
                 AICount += 1
     return AICount
@@ -400,7 +401,7 @@ def getPlayerCountFromMap(MAP):
     PlayerCount = 0
     for x in range(width):
         for y in range(height):
-            pixel = pix[y,x]
+            pixel = pix[x,y]
             if pixel == (255,0,0,255):
                 PlayerCount += 1
     return PlayerCount

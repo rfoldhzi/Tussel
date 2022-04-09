@@ -8,8 +8,8 @@ UnitDB = {
         'defense':1
     },
     'heavy':{
-        'cost': {'gold':40,'metal':10},
-        'health': 15,
+        'cost': {'gold':50,'metal':25},
+        'health': 12,
         'attack':3,
         'resourceGen':{
             "gold": 8,
@@ -79,7 +79,7 @@ UnitDB = {
         }
     },
     'mech':{
-        'cost': {'gold':20,'metal':40,'energy':10},
+        'cost': {'gold':20,'metal':80,'energy':10},
         'possibleBuilds': ['minibot'],
         'possibleStates': ['move','attack','resources', 'build'],
         'type': 'vehicle',
@@ -87,8 +87,8 @@ UnitDB = {
         'defense': 3,
         'population':2,
         'resourceGen':{
-            "gold": 5,
-            "metal": 7,
+            "gold": 4,
+            "metal": 5,
             "energy": 0
         }
     },
@@ -99,6 +99,7 @@ UnitDB = {
         'type': 'building',
         'health': 50,
         'population':4,
+        'abilities':{'costly':1.75},
         'resourceGen':{
             "gold": 10,
             "metal": 10,
@@ -113,6 +114,7 @@ UnitDB = {
         'type': 'building',
         'health': 75,
         'population':5,
+        'abilities':{'costly':2},
         'resourceGen':{
             "gold": 25,
             "metal": 25,
@@ -127,6 +129,7 @@ UnitDB = {
         'type': 'building',
         'health': 30,
         'population':5,
+        'abilities':{'costly':1.5},
         'resourceGen':{
             "gold": 10,
             "metal": 10,
@@ -152,12 +155,12 @@ UnitDB = {
         'defense':3,
         'resourceGen':{
             "gold": 0,
-            "metal": 10,
+            "metal": 8,
             "energy": 0
         }
     },
     'mechanic':{
-        'cost': {'gold':40, 'energy':5},
+        'cost': {'gold':60, 'energy':5},
         'possibleBuilds': ['bot'],
         'possibleStates': ['move','resources', 'build', 'heal'],
         'population':2,
@@ -197,7 +200,8 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense': 1,
-        'abilities':{'buff':['production',['mine'], 1.5]},
+        'abilities':{'buff':['production',['mine'], 1.5],
+                     'costly':1.75},
         'resourceGen':{
             "gold": 0
         }
@@ -208,7 +212,8 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense': 1,
-        'abilities':{'buff':['production',['power plant', 'nuclear plant'], 1.5]},
+        'abilities':{'buff':['production',['power plant', 'nuclear plant'], 1.5],
+                     'costly':1.75},
         'resourceGen':{
             "gold": 0
         }
@@ -219,7 +224,8 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense': 1,
-        'abilities':{'buff':['production',['factory'], 1.5]},
+        'abilities':{'buff':['production',['factory'], 1.5],
+                     'costly':1.75},
         'resourceGen':{
             "gold": 0
         }
@@ -229,8 +235,8 @@ UnitDB = {
         'possibleStates': ['none'],
         'type': 'building',
         'health': 15,
-        'defense': 2,
-        'abilities':{'buff':['defense', 1.5]},
+        'defense': 0.5,
+        'abilities':{'buff':['defense', 2]},
         'resourceGen':{
             "gold": 0,
         }
@@ -283,7 +289,7 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense': 1,
-        'abilities':{'costly':1.25},
+        'abilities':{'costly':1.5},
         'resourceGen':{
             "gold": 10,
             "metal": 0,
@@ -296,7 +302,7 @@ UnitDB = {
         'type': 'building',
         'health': 20,
         'defense': 1,
-        'abilities':{'costly':1.25},
+        'abilities':{'costly':1.75},
         'resourceGen':{
             "gold": 10,
             "metal": 0,
@@ -323,6 +329,7 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense': 1,
+        'abilities':{'costly':1.3},
         'resourceGen':{
             "gold": 0,
             "metal": 8,
@@ -350,6 +357,7 @@ UnitDB = {
         'possibleStates': ['build'],
         'type': 'building',
         'health': 15,
+        'abilities':{'costly':1.2},
         'resourceGen':{
             "gold": 0,
         }
@@ -361,6 +369,7 @@ UnitDB = {
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 20,
+        'abilities':{'costly':1.5},
         'resourceGen':{
             "gold": 0,
             "metal": 10,
@@ -425,6 +434,7 @@ UnitDB = {
         'possibleStates': ['resources', 'build'],
         'type': 'building',
         'health': 15,
+        'abilities':{'costly':1.25},
         'resourceGen':{
             "metal": 20,
         }
@@ -441,7 +451,7 @@ UnitDB = {
         'resourceGen':{"gold": 0}
     },
     'helicopter':{
-        'cost': {'gold':50, 'metal':50, 'energy':20},
+        'cost': {'gold':100, 'metal':50, 'energy':20},
         #'possibleBuilds': ['soldier','construction worker'],
         'possibleStates': ['move','attack','transport'],
         'type': 'aircraft',
@@ -493,6 +503,7 @@ UnitDB = {
         'type': 'building',
         'health': 15,
         'defense':1,
+        'abilities':{'costly':1.2},
         'resourceGen':{
             "gold": 10,
         }
@@ -510,7 +521,7 @@ UnitDB = {
         'type': 'boat',
         'population':2,
         'abilities':{'transport':['trooper','bot']},
-        'resourceGen':{"gold": 10}
+        'resourceGen':{"gold": 2}
     },
     'aircraft carrier':{
         'cost': {'gold':50, 'metal':300},
@@ -608,6 +619,7 @@ UnitDB = {
         'health':15,
         'type': 'building',
         'population':2,
+        'abilities':{'costly':1.4},
         'resourceGen':{
             "energy": 10
         }
@@ -620,6 +632,7 @@ UnitDB = {
         'type': 'building',
         'defense': 1,
         'population':2,
+        'abilities':{'costly':1.5},
         'resourceGen':{
             "energy": 40
         }
@@ -663,6 +676,7 @@ UnitDB = {
         'type': 'building',
         'health':20,
         'population':1,
+        'abilities':{'costly':2},
         'resourceGen':{
             "gold": 0
         }
@@ -778,7 +792,7 @@ UnitDB = {
         }
     },
     'defense platform':{
-        'cost': {'gold':50 ,'metal':100, 'energy':100},
+        'cost': {'gold':50 ,'metal':150, 'energy':150},
         'possibleStates': ['attack','build'],
         'possibleBuilds': [],
         'type': 'building',
@@ -786,6 +800,7 @@ UnitDB = {
         'defense': 3,
         'range': 2,
         'health': 20,
+        'abilities':{'costly':1.2},
         'resourceGen':{"gold": 0}
     },
     'missile':{
@@ -971,6 +986,177 @@ UnitDB = {
             "energy": 5
         }
     },
+    #Plant Faction
+    'plant base':{
+        'cost': {'energy':200},
+        'possibleBuilds': ['walking roots'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 8,
+        'population':3,
+        'abilities':{'deathSpawn':'mad plant base'},
+        'resourceGen':{
+            "energy": 10
+        }
+    },
+    'mad plant base':{
+        'cost': {'gold':0},
+        'possibleBuilds': ['seed'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 16,
+        'range': 4,
+        'population':8,
+        'abilities':{'multibuild':1},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'seed':{
+        'cost': {'energy':0},
+        'possibleBuilds': ['plant base'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 2,
+        'population': 1,
+        'abilities':{'deathSpawn':'mad seed',
+                     'decay':1},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'mad seed':{
+        'cost': {'energy':0},
+        'possibleBuilds': ['plant base'],
+        'possibleStates': ['move','build'],
+        'type': 'building',
+        'health': 2,
+        'speed': 2,
+        'abilities':{'decay':1},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'walking roots':{
+        'cost': {'energy':10},
+        'possibleBuilds': ['flower', 'plant house'],
+        'possibleStates': ['move', 'resources', 'build'],
+        'health': 5,
+        'range': 2,
+        'population':2,
+        'abilities':{'deathSpawn':'mad walking roots'},
+        'resourceGen':{
+            "gold": 20,
+            "metal": 20,
+            "energy": 0
+        }
+    },
+    'mad walking roots':{
+        'cost': {'gold':0},
+        'possibleStates': ['move', 'attack'],
+        'population':3,
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+    'flower':{
+        'cost': {'gold':15},
+        'possibleStates': ['resources'],
+        'type': 'building',
+        'health': 4,
+        'abilities':{'deathSpawn':'mad flower'},
+        'resourceGen':{
+            "metal": 1
+        }
+    },
+    'mad flower':{
+        'cost': {'gold':0},
+        'possibleStates': ['attack'],
+        'type': 'building',
+    },
+    'plant house':{
+        'cost': {'metal':30},
+        'possibleBuilds': ['phydent', 'jellyfish'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 6,
+        'population':2,
+        'abilities':{'deathSpawn':'mad plant house'},
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'mad plant house':{
+        'cost': {'metal':0},
+        'possibleBuilds': ['spider'],
+        'possibleStates': ['build'],
+        'type': 'building',
+        'health': 8,
+        'population':2,
+        'resourceGen':{
+            "energy": 0
+        }
+    },
+    'phydent':{
+        'cost': {'metal':70},
+        'possibleStates': ['move'],
+        'type': 'monster',
+        'health': 6,
+        'abilities':{'deathSpawn':'mad phydent'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad phydent':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'type': 'monster',
+        'health': 18,
+        'attack': 3,
+        'defense': 3,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'jellyfish':{
+        'cost': {'gold':30},
+        'possibleStates': ['move'],
+        'type': 'boat',
+        'health': 6,
+        'abilities':{'deathSpawn':'mad jellyfish'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad jellyfish':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'type': 'boat',
+        'health': 12,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'spider':{
+        'cost': {'metal':40,'energy':10},
+        'possibleStates': ['move'],
+        'health': 3,
+        'abilities':{'deathSpawn':'mad spider'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'mad spider':{
+        'cost': {'metal':0},
+        'possibleStates': ['move', 'attack'],
+        'health': 7,
+        'attack': 3.5,
+        'defense': 1,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    
 }
 
 TechDB = {
@@ -1475,19 +1661,19 @@ TechDB = {
     },
     'helicopter':{
         'cost': 40,
-        'time': 2,
+        'time': 5,
         'ability': [['unlock build', 'airport', 'helicopter']],
         'unlocks': ['heavy lifting'],
     },
     'heavy lifting':{
-        'cost': 30,
-        'time': 3,
+        'cost': 50,
+        'time': 5,
         'ability': [['stat', 'helicopter', 'maxPopulation', 1]],
         'unlocks': ['chinook'],
     },
     'chinook':{
         'cost': 100,
-        'time': 5,
+        'time': 7,
         'ability': [['unlock build', 'airport', 'chinook']],
         'unlocks': [],
     },
@@ -1505,7 +1691,7 @@ TechDB = {
     },
     'copter launch':{
         'cost': 40,
-        'time': 1,
+        'time': 5,
         'ability': [['unlock build', 'aircraft carrier', 'helicopter']],
         'unlocks': [],
     },
