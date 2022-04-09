@@ -66,7 +66,7 @@ UnitDB = {
         'possibleStates': ['move','resources','research'],
         'type': 'trooper',
         'health': 5,
-	'defense': 1
+	'defense': 1,
         'resourceGen':{
             "energy": 5
         }
@@ -99,7 +99,7 @@ UnitDB = {
         'possibleStates': ['move','attack','resources', 'build'],
         'type': 'bot',
         'health': 15,
-	'attacl': 2.5
+	'attack': 2.5,
         'defense': 3.5,
         'population':2,
         'resourceGen':{
@@ -274,7 +274,7 @@ UnitDB = {
         'health': 15,
     },
 
-    'anti-air turret':{
+    'anti air turret':{
         'cost': {'metal':120, 'energy':60},
         'possibleStates': ['attack'],
         'type': 'building',
@@ -711,7 +711,7 @@ UnitDB = {
 	'health': 20,
 	'range': 2,
         'attack': 3,
-	'defence': 3,
+	'defense': 3,
         'resourceGen':{"gold": 0},
         'abilities':{'onlyHit':['boat','aircraft']},
     },
@@ -722,7 +722,7 @@ UnitDB = {
 	'health': 25,
 	'range': 2,
         'attack': 3,
-	'defence': 3.5,
+	'defense': 3.5,
         'resourceGen':{"gold": 0},
         'abilities':{'onlyHit':['boat','aircraft']},
     },
@@ -733,7 +733,7 @@ UnitDB = {
 	'health': 30,
 	'range': 1,
         'attack': 4,
-	'defence': 3.5,
+	'defense': 3.5,
         'resourceGen':{"gold": 0},
     },
     'cruiser':{
@@ -743,7 +743,7 @@ UnitDB = {
 	'health': 35,
 	'range': 2,
         'attack': 4,
-	'defence': 4,
+	'defense': 4,
         'resourceGen':{"gold": 0},
     },
     'speed boat':{
@@ -754,7 +754,7 @@ UnitDB = {
 	'speed': 2,
 	'range': 1,
         'attack': 2,
-	'defence': 1.5,
+	'defense': 1.5,
         'resourceGen':{"gold": 0},
     },
     
@@ -895,7 +895,7 @@ UnitDB = {
         'attack':0.5,
         'defense':4.5,
         'range':2,
-	'population':10
+	'population':10,
 	'abilities':{'multibuild':3},
         'resourceGen':{
             "gold": 0,
@@ -2004,14 +2004,14 @@ TechDB = {
         'cost': 40,
         'time': 3,
         'ability': [['typeStat', 'boat', 'defense', 0.5]],
-        'unlocks': ['heavy duty defence'],
+        'unlocks': ['heavy duty defense'],
 	'quote': "Barely afloat but hard to kill",
     },
     'heavy duty shells':{
         'cost': 40,
         'time': 3,
         'ability': [['typeStat', 'boat', 'attack', 0.5]],
-        'unlocks': ['heavy deployment', 'heavy duty offence'],
+        'unlocks': ['heavy deployment', 'heavy duty offense'],
 	'quote': "Big bullets leave big wounds",
     },
     'point defense systems':{
@@ -2042,14 +2042,14 @@ TechDB = {
         'unlocks': [],
 	'quote': "going for a joy ride",
     },
-    'heavy duty defence':{
+    'heavy duty defense':{
         'cost': 40,
         'time': 3,
-        'ability': [['stat', 'boat', 'defence', 0.5]],
-        'unlocks': ['floating fortress'],
+        'ability': [['stat', 'boat', 'defense', 0.5]],
+        'unlocks': ['floating fortress', 'naval defense'],
 	'quote': "Impossible to kill",
     },
-    'heavy duty offence':{
+    'heavy duty offense':{
         'cost': 40,
         'time': 3,
         'ability': [['stat', 'boat', 'attack', 0.5]],
@@ -2070,6 +2070,20 @@ TechDB = {
         'unlocks': ['cruisers'],
 	'quote': "something something death star something something",
     },
+    'naval defense':{
+        'cost': 80,
+        'time': 4,
+        'ability': [['unlock build', 'crane', 'naval defense platform']],
+        'unlocks': ['coast guard'],
+	'quote': "Through surf and storm and howling gale.",
+    },
+    'coast guard':{
+        'cost': 80,
+        'time': 5,
+        'ability': [['unlock build', 'naval defense platform', 'frigate']],
+        'unlocks': ['coast guard'],
+	'quote': "Through surf and storm and howling gale.",
+    },
     'cruisers':{
         'cost': 120,
         'time': 7,
@@ -2082,7 +2096,7 @@ TechDB = {
         'time': 3,
         'ability': [['unlock build', 'docks', 'frigate']],
         'unlocks': ['heavy engines'],
-	'quote': "Anti-air naval defence",
+	'quote': "Anti-air naval defense",
     },
     'heavy engines':{
         'cost': 80,
@@ -2342,7 +2356,7 @@ TechDB = {
     'anti-air':{
         'cost': 30,
         'time': 3,
-        'ability': [['unlock build', 'crane', 'anit-air turret']],
+        'ability': [['unlock build', 'crane', 'anti air turret']],
         'unlocks': [],
     },
 }
