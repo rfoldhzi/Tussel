@@ -1,4 +1,6 @@
 import socket, sys, os,random,copy,traceback
+if os.path.dirname(sys.argv[0]) != '':
+    os.chdir(os.path.dirname(sys.argv[0]))
 from _thread import *
 import pickle
 from game import Game
@@ -106,8 +108,9 @@ def threaded_client(conn, p, gameId):
     if endGame:
         print("Lost connection", p)
         try:
-            del games[gameId]
-            print("Closing Game", gameId)
+            games[gameId].turnToBot(p)
+            #del games[gameId]
+            #print("Closing Game", gameId)
         except:
             pass
         idCount -= 1

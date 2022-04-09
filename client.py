@@ -310,20 +310,38 @@ def getMoveCircles(unit):#Could be more effiecint
                 for x in range(pos[0]-1, pos[0]+2):
                     for y in range(pos[1]-1, pos[1]+2):
                         if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                            if GV.game.getAnyUnitFromPos(x,y) == None:
-                                water = GV.Grid[y][x]
-                                if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                                    newSpaces.append([x,y])
+                            blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                            if blocking_unit != None:
+                                if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                                    if blocking_unit.state == "move":
+                                        if blocking_unit.stateData == pos:
+                                            continue
+                                    else:
+                                        continue
+                                else:
+                                    continue
+                            water = GV.Grid[y][x]
+                            if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                                newSpaces.append([x,y])
             spaces += newSpaces
         spaces.pop(0)
     else:
         for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
                 if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                    if GV.game.getAnyUnitFromPos(x,y) == None:
-                        water = GV.Grid[y][x]
-                        if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                            spaces.append([x,y])
+                    blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                    if blocking_unit != None:
+                        if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                            if blocking_unit.state == "move":
+                                if blocking_unit.stateData == pos:
+                                    continue
+                            else:
+                                continue
+                        else:
+                            continue
+                    water = GV.Grid[y][x]
+                    if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                        spaces.append([x,y])
     
     return spaces
 
@@ -352,7 +370,13 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
+                unit2 = None
+                if not anyBlock:
+                    unit2 = GV.game.getAnyUnitFromPos(x,y)
+                    if unit2 and unit2.state == "move":
+                        if GV.game.checkFriendly(unit, unit2):
+                            unit2 = None
+                if anyBlock or unit2 == None:
                     water = GV.Grid[y][x]
                     if built:
                         t = UnitDB[built].get('type') or 0
@@ -570,8 +594,8 @@ darkunitImages = {}
 GV.playerUnitImages = {}
 buildUnitImages = {}
 
-AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),
-            (161, 224, 255),(94, 115, 68),(102, 57, 57),(74, 120, 64),(140, 136, 55),(30, 92, 77) ]
+AIcolors = [(150,150,150),(50,50,50),(230,230,230),(81, 120, 56), (80, 55, 122), (102, 57, 57),
+            (84, 156, 152),(158, 101, 36),(60, 112, 158),(139, 68, 148),(140, 136, 55),(30, 92, 77) ]
 
 
 def animateUnit(unit1, unit2,t,specfic_player):
@@ -1246,6 +1270,44 @@ def drawLines(tree, treeXOffset, treeYOffset):
         d[key[1]].append(key[0])
     drawLinesHelper(tree, d,treeXOffset, treeYOffset)
 
+def ScoreBoard():
+    font = GV.pygame.font.SysFont("arial", 14)
+
+    sortedScores=dict(sorted(GV.game.scores.items(),key= lambda x:x[1],reverse = True))
+    playersByScore = list(sortedScores)
+
+    startingY = endOfBoard_y + 5
+
+    rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5,50,48)
+
+    pressed = GV.pygame.key.get_pressed()
+    if pressed[GV.pygame.K_TAB]:
+        startingY = endOfBoard_y + 5 - 16 * (max(3,len(playersByScore)-3))
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY,50, 16 * (max(3,len(playersByScore))))
+    else:
+        rect2 = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y,50, 53)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect2)
+
+        if GV.player in playersByScore[:3]:
+            playersByScore = playersByScore[:3]
+        else:
+            playersByScore = playersByScore[:2]
+            playersByScore.append(GV.player)
+    
+    GV.pygame.draw.rect(GV.DISPLAYSURF, (70,70,70), rect)
+    
+    i = 0
+    for p in playersByScore:
+        displayText = str(sortedScores[p])
+        color = GV.playerColors[p]
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY + 16 * i,8*len(displayText) + 4,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
+        text = font.render(displayText, 1, (WHITE))
+        if (0.2126*color[0] + 0.7152*color[1] + 0.0722*color[2]) >= 100:
+            text = font.render(displayText, 1, (BLACK))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x - 50,startingY + 16 * i))
+        i += 1
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -1438,12 +1500,26 @@ def drawBoard():
         #print('We are here we are here we are here')
         #print("WENT", GV.game.went)
         #print(vars(GV.game))
+
+        #Render Turn Counter
+        rect = GV.pygame.Rect(endOfBoard_x + 80,endOfBoard_y - 5,50,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
+        font = GV.pygame.font.SysFont("arial", 14)
+        text = font.render(str(GV.game.turn), 1, (0,0,0))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x + 80,endOfBoard_y - 5))
+
+        #Show Player colors in bottom right corner
         for i in GV.game.went:
-            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
-            if GV.game.went[i]:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
-            else:
+            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4), endOfBoard_y+12 + 10 * (i//4),8,8)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
+            
+            if not GV.game.went[i]:
+                rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4) + 1, endOfBoard_y+12 + 10 * (i//4) + 1,6,6)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
+        
+        
+
+        
         #print('selected',selected)
         #print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
@@ -1532,6 +1608,8 @@ def drawBoard():
                 #GV.DISPLAYSURF.blit(Beaker,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         BF.updateCloudCover()
         BF.drawClouds()
+
+        ScoreBoard()
     else:
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
@@ -1555,8 +1633,11 @@ def resources():
                 res[u.stateData] += u.resourceGen[u.stateData]
     newResources = res
     rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    #rect = GV.pygame.Rect(2,WINDOWHEIGHT-67, 80,65)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
+    #text = Healthfont.render(str(GV.game.scores[GV.player]), 1, (255,255,255))
+    #GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-65))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['gold']), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['metal']), res['metal']), 1, (255,255,255))
@@ -1878,6 +1959,7 @@ def main(playerCount = None):
     GV.JustResize = 0
     animateCounter = GV.animateTime*-2
     GV.newGame = None
+    images = []
     
     while run: # main GV.game loop
         #mouseClicked = False
@@ -1935,6 +2017,19 @@ def main(playerCount = None):
                 drawBoard()
             animateBoard(GV.game, GV.newGame, counter-animateCounter)
             if counter-animateCounter == GV.animateTime:
+                im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                pix = im.load()
+                i = 0
+                for c in GV.BoardColors:
+                    x = i % GV.board_x
+                    y = i // GV.board_x
+                    pix[x,y] = c
+                    i += 1
+                for player in GV.game.units:
+                    for u in GV.game.units[player]:
+                        pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                images.append(im)
                 pass#GV.DISPLAYSURF.fill(GV.BGCOLOR) #Used to clear the board after animating, but blinks when doing so
         elif counter%10 == 0:
             #print("MORE ", vars(GV.game))
@@ -1971,6 +2066,22 @@ def main(playerCount = None):
                     GV.JustResize = counter
                     updateSelf()
                     #GV.pygame.mixer.music.unpause()
+                elif event.key == 111: # 'o' Key   
+                    images[0].save("the_map.gif", save_all=True, append_images=images[1:], optimize=False, duration=500, loop=0) 
+                elif event.key == 112: # 'p' Key    
+                    im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                    pix = im.load()
+                    i = 0
+                    for c in GV.BoardColors:
+                        x = i % GV.board_x
+                        y = i // GV.board_x
+                        pix[x,y] = c
+                        i += 1
+                    for player in GV.game.units:
+                        for u in GV.game.units[player]:
+                            pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                    im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                    im.show()
             elif event.type == VIDEORESIZE and counter - GV.JustResize > 20:
                 GV.JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle

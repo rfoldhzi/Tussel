@@ -136,7 +136,7 @@ def chooseMap(players): #Looks randomly for a map with the correct number of pla
 UnitID = 0 #Static varible to give a unit a unique ID
 
 class Unit:
-    def __init__(self, pos = [0,0], name = 'soldier', parent= None):
+    def __init__(self, pos = [0,0], name = 'soldier', parent= None, score = -1):
         global UnitID
         self.name = name
         self.parent = parent
@@ -152,6 +152,13 @@ class Unit:
         self.maxHealth = UnitDB[name].get('health') or 10
         self.health = int(self.maxHealth)
         self.UnitID = str(UnitID)
+        if score == -1:
+            self.score = 0
+            costs = UnitDB[name].get('cost') or {}
+            for key in costs:
+                self.score += costs[key]
+        else:
+            self.score = score
         UnitID += 1
         self.resourceGen = UnitDB[name].get('resourceGen') or {
             "gold": 4,
@@ -182,7 +189,9 @@ class Game:
         self.resources = {} #Store players' resource counts
         self.went = {}
         self.tech = {}
+        self.scores = {}
         self.progress = {}
+        self.botmode = []
         self.ready = False
         self.started = False
         self.turn = 0
@@ -198,6 +207,7 @@ class Game:
         self.resources[p] = {'gold':20,'metal':0,'energy':0}
         self.went[p] = False
         self.tech[p] = []
+        self.scores[p] = 0
         self.progress[p] = {}
         #b = Unit(startingspots[p], 'town')
         #self.units[p].append(b)
@@ -320,6 +330,10 @@ class Game:
         #SON = json.loads(ZIP)
         return str.encode(ZIP)
     
+    def turnToBot(self,player):
+        self.botmode.append(player)
+        self.went[player] = True
+
     #Finds the unit that a player owns at a specified position
     def getUnitFromPos(self,player,x,y):
         post = [x,y]
@@ -537,6 +551,9 @@ class Game:
         for v in AI:
             Computer.CurrentAI(self,v)
             self.went[v] = True
+        for player in self.botmode:
+            Computer.CurrentAI(self,player)
+            self.went[player] = True
         setDefaultState(self)
         
         #Gain resources
@@ -605,8 +622,8 @@ class Game:
                     RemoveList.append(u)
                 elif u.health > u.maxHealth:
                     u.health = u.maxHealth
-        
-        for u in RemoveList:#more destroy
+
+        for u in RemoveList: # Hunter Events (happens before destroy in case hunter is removed)
             print(u, u.name, 'is destroyed')
             if u.parent:
                 par = self.getUnitFromID(u.parent)
@@ -625,10 +642,12 @@ class Game:
                 newUnit = Unit(u.position,u.abilities['deathSpawn'],u.UnitID)
                 self.upgradeUnit(newUnit, i)
                 self.units[self.getPlayerfromUnit(u)].append(newUnit)
-            
             if u in hunterList: #For abilities that the hunters may have.
                 hunter = hunterList[u]
                 print('there is a hunter', hunter.name, hunter)
+                hunterPlayer = self.getPlayerfromUnit(hunter)
+                self.scores[hunterPlayer] += int(u.score/2)
+                
                 #"takeover" means a unit is built in dead unit's space
                 if 'takeover' in hunter.abilities:
                     if checkRange(hunter,u) <= 1:
@@ -641,11 +660,26 @@ class Game:
                         print('It should work')
                         hunter.state = 'move'
                         hunter.stateData = u.position
-                #self.units[hunterList[u]].append(Unit(u.position,u.name))
-                #print("WHY DON'T I have RESOURCES", u.name, hunterList[u])
-                #self.resources[hunterList[u]]['gold'] += 500
-                
-            self.units[self.getPlayerfromUnit(u)].remove(u)
+
+        for u in RemoveList:#more destroy
+            print(u, u.name, 'is destroyed')
+            player = self.getPlayerfromUnit(u)
+            if u.parent:
+                par = self.getUnitFromID(u.parent)
+                if par:
+                    if getattr(par,'maxPopulation',False): #Reduces population of parent
+                        par.population = max(0,par.population-1)
+            if hasattr(u, "carrying"):
+                for u2 in u.carrying:
+                    if u2.parent:
+                        par = self.getUnitFromID(u2.parent)
+                        if par:
+                            if getattr(par,'maxPopulation',False): #Reduces population of parent
+                                par.population = max(0,par.population-1)
+                    u.score += u2.score # Add transportee's score to transporter when transporter is removed
+            self.scores[player] -= int(u.score/2)
+            self.units[player].remove(u)
+        
         for i in self.units:#Turn off attack of dead targets
             for u in self.units[i]:
                 if u.state == "attack":
@@ -790,13 +824,18 @@ class Game:
                                 for v in cost:
                                     cost[v] = int(cost[v]*(UnitDB[u.stateData[1]]['abilities']['costly']**count)//5*5)
 
-                            newUnit = Unit(u.stateData[0],u.stateData[1],u.UnitID)
-                            self.upgradeUnit(newUnit, i)
-                            self.units[i].append(newUnit)
 
+                            score = 0
                             for v in cost:#player loses resources
                                 self.resources[i][v] -= cost[v]
+                                score += cost[v] #Awards points for each cost when building
                             BlockedSpaces.append(u.stateData[0])
+
+                            self.scores[i] += score
+
+                            newUnit = Unit(u.stateData[0],u.stateData[1],u.UnitID, score)
+                            self.upgradeUnit(newUnit, i)
+                            self.units[i].append(newUnit)
 
                             #"multibuild" tries to build multiple units at once
                             if 'multibuild' in u.abilities:
