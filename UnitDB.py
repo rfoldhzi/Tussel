@@ -596,7 +596,7 @@ UnitDB = {
     },
     'ship yard':{
         'cost': {'gold':150, 'metal':250},
-        'possibleBuilds': ['battleship', 'frigate', 'destroyer'],
+        'possibleBuilds': ['battleship', 'destroyer'],
         'possibleStates': ['resources', 'build'],
         'type': 'building',
 	'population': 1,
@@ -717,7 +717,8 @@ UnitDB = {
     },
     'destroyer':{
         'cost': {'gold':100, 'metal':125,'energy':75},
-        'possibleStates': ['move','attack'],
+        'possibleBuilds': [],
+        'possibleStates': ['move','attack','build'],
         'type': 'boat',
 	'health': 25,
 	'range': 2,
@@ -2011,7 +2012,7 @@ TechDB = {
         'cost': 40,
         'time': 3,
         'ability': [['typeStat', 'boat', 'attack', 0.5]],
-        'unlocks': ['heavy deployment', 'heavy duty offense'],
+        'unlocks': ['heavy duty offense'],
 	'quote': "Big bullets leave big wounds",
     },
     'point defense systems':{
@@ -2022,8 +2023,8 @@ TechDB = {
 	'quote': "Get off my floating fortress, this thing is too expensive to lose.",
     },
     'heavy deployment':{
-        'cost': 50,
-        'time': 2,
+        'cost': 80,
+        'time': 12,
         'ability': [['unlock build', 'seige boat', 'heavy']],
         'unlocks': [],
 	'quote': "This is actually commically OP, but don't tell 3",
@@ -2081,7 +2082,7 @@ TechDB = {
         'cost': 80,
         'time': 5,
         'ability': [['unlock build', 'naval defense platform', 'frigate']],
-        'unlocks': ['coast guard'],
+        'unlocks': [],
 	'quote': "Through surf and storm and howling gale.",
     },
     'cruisers':{
