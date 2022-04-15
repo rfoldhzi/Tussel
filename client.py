@@ -333,7 +333,7 @@ def getMoveCircles(unit):#Could be more effiecint
                     if blocking_unit != None:
                         if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
                             if blocking_unit.state == "move":
-                                if blocking_unit.stateData == pos:
+                                if blocking_unit.stateData == [x,y]:
                                     continue
                             else:
                                 continue
