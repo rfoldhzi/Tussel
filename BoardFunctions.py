@@ -1,4 +1,5 @@
 import GlobalVaribles as GV
+import settings
 from operator import add
 import ClientFunctions as CF
 
@@ -22,7 +23,13 @@ def getImage(name, p, Pictures = 1, size = False):
     if not p in Pictures:
         Pictures[p] = {}
     if not name in Pictures[p]:
-        img = Image.open("assets/%s.png" % name)
+        try:
+            if settings.AltPictures:
+                img = Image.open("assets/alts/%s.png" % name)
+            else:
+                raise
+        except:
+            img = Image.open("assets/%s.png" % name)
         pixels = img.load()
         playerColor = GV.playerColors[p]
         playerColorDark = (int(playerColor[0]/2),int(playerColor[1]/2),int(playerColor[2]/2),255)
