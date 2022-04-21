@@ -110,6 +110,23 @@ def chooseMap(players): #Looks randomly for a map with the correct number of pla
                         #into a dict if it can't find one, then picks a map with more player slots
                         #If all else fails, crash (should probably do something else)
     possibleMaps = os.listdir('maps')
+    if settings.mapType == "any" or settings.mapType == "regular":
+        folders = []
+        for file in possibleMaps:
+            if not os.path.isfile("maps/%s" % file):
+                folders.append(file)
+        for folder in folders:
+            possibleMaps.remove(folder)
+            if settings.mapType == "any":
+                possibleMaps += ["%s/%s" % (folder, x) for x in os.listdir("maps/%s" % folder)]
+    else:
+        print("djdjdjdjd")
+        possibleMaps = ["%s/%s" % (settings.mapType, x) for x in os.listdir("maps/%s" % settings.mapType)]
+
+    if len(possibleMaps) == 0:
+        print("possibleMaps is empty")
+        return 0/0
+    
     if players == 1: # 1 player can be on any map
         return random.choice(possibleMaps)
     mapByPlayers = {}
@@ -256,7 +273,8 @@ class Game:
                 startingspots = methods.findStartSpots(Grid, len(self.units))
             else:
                 startingspots = methods.findStartSpotsFromMap("maps/%s" % self.map)
-            
+
+            del(self.map)
             
             if startingspots == "RETRY":
                 cont = True
