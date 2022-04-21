@@ -38,6 +38,8 @@ animateGrid = []
 
 playerUnitImages = {}
 
+animation = False
+
 RedX = pygame.image.load("assets/AttackX.png")
 
 changeColor = (233,19,212,255)

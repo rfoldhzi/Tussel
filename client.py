@@ -1497,6 +1497,10 @@ def drawBoard():
             else:
                 DoneButton.color = (50,200,50)
             DoneButton.draw(GV.DISPLAYSURF)
+        if counter%4 == 0:
+            GV.animation = True
+        else:
+            GV.animation = False
         #print('We are here we are here we are here')
         #print("WENT", GV.game.went)
         #print(vars(GV.game))

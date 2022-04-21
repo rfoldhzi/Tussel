@@ -2,6 +2,7 @@ import GlobalVaribles as GV
 import settings
 from operator import add
 import ClientFunctions as CF
+import os.path
 
 try:
     from PIL import Image
@@ -16,6 +17,8 @@ def highlightSquare(x,y):
     GV.pygame.draw.rect(GV.DISPLAYSURF, (255,255,255), rect)
 
 def getImage(name, p, Pictures = 1, size = False):
+    if settings.AltPictures and GV.animation and os.path.isfile("assets/alts/%s2.png" % name):
+        name = name + "2"
     if Pictures == 1:
         Pictures = GV.playerUnitImages
     if not size:
