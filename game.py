@@ -332,7 +332,10 @@ class Game:
                         SELF = copy.copy(self)
                         uncopied = False
                     print("STATE DATA", type(u.stateData), u.stateData)
-                    u.stateData = u.stateData.UnitID
+                    if type(type(u.stateData) == dict):
+                        u.stateData = u.stateData["UnitID"]
+                    else:
+                        u.stateData = u.stateData.UnitID
         JSONData = json.dumps(SELF, indent=0, cls=Encoder)
         JSONData = str(JSONData)
         JSONData = JSONData.replace("\n", '')
@@ -379,6 +382,9 @@ class Game:
     
     #Returns true if the same player owns both units
     def checkFriendly(self, unit1, unit2):
+        player = self.getPlayerfromUnit(unit1)
+        if player == None:
+            return False
         return unit2 in self.units[self.getPlayerfromUnit(unit1)]
 
     #Returns true if the given player owns the given unit
