@@ -1450,7 +1450,7 @@ TechDB = {
         'cost': 20,
         'time': 2,
         'ability': [['stat', 'barracks', 'maxPopulation', 1]],
-        'unlocks': ['tougher','defenders'],
+        'unlocks': ['tougher','defenders','anti air'],
     },
     'defenders':{
         'cost': 20,
