@@ -332,7 +332,7 @@ class Game:
                         SELF = copy.copy(self)
                         uncopied = False
                     print("STATE DATA", type(u.stateData), u.stateData)
-                    if type(type(u.stateData) == dict):
+                    if type(u.stateData) == dict:
                         u.stateData = u.stateData["UnitID"]
                     else:
                         u.stateData = u.stateData.UnitID
