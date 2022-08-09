@@ -802,6 +802,7 @@ class Game:
                             transportedUnit.state = None
                             transportedUnit.stateData = None
                             transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
+                            BlockedSpaces.append(u.stateData[0])
                             u.population -= 1
                         u.state = None
                         u.stateData = None
