@@ -1,6 +1,8 @@
 import GlobalVaribles as GV
+import settings
 from operator import add
 import ClientFunctions as CF
+import os.path
 
 try:
     from PIL import Image
@@ -15,6 +17,8 @@ def highlightSquare(x,y):
     GV.pygame.draw.rect(GV.DISPLAYSURF, (255,255,255), rect)
 
 def getImage(name, p, Pictures = 1, size = False):
+    if settings.AltPictures and GV.animation and os.path.isfile("assets/alts/%s2.png" % name):
+        name = name + "2"
     if Pictures == 1:
         Pictures = GV.playerUnitImages
     if not size:
@@ -22,12 +26,22 @@ def getImage(name, p, Pictures = 1, size = False):
     if not p in Pictures:
         Pictures[p] = {}
     if not name in Pictures[p]:
-        img = Image.open("assets/%s.png" % name)
+        try:
+            if settings.AltPictures:
+                img = Image.open("assets/alts/%s.png" % name)
+            else:
+                raise
+        except:
+            img = Image.open("assets/%s.png" % name)
         pixels = img.load()
+        playerColor = GV.playerColors[p]
+        playerColorDark = (int(playerColor[0]/2),int(playerColor[1]/2),int(playerColor[2]/2),255)
         for i in range(img.size[0]): # for every pixel:
             for j in range(img.size[1]):
                 if pixels[i,j] == GV.changeColor: #Looks for the pink in pictures to change
-                    pixels[i,j] = GV.playerColors[p]
+                    pixels[i,j] = playerColor
+                elif pixels[i,j] == GV.changeColor2:
+                    pixels[i,j] = playerColorDark
         img = GV.pygame.image.fromstring(img.tobytes(), img.size, img.mode)
         img = GV.pygame.transform.scale(img, (size, size))
         Pictures[p][name] = img

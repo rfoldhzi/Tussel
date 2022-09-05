@@ -268,8 +268,8 @@ def randomBlueWeighted(x):
     #b = max(0,200 - x * 15)
     base = 13
     sub = ((base)*(base+1))/2 - ((base - x)*((base - x) + 1))/2
-    #print("SUBB",sub,x)
-    #print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
+    ##print("SUBB",sub,x)
+    ##print("(base)+(base+1))/2",((base)+(base+1))/2,"((base - x)*((base - x) + 1))/2",((base - x)*((base - x) + 1))/2)
     if x > base:
         sub = ((base)*(base+1))/2 + x - base
     sub = int(sub)
@@ -310,20 +310,38 @@ def getMoveCircles(unit):#Could be more effiecint
                 for x in range(pos[0]-1, pos[0]+2):
                     for y in range(pos[1]-1, pos[1]+2):
                         if ([x,y] not in spaces) and x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                            if GV.game.getAnyUnitFromPos(x,y) == None:
-                                water = GV.Grid[y][x]
-                                if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                                    newSpaces.append([x,y])
+                            blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                            if blocking_unit != None:
+                                if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                                    if blocking_unit.state == "move":
+                                        if blocking_unit.stateData == pos:
+                                            continue
+                                    else:
+                                        continue
+                                else:
+                                    continue
+                            water = GV.Grid[y][x]
+                            if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                                newSpaces.append([x,y])
             spaces += newSpaces
         spaces.pop(0)
     else:
         for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
             for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
                 if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                    if GV.game.getAnyUnitFromPos(x,y) == None:
-                        water = GV.Grid[y][x]
-                        if (water == (unit.type == 'boat')) or unit.type == "aircraft":
-                            spaces.append([x,y])
+                    blocking_unit = GV.game.getAnyUnitFromPos(x,y)
+                    if blocking_unit != None:
+                        if GV.game.getPlayerfromUnit(blocking_unit) == GV.player:
+                            if blocking_unit.state == "move":
+                                if blocking_unit.stateData == [x,y]:
+                                    continue
+                            else:
+                                continue
+                        else:
+                            continue
+                    water = GV.Grid[y][x]
+                    if (water == (unit.type == 'boat')) or unit.type == "aircraft":
+                        spaces.append([x,y])
     
     return spaces
 
@@ -352,7 +370,13 @@ def getRangeCircles(unit, anyBlock = False, built = False):#Could be more effiec
     for x in range(unit.position[0]-sp, unit.position[0]+1+sp):
         for y in range(unit.position[1]-sp, unit.position[1]+1+sp):
             if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:#If within board:
-                if anyBlock or GV.game.getAnyUnitFromPos(x,y) == None:
+                unit2 = None
+                if not anyBlock:
+                    unit2 = GV.game.getAnyUnitFromPos(x,y)
+                    if unit2 and unit2.state == "move":
+                        if GV.game.checkFriendly(unit, unit2):
+                            unit2 = None
+                if anyBlock or unit2 == None:
                     water = GV.Grid[y][x]
                     if built:
                         t = UnitDB[built].get('type') or 0
@@ -460,7 +484,7 @@ def findStartSpots(g, n = 2):
     for i in range(n):
         pos = random.choice(island)
         points.append(pos)
-    print('starting:',points)
+    #print('starting:',points)
     total = n
     good = []
     Attempts = 0
@@ -468,14 +492,14 @@ def findStartSpots(g, n = 2):
         good.append(True)
     while total > 0 and Attempts < 20:
         Attempts += 1
-        #print(Attempts)
+        ##print(Attempts)
         i=0
         for pos in points:
             smallPoints = list(points)
             smallPoints.remove(pos)
             CurrentTotal, Xrange, Yrange = TotalRange(points)
             s = getSurround(g,pos)
-            #print(pos, s)
+            ##print(pos, s)
             for pos2 in s:
                 newTotal, newX, newY = TotalRange(smallPoints+[pos2])
                 if newTotal > CurrentTotal or (newX+newY > Xrange + Yrange):
@@ -570,8 +594,8 @@ darkunitImages = {}
 GV.playerUnitImages = {}
 buildUnitImages = {}
 
-AIcolors = [(150,150,150),(50,50,50),(230,230,230), (116, 92, 138), (60, 112, 158),(102, 115, 94),
-            (161, 224, 255),(94, 115, 68),(102, 57, 57),(74, 120, 64),(140, 136, 55),(30, 92, 77) ]
+AIcolors = [(150,150,150),(50,50,50),(230,230,230),(81, 120, 56), (80, 55, 122), (102, 57, 57),
+            (84, 156, 152),(158, 101, 36),(60, 112, 158),(139, 68, 148),(140, 136, 55),(30, 92, 77) ]
 
 
 def animateUnit(unit1, unit2,t,specfic_player):
@@ -623,7 +647,7 @@ def animateUnit(unit1, unit2,t,specfic_player):
         if unit2:
             unit = unit2
         if unit.state != None and unit1 in GV.game.units[specfic_player]:
-            #print(vars(unit))
+            ##print(vars(unit))
             rect = GV.pygame.Rect(x*(GV.block_size+1)+GV.offset_x+GV.block_size - 9, y*(GV.block_size+1)+GV.offset_y+4, 5, 5)
             if unit.state == 'resources':
                 if unit.stateData and type(unit.stateData) == str and unit.stateData in GV.resourceColors:
@@ -645,7 +669,7 @@ endOfBoard_y = (GV.block_size+1)*GV.board_y+GV.offset_y#420
 
 WINDOWWIDTH = 640#GV.offset_x*2+(GV.block_size+1)*GV.board_x#640
 WINDOWHEIGHT = 480#GV.offset_y+60+(GV.block_size+1)*GV.board_y#480
-print('x&y',WINDOWWIDTH,WINDOWHEIGHT)
+#print('x&y',WINDOWWIDTH,WINDOWHEIGHT)
 
 GV.highlightSquares = []
 #GV.BoardColors = []
@@ -666,7 +690,7 @@ OrangeHex = GV.pygame.image.load("assets/BuildHex.png")
 RedX = GV.RedX#GV.pygame.image.load("assets/AttackX.png")
 GreenT = GV.pygame.image.load("assets/HealT.png")
 Beaker = GV.pygame.image.load("assets/Beaker.png")
-print(type(blueCircle))
+#print(type(blueCircle))
 
 DoneButton = Button("Done", endOfBoard_x, endOfBoard_y+10, (50,200,50),BLACK,22,(60,40))
 
@@ -687,7 +711,7 @@ def int_to_bool_list(num):
 def intToList(x, width):
     l = []
     for v in x:
-        #print(v)
+        ##print(v)
         l+=int_to_bool_list(v)
     l2 = []
     for i in range(len(l)//width):
@@ -733,7 +757,7 @@ def moveWin(x, y):
 
 def updateSelf():
     global endOfBoard_x, endOfBoard_y, WINDOWWIDTH, WINDOWHEIGHT, DoneButton,blueCircle, greenCircle ,OrangeHex,RedX,GreenT,Beaker,currentTechMenu
-    print('blocksize',GV.block_size)
+    #print('blocksize',GV.block_size)
     GV.board_x = GV.game.width
     GV.board_y = GV.game.height
     GV.cloudMode = GV.game.mode
@@ -787,8 +811,7 @@ def updateSelf():
         if rect.left < 0:
             moveWin(0, rect.top)
 
-
-    print("Window",WINDOWWIDTH,WINDOWWIDTH)
+    #print("Window",WINDOWWIDTH,WINDOWWIDTH)
 
     GV.DISPLAYSURF = GV.pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT),RESIZABLE)
     GV.DISPLAYSURF.fill(GV.BGCOLOR)
@@ -810,7 +833,7 @@ def updateSelf():
     currentTechMenu = []
     
     GV.Grid = intToList(GV.game.intGrid, GV.board_x)
-    #print(Grid)
+    ##print(Grid)
     
     if len(GV.cloudGrid) == GV.board_y and len(GV.cloudGrid[0]) == GV.board_x:
         return
@@ -857,7 +880,7 @@ def updateSelf():
 
     keepGoing = True
     while keepGoing: #Continually loops through until every water tile is assigned a depth value
-        print(depthMap)
+        #print(depthMap)
         keepGoing = False
         x = 0
         newDepthMap = copy.deepcopy(depthMap)
@@ -873,7 +896,7 @@ def updateSelf():
                 y += 1
             x += 1
         depthMap = newDepthMap
-    print("The final depthmap",depthMap)
+    #print("The final depthmap",depthMap)
 
     GV.BoardColors = []
     GV.CloudColors = []
@@ -887,10 +910,10 @@ def updateSelf():
             else:
                 #GV.BoardColors.append(randomGreen())
                 if isNextToWater([x,y]):
-                    #print("YELLOW")
+                    ##print("YELLOW")
                     GV.BoardColors.append(randomYellow())
                 else:
-                    #print("GRWEEN")
+                    ##print("GRWEEN")
                     GV.BoardColors.append(randomGreen())
             x+=1
         y+=1
@@ -937,7 +960,7 @@ def animationGrid(g1,g2):
             d = max(v[0][1], v[1][1])
             for y in range(c,d+1):
                 for x in range(a,b+1):
-                    print(y,x)
+                    #print(y,x)
                     GV.animateGrid[x][y] = False
 
 NotAlreadyReady = True
@@ -953,7 +976,7 @@ def animateBoard(g1,g2,t):
     for i in g1.units:
         for u in GV.game.units[i]:
             if u.stateData:#In case target isn't selected yet
-                #print("Rodeo")
+                ##print("Rodeo")
                 color = False
                 spots = None
                 if u.state == 'move':
@@ -963,7 +986,7 @@ def animateBoard(g1,g2,t):
                         #BF.drawLine((45, 150, 138),u.position,u.stateData)
                     else:
                         color = (0,255,255)
-                        print("more colro", color)
+                        #print("more colro", color)
                         spots = (u.position,u.stateData)
                         #BF.drawLine((0,255,255),u.position,u.stateData)
                 elif u.state == 'attack':
@@ -995,7 +1018,7 @@ def animateBoard(g1,g2,t):
                         spots = (u.position,pos)
                         #BF.drawLine((255,255,255),u.position,pos)
                 elif u.state == 'build':
-                    print('BUILD BUILD BIT')
+                    #print('BUILD BUILD BIT')
                     if len(u.stateData) == 2:
                         if checkRange(u,u.stateData[0]) > u.range:
                             color = (110, 106, 46)
@@ -1003,7 +1026,7 @@ def animateBoard(g1,g2,t):
                             #BF.drawLine((110, 106, 46),u.position,u.stateData[0])
                         else:
                             color = (255,170,0)
-                            print("more colro", color)
+                            #print("more colro", color)
                             spots = (u.position,u.stateData[0])
                             #BF.drawLine((255,170,0),u.position,u.stateData[0])
                 elif u.state == 'research':
@@ -1015,7 +1038,7 @@ def animateBoard(g1,g2,t):
                         GV.DISPLAYSURF.blit(img,(GV.offset_x+(40+1)*len(techDrawn), endOfBoard_y+10))#(115+41*i, 430)
                         techDrawn.append(u.stateData)
                         
-                print("COLOR",color, u.state, u.stateData)
+                #print("COLOR",color, u.state, u.stateData)
                 if color:
                     if spots[0][0] < GV.board_x_start or GV.board_x_end <= spots[0][0] or spots[0][1] < GV.board_y_start or GV.board_y_end <= spots[0][1]:
                         if spots[1][0] < GV.board_x_start or GV.board_x_end <= spots[1][0] or spots[1][1] < GV.board_y_start or GV.board_y_end <= spots[1][1]:
@@ -1040,7 +1063,7 @@ def animateBoard(g1,g2,t):
         for u2 in g2.units[i]:
             u = GV.game.getUnitFromID(u2.UnitID)
             if not u:
-                print('here we go')
+                #print('here we go')
                 BF.animateUnit(None,u2,t,i)#New unit is built
     BF.drawClouds()
 
@@ -1112,8 +1135,8 @@ def techButtonSize(n):
     width_of_techs = max(width_of_techs) #Max on width because stacked like hamburger
     height_of_techs = sum(height_of_techs) #Sum on height for same reason
 
-    print("width_of_techs",width_of_techs)
-    print("height_of_techs",height_of_techs)
+    #print("width_of_techs",width_of_techs)
+    #print("height_of_techs",height_of_techs)
 
     width = (GV.block_size+1)*board_size_x
     height = (GV.block_size+1)*board_size_y
@@ -1188,8 +1211,8 @@ def getTreeSizes(tree, key, n = 0):
                     treeSizes[tree].append([])
                     treeOffsets[tree].append(0)
             total = 1
-        #print("treeSizes", treeSizes[tree])
-        #print("key",key,'n',n,'tree',tree)
+        ##print("treeSizes", treeSizes[tree])
+        ##print("key",key,'n',n,'tree',tree)
         treeSizes[tree][n].append(total)
         return total
 
@@ -1211,7 +1234,7 @@ def placeBoxes(tree,key, n = 0):
 mult = 1.5
 
 def drawLinesHelper(key, d,treeXOffset, treeYOffset):
-    print("KeY:",key,"Current D+",d)
+    #print("KeY:",key,"Current D+",d)
     extraX = -2
     extraY = -2
     if key in GV.game.tech[GV.player] or key in currentTechMenu:
@@ -1220,7 +1243,7 @@ def drawLinesHelper(key, d,treeXOffset, treeYOffset):
             drawLinesHelper(subTech, d,treeXOffset, treeYOffset)
         for subTech in TechDB[key]["unlocks"]:
             if True:#subTech in currentTechMenu:
-                print(key, d[key], d[subTech])
+                #print(key, d[key], d[subTech])
                 x1 = d[key][0][0] + treeXOffset
                 y1 = d[key][0][1] + treeYOffset
                 x2 = d[subTech][0][0] + treeXOffset
@@ -1246,6 +1269,44 @@ def drawLines(tree, treeXOffset, treeYOffset):
         d[key[1]].append(key[0])
     drawLinesHelper(tree, d,treeXOffset, treeYOffset)
 
+def ScoreBoard():
+    font = GV.pygame.font.SysFont("arial", 14)
+
+    sortedScores=dict(sorted(GV.game.scores.items(),key= lambda x:x[1],reverse = True))
+    playersByScore = list(sortedScores)
+
+    startingY = endOfBoard_y + 5
+
+    rect = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y + 5,50,48)
+
+    pressed = GV.pygame.key.get_pressed()
+    if pressed[GV.pygame.K_TAB]:
+        startingY = endOfBoard_y + 5 - 16 * (max(0,len(playersByScore)-3))
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY,50, 16 * (max(3,len(playersByScore))))
+    else:
+        rect2 = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y,50, 53)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect2)
+
+        if GV.player in playersByScore[:3]:
+            playersByScore = playersByScore[:3]
+        else:
+            playersByScore = playersByScore[:2]
+            playersByScore.append(GV.player)
+    
+    GV.pygame.draw.rect(GV.DISPLAYSURF, (70,70,70), rect)
+    
+    i = 0
+    for p in playersByScore:
+        displayText = str(sortedScores[p])
+        color = GV.playerColors[p]
+        rect = GV.pygame.Rect(endOfBoard_x - 52,startingY + 16 * i,8*len(displayText) + 4,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, color, rect)
+        text = font.render(displayText, 1, (WHITE))
+        if (0.2126*color[0] + 0.7152*color[1] + 0.0722*color[2]) >= 100:
+            text = font.render(displayText, 1, (BLACK))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x - 50,startingY + 16 * i))
+        i += 1
+
 currentTechMenu = []
 currentTechImages = {}
 currentTechButtons = []
@@ -1267,7 +1328,7 @@ def researchMenu():
     knownTechHover = CurrentTechHover
     currentlyResearch = True
     currentTechMenu = techs
-    print(currentTechMenu)
+    #print(currentTechMenu)
 
     #TODO: Show which are unlocked, and prevent their click
     #TODO: Potentially Show future unlocks
@@ -1287,33 +1348,33 @@ def researchMenu():
         treeHeight[tech] = len(treeSizes[tech])
 
 
-    print("aviation",boxPlacements["aviation"])
-    print("hieght and width", treeHeight, treeWidth)
-    print("treeSizes",treeSizes)
+    #print("aviation",boxPlacements["aviation"])
+    #print("hieght and width", treeHeight, treeWidth)
+    #print("treeSizes",treeSizes)
 
     size = int(techSize)
-    print('tech size', techSize)
+    #print('tech size', techSize)
     techButtonSize(len(currentTechMenu))
     if size != techSize:
         currentTechImages = {}
     currentTechButtons = []
     w = math.ceil(math.sqrt(len(techs)))#len(techs)//math.ceil(math.sqrt(w)
     #w = math.floor((GV.block_size+1)*GV.board_x/(techSize+1))
-    print('w',w)
+    #print('w',w)
     #w = len(techs)//math.ceil(math.sqrt(w))
     if w == 0: w = 1;
-    print(w)
+    #print(w)
     board_size_x = max(7, (GV.board_x_end - GV.board_x_start))
     board_size_y = max(7, (GV.board_y_end - GV.board_y_start))
     if w > math.floor((GV.block_size+1)*board_size_x/(techSize+1)):
         w = math.floor((GV.block_size+1)*board_size_y/(techSize+1))
     extraX = 0#( (GV.block_size+1)*board_size_x - (w*(techSize+1)) )//2
-    #print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
-    #print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
-    #print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
-    #print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
+    ##print('(GV.block_size+1)*GV.board_y',(GV.block_size+1)*GV.board_y)
+    ##print('math.ceil(w/len(techs))',math.ceil(len(techs)/w))
+    ##print('(math.ceil(w/len(techs))*(techSize+1))',(math.ceil(len(techs)/w)*(techSize+1)))
+    ##print('all',( (GV.block_size+1)*GV.board_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2)
     extraY = 0# ( (GV.block_size+1)*board_size_y - (math.ceil(len(techs)/w)*(techSize+1)) )//2
-    print('extraY',extraY)
+    #print('extraY',extraY)
     rect = GV.pygame.Rect(GV.offset_x-1,GV.offset_y-1, (GV.block_size+1)*board_size_x+1,(GV.block_size+1)*board_size_y+1)#+GV.offset_x,410+GV.offset_y)
     GV.pygame.draw.rect(GV.DISPLAYSURF, BLACK, rect)
 
@@ -1324,13 +1385,13 @@ def researchMenu():
     treeXOffset = 0
     treeYOffset = 0
     
-    print(boxPlacements, "boxPlacements")
+    #print(boxPlacements, "boxPlacements")
 
     j = 0
     for key in boxPlacements:
         #if j - len(boxPlacements) / 2 == 0 or j - len(boxPlacements) / 2 == 0.5:
         if j == 1:
-            print("key is this zone",key)
+            #print("key is this zone",key)
             treeXOffset = 0
             k = 0
             for key2 in treeWidth: #Add up two layers of trees. [0] is the top layer, [1] is the bottom layer
@@ -1341,8 +1402,8 @@ def researchMenu():
                     break
                 k += 1
             
-        print("We are going at the key: ", key,j)
-        print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
+        #print("We are going at the key: ", key,j)
+        #print("TREEXoffset",treeXOffset,"TREEYoffset", treeYOffset)
 
         drawLines(key, treeXOffset, treeYOffset)
 
@@ -1407,15 +1468,15 @@ def researchMenu():
             #add buttons to techbuttons {DONE}
         
         #if not (j - len(boxPlacements) / 2 == 1 or j - len(boxPlacements) / 2 == 0.5): 
-        #    print("key in bottom zone", key)
+        #    #print("key in bottom zone", key)
         treeXOffset += treeWidth[key]
         j+=1
 
 def drawBoard():
-    print('drawing BOARD')
+    #print('drawing BOARD')
     global NotAlreadyReady, currentlyResearch
-    #print("______________________________")
-    #print(vars(GV.game))
+    ##print("______________________________")
+    ##print(vars(GV.game))
     if GV.game.ready:
         if NotAlreadyReady:
             if len(GV.game.units[GV.player]) == 0:
@@ -1424,7 +1485,7 @@ def drawBoard():
             updateSelf()
             BF.updateEdges()
             updateSelf()
-            print("We've updated ourself")
+            #print("We've updated ourself")
         if not GV.game.went[GV.player]:
             allElseWent = True
             for v in GV.game.went:
@@ -1435,19 +1496,37 @@ def drawBoard():
             else:
                 DoneButton.color = (50,200,50)
             DoneButton.draw(GV.DISPLAYSURF)
+        if counter%4 == 0:
+            GV.animation = True
+        else:
+            GV.animation = False
         #print('We are here we are here we are here')
         #print("WENT", GV.game.went)
         #print(vars(GV.game))
+
+        #Render Turn Counter
+        rect = GV.pygame.Rect(endOfBoard_x + 80,endOfBoard_y - 5,50,16)
+        GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
+        font = GV.pygame.font.SysFont("arial", 14)
+        text = font.render(str(GV.game.turn), 1, (0,0,0))
+        GV.DISPLAYSURF.blit(text, (endOfBoard_x + 80,endOfBoard_y - 5))
+
+        #Show Player colors in bottom right corner
         for i in GV.game.went:
-            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 *i, endOfBoard_y+12,8,8)
-            if GV.game.went[i]:
-                GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
-            else:
+            rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4), endOfBoard_y+12 + 10 * (i//4),8,8)
+            GV.pygame.draw.rect(GV.DISPLAYSURF, GV.playerColors[i], rect)
+            
+            if not GV.game.went[i]:
+                rect = GV.pygame.Rect(endOfBoard_x + 70 + 10 * (i%4) + 1, endOfBoard_y+12 + 10 * (i//4) + 1,6,6)
                 GV.pygame.draw.rect(GV.DISPLAYSURF, GV.BGCOLOR, rect)
-        #print('selected',selected)
-        #print('stateDataMode',stateDataMode)
+        
+        
+
+        
+        ##print('selected',selected)
+        ##print('stateDataMode',stateDataMode)
         if selected and stateDataMode == 'research':
-            print('researching....')
+            #print('researching....')
             researchMenu()
             return
         currentlyResearch = False
@@ -1467,7 +1546,7 @@ def drawBoard():
                     else:
                         BF.drawLine((0,255,255),u.position,u.stateData)
                 elif u.state == 'attack':
-                    print(u.stateData)
+                    #print(u.stateData)
                     pos = None
                     if type(u.stateData) == dict:
                         pos = u.stateData['position']
@@ -1480,7 +1559,7 @@ def drawBoard():
                     else:
                         BF.drawLine((255,0,0),u.position,pos)
                 elif u.state == 'heal':
-                    print(u.stateData)
+                    #print(u.stateData)
                     pos = None
                     if type(u.stateData) == dict:
                         pos = u.stateData['position']
@@ -1523,15 +1602,17 @@ def drawBoard():
             BF.drawIcon(GreenT, pos)
             #GV.DISPLAYSURF.blit(GreenT,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         if selected:
-            print('you have someone selected')
-            print('posible',selected.possibleStates)
+            #print('you have someone selected')
+            #print('posible',selected.possibleStates)
             if 'research' in selected.possibleStates and stateDataMode == None:
-                print('yay for research')
+                #print('yay for research')
                 pos = selected.position
                 BF.drawIcon(Beaker, pos)
                 #GV.DISPLAYSURF.blit(Beaker,(pos[0]*(GV.block_size+1)+GV.offset_x-1, pos[1]*(GV.block_size+1)+GV.offset_y-1))
         BF.updateCloudCover()
         BF.drawClouds()
+
+        ScoreBoard()
     else:
         font = GV.pygame.font.SysFont("arial", 60)
         text = font.render("Waiting...", 1, (255,0,0))
@@ -1555,8 +1636,11 @@ def resources():
                 res[u.stateData] += u.resourceGen[u.stateData]
     newResources = res
     rect = GV.pygame.Rect(2,WINDOWHEIGHT-52, 80,50)#428
+    #rect = GV.pygame.Rect(2,WINDOWHEIGHT-67, 80,65)#428
     GV.pygame.draw.rect(GV.DISPLAYSURF, (50,50,50), rect)
     Healthfont = GV.pygame.font.SysFont("arial", 15)
+    #text = Healthfont.render(str(GV.game.scores[GV.player]), 1, (255,255,255))
+    #GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-65))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['gold']), res['gold']), 1, (255,255,0))
     GV.DISPLAYSURF.blit(text, (5,WINDOWHEIGHT-50))#430
     text = Healthfont.render("%s + %s" % (str(GV.game.resources[GV.player]['metal']), res['metal']), 1, (255,255,255))
@@ -1816,7 +1900,7 @@ grid = []
 def cleanUpAfterSelect():
     global moveCircles,transportSpots, selected,stateDataMode, extraButtons, buildHexes, possibleAttacks,possibleHeals,PrevTechHover,CurrentTechHover
     selected = None
-    print(selected)
+    #print(selected)
     stateDataMode = None
     GV.highlightSquares = []
     moveCircles = []
@@ -1878,6 +1962,7 @@ def main(playerCount = None):
     GV.JustResize = 0
     animateCounter = GV.animateTime*-2
     GV.newGame = None
+    images = []
     
     while run: # main GV.game loop
         #mouseClicked = False
@@ -1886,15 +1971,15 @@ def main(playerCount = None):
         try:
             R = n.send("get")
             if R != "Nothing" and R != None: #and type(r) != str:
-                #print("HERE")
+                ##print("HERE")
                 try:
-                    print("Collecting:")
+                    #print("Collecting:")
                     r = GameMaker(R)
                 except Exception as e:
                     print(str(e))
                     
-                print("IT WAS DIFFERENT")
-                print(vars(r))
+                #print("IT WAS DIFFERENT")
+                #print(vars(r))
                 if roundEnd(GV.game,r):
                     print("I think the round ended.....")
                     end_of_round_beeps.play()
@@ -1904,45 +1989,58 @@ def main(playerCount = None):
                             GV.newGame = r
                             changeAnimateSpeed(GV.game,GV.newGame)
                             animationGrid(GV.game,GV.newGame)
-                            print(GV.animateTime)
+                            #print(GV.animateTime)
                         else:
                             GV.game = r
                 else:
-                    #print("stuff", roundEnd(GV.game,r))
+                    ##print("stuff", roundEnd(GV.game,r))
                     GV.game = r
                     GV.newGame = r#######
-                    #print("GAME", vars(GV.game))
-                    #print("GV.newGame", vars(GV.newGame))
-                    #print("R", vars(r))
+                    ##print("GAME", vars(GV.game))
+                    ##print("GV.newGame", vars(GV.newGame))
+                    ##print("R", vars(r))
             elif type(R) == str:
-                #print("HERE2", r)
-                pass#print(r)
+                ##print("HERE2", r)
+                pass##print(r)
         except Exception as e:
             run = False
             traceback.print_tb(e.__traceback__)
-            print("Couldn't get GV.game",e)
+            #print("Couldn't get GV.game",e)
             break
         
         counter += 1
         if counter-animateCounter <= GV.animateTime:
-            print("animateCounter",animateCounter,"counter",counter)
+            #print("animateCounter",animateCounter,"counter",counter)
             if animateCounter + 1 == counter:
-                print("WE ARE HERE WE ARE HERE WE ARE HERE")
+                #print("WE ARE HERE WE ARE HERE WE ARE HERE")
                 BF.updateEdges()
-                print("THE EDGES",GV.board_x_start,GV.board_x_end,GV.board_y_start,GV.board_y_end)
+                #print("THE EDGES",GV.board_x_start,GV.board_x_end,GV.board_y_start,GV.board_y_end)
                 updateSelf()
                 BF.updateEdges()
                 drawBoard()
             animateBoard(GV.game, GV.newGame, counter-animateCounter)
             if counter-animateCounter == GV.animateTime:
+                im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                pix = im.load()
+                i = 0
+                for c in GV.BoardColors:
+                    x = i % GV.board_x
+                    y = i // GV.board_x
+                    pix[x,y] = c
+                    i += 1
+                for player in GV.game.units:
+                    for u in GV.game.units[player]:
+                        pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                images.append(im)
                 pass#GV.DISPLAYSURF.fill(GV.BGCOLOR) #Used to clear the board after animating, but blinks when doing so
         elif counter%10 == 0:
-            #print("MORE ", vars(GV.game))
+            ##print("MORE ", vars(GV.game))
             if GV.newGame:
-                #print("Even MORE", vars(GV.newGame))
+                ##print("Even MORE", vars(GV.newGame))
                 GV.game = GV.newGame
-            #print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-            #print(vars(GV.game))
+            ##print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+            ##print(vars(GV.game))
             drawBoard()
             resources()
         
@@ -1971,13 +2069,29 @@ def main(playerCount = None):
                     GV.JustResize = counter
                     updateSelf()
                     #GV.pygame.mixer.music.unpause()
+                elif event.key == 111: # 'o' Key   
+                    images[0].save("the_map.gif", save_all=True, append_images=images[1:], optimize=False, duration=500, loop=0) 
+                elif event.key == 112: # 'p' Key    
+                    im = Image.new(mode="RGB", size=(GV.board_x, GV.board_y))
+                    pix = im.load()
+                    i = 0
+                    for c in GV.BoardColors:
+                        x = i % GV.board_x
+                        y = i // GV.board_x
+                        pix[x,y] = c
+                        i += 1
+                    for player in GV.game.units:
+                        for u in GV.game.units[player]:
+                            pix[u.position[0],u.position[1]] = GV.playerColors[player]
+                    im = im.resize((GV.board_x * 4, GV.board_y * 4))
+                    im.show()
             elif event.type == VIDEORESIZE and counter - GV.JustResize > 20:
                 GV.JustResize = counter
                 if event.w-230 > event.h-65: #Wide rectangle
                     GV.block_size = (event.h-65)//max(7, (GV.board_y_end - GV.board_y_start))
                 else:
                     GV.block_size = (event.w-65)//max(7, (GV.board_x_end - GV.board_x_start))
-                print('blocksize',GV.block_size)
+                #print('blocksize',GV.block_size)
                 GV.playerUnitImages = {} #To reset all unit images
                 buildUnitImages = {}
                 updateSelf()
@@ -2028,9 +2142,9 @@ def main(playerCount = None):
                 x,y = gridMouse(mousex, mousey, GV.block_size,GV.offset_x,GV.offset_y)
                 x += GV.board_x_start
                 y += GV.board_y_start
-                print(x,y)
-                print('datamode', stateDataMode)
-                print('selected', selected)
+                #print(x,y)
+                #print('datamode', stateDataMode)
+                #print('selected', selected)
                 if stateDataMode == 'move':
                     selected.state = None
                     if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
@@ -2111,7 +2225,7 @@ def main(playerCount = None):
                     #Here is to sumbit to server
                     drawBoard()
                 elif stateDataMode == 'research':
-                    print('RESEARCH CLICK')
+                    #print('RESEARCH CLICK')
                     selected.state = None
 
                     play_time = GV.pygame.mixer.music.get_pos()
@@ -2121,7 +2235,7 @@ def main(playerCount = None):
                     GV.pygame.mixer.music.play(-1, start_music)
 
 
-                    print('currentTechButtons',currentTechButtons)
+                    #print('currentTechButtons',currentTechButtons)
 
                     CleanUp = True #Only cleanup if player clicked a valid tech or black region
                     
@@ -2136,7 +2250,7 @@ def main(playerCount = None):
                                     break
                             
                             
-                            print('ONE OF THEM WAS CLICKKKEDD!!')
+                            #print('ONE OF THEM WAS CLICKKKEDD!!')
 
                             #research_selected_audio.play()
 
@@ -2219,7 +2333,7 @@ def main(playerCount = None):
                                 break
                     #if x >= 0 and y >= 0 and y<GV.board_y and x<GV.board_x:
                     if x >= GV.board_x_start and y >= GV.board_y_start and y<GV.board_y_end and x<GV.board_x_end:
-                        print("An extra thing")
+                        #print("An extra thing")
                         if [x,y] in moveCircles: #A move was clicked
                             selected.stateData = [x,y]
                             selected.state = 'move'
@@ -2228,7 +2342,7 @@ def main(playerCount = None):
 
                             n.send(convertToStr(selected,'move',[x,y]))
                             cleanUpAfterSelect()
-                            print(selected)
+                            #print(selected)
                             #Here is to sumbit to server
                         elif [x,y] in possibleAttacks:
                             selected.stateData = GV.game.getAnyUnitFromPos(x,y)
@@ -2247,7 +2361,7 @@ def main(playerCount = None):
                         else:
                             newSelected = GV.game.getUnitFromPos(GV.player,x,y)
                             if newSelected == selected:
-                                print('the same was clicked')
+                                #print('the same was clicked')
                                 if 'research' in newSelected.possibleStates:
                                     stateDataMode = 'research'
 
@@ -2262,7 +2376,7 @@ def main(playerCount = None):
                                     #selected.state = 'attack'
                             #selected = newSelected#GV.game.getUnitFromPos(GV.player,x,y)
                             elif newSelected:#Unit is clicked
-                                print('a unit was clicked')
+                                #print('a unit was clicked')
                                 selected = newSelected
 
                                 PlaySoundByUnit(selected, "affirmative")
@@ -2270,7 +2384,7 @@ def main(playerCount = None):
                                 GV.highlightSquares = [[x,y]]
                                 moveCircles = getMoveCircles(selected)
                                 transportSpots = getTransportSpots(selected)
-                                print("Total transport spots 1", transportSpots)
+                                #print("Total transport spots 1", transportSpots)
                                 moveCircles += transportSpots
                                 possibleAttacks = getAttacks(selected)
                                 possibleHeals = getHeals(selected)
@@ -2330,11 +2444,11 @@ def main(playerCount = None):
                             
                             PlaySoundByUnit(selected, "affirmative")
 
-                            print(vars(selected))
+                            #print(vars(selected))
                             GV.highlightSquares = [[x,y]]
                             moveCircles = getMoveCircles(selected)
                             transportSpots = getTransportSpots(selected)
-                            print("Total transport spots 2", transportSpots)
+                            #print("Total transport spots 2", transportSpots)
                             moveCircles += transportSpots
                             possibleAttacks = getAttacks(selected)
                             possibleHeals = getHeals(selected)
