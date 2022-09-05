@@ -1156,7 +1156,151 @@ UnitDB = {
             "metal": 0
         }
     },
-    
+    #Glob Faction
+    'mothership':{
+        'cost': {'energy':200},
+        'possibleBuilds': ['glob lab','alien fighter','alien transport','mining vessel','alien power generator'],
+        'possibleStates': ['move','resources', 'build'],
+        'type': 'aircraft',
+        'health': 50,
+        'resourceGen':{
+            "energy": 20, 
+            "metal": 10, 
+        }
+    },
+
+    'alien transport':{
+        'cost': {'energy':20, 'metal':30},
+        'possibleStates': ['move', 'transport'],
+        'type': 'aircraft',
+        'health': 10,
+        'speed':2,
+        'abilities':{'default_transport':['cow','alien foot soldier','alien foot soldier']},
+        'resourceGen':{
+            "gold": 0
+        }
+    },
+
+    'cow':{
+        'cost': {'gold':20},
+        'possibleStates': ['move','resources'],
+        'health': 12,
+        'resourceGen':{
+            "gold": 10,
+            "metal": 0,
+            "energy": 0
+        }
+    },
+
+    'alien foot soldier':{
+        'cost': {'gold':20},
+        'resourceGen':{"gold": 0}
+        #Maybe multi-attack ability
+    },
+
+    'alien fighter':{
+        'cost': {'energy':20, 'metal':30},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':10,
+        'speed':2,
+        'range':2,
+        'defense':1,
+        'resourceGen':{"gold": 0}
+    },
+
+    'mining vessel':{
+        'cost': {'metal':5, 'energy':50},
+        'possibleStates': ['resources'],
+        'type': 'building',
+        'health': 18,
+        'abilities':{'costly':1.1},
+        'resourceGen':{
+            "metal": 20
+        }
+    },
+
+    'alien power generator':{
+        'cost': {'metal':50, 'energy':5},
+        'possibleStates': ['resources'],
+        'type': 'aircraft',
+        'health': 18,
+        'abilities':{'costly':1.1},
+        'resourceGen':{
+            "energy": 20
+        }
+    },
+
+    'glob lab':{
+        'cost': {'metal':50, 'energy':10},
+        'possibleBuilds': ['glob','glob walker', 'glob symbiote'],
+        'possibleStates': ['resources', 'build'],
+        'type': 'building',
+        'health': 15,
+        'abilities':{'costly':1.5},
+        'resourceGen':{
+            "gold": 5,
+        }
+    },
+
+    'glob':{
+        'cost': {'gold':20},
+        'possibleStates':['move', 'attack'],
+        'health': 5,
+        'abilities':{'deathSpawn':'small glob'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'small glob':{
+        'cost': {'gold':20},
+        'possibleStates':['move', 'attack'],
+        'health': 3,
+        'attack': 1.5,
+        'abilities':{'deathSpawn':'baby glob'},
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+    'baby glob':{
+        'cost': {'gold':20},
+        'possibleStates':['move', 'attack'],
+        'health': 1,
+        'attack': 1,
+        'resourceGen':{
+            "metal": 0
+        }
+    },
+
+    'glob walker':{
+        'cost': {'gold':40},
+        'possibleBuilds': ['glob snake'],
+        'possibleStates': ['move', 'resources', 'build'],
+        'health': 20,
+        'population':2,
+        'resourceGen':{
+            "energy": 2
+        }
+    },
+
+    'glob snake':{
+        'cost': {'gold':20,'energy':10},
+        'possibleStates': ['move','attack'],
+        'attack':3.5,
+        'abilities':{'onlyHit':['trooper']}
+    },
+
+    'glob symbiote':{
+        'cost': {'energy':100, 'gold':30},
+        'possibleStates': ['move','attack'],
+        'type': 'aircraft',
+        'health':10,
+        'attack':5,
+        'speed':2,
+        'defense':1,
+        'abilities':{'onlyHit':['trooper','bot','aircraft','boat','vehicle','monster'],'convert':0,'kamikaze':0,}
+    },
+
 }
 
 TechDB = {
