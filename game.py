@@ -308,14 +308,16 @@ class Game:
                 #self.units[p].append(Unit(startingspots[p], starters[i]))
                 if i >= realPlayers: #AIs start with trees
                     rand = random.random()
-                    if random.random() < 0.33:
+                    if random.random() < 0.25:
                         self.units[p].append(Unit(startingspots[p], "town"))
-                    elif random.random() < 0.5:
+                    elif random.random() < 0.25:
                         self.units[p].append(Unit(startingspots[p], "plant base"))
-                    elif random.random() < 0.75:
+                    elif random.random() < 0.33:
                         self.units[p].append(Unit(startingspots[p], "bot fortress"))
-                    else:
+                    elif random.random() < 0.5:
                         self.units[p].append(Unit(startingspots[p], "tree"))
+                    else:
+                        self.units[p].append(Unit(startingspots[p], "mothership"))
                 else:
                     self.units[p].append(Unit(startingspots[p], "town"))
                 i+=1
@@ -332,7 +334,7 @@ class Game:
                         SELF = copy.copy(self)
                         uncopied = False
                     print("STATE DATA", type(u.stateData), u.stateData)
-                    if type(type(u.stateData) == dict):
+                    if type(u.stateData) == dict:
                         u.stateData = u.stateData["UnitID"]
                     else:
                         u.stateData = u.stateData.UnitID
@@ -813,6 +815,7 @@ class Game:
                             transportedUnit.state = None
                             transportedUnit.stateData = None
                             transportedUnit.transporter = u.UnitID #So the animation knows where this unit came from
+                            BlockedSpaces.append(u.stateData[0])
                             u.population -= 1
                         u.state = None
                         u.stateData = None
