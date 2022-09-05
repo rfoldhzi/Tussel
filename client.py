@@ -1281,7 +1281,7 @@ def ScoreBoard():
 
     pressed = GV.pygame.key.get_pressed()
     if pressed[GV.pygame.K_TAB]:
-        startingY = endOfBoard_y + 5 - 16 * (max(3,len(playersByScore)-3))
+        startingY = endOfBoard_y + 5 - 16 * (max(0,len(playersByScore)-3))
         rect = GV.pygame.Rect(endOfBoard_x - 52,startingY,50, 16 * (max(3,len(playersByScore))))
     else:
         rect2 = GV.pygame.Rect(endOfBoard_x - 52,endOfBoard_y,50, 53)
